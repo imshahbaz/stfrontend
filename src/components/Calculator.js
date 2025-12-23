@@ -123,41 +123,41 @@ const Calculator = () => {
       <Card sx={{ boxShadow: 3 }}>
         <CardContent sx={{ p: 4 }}>
           <Box component="form" onSubmit={(e) => { e.preventDefault(); calculateReturns(); }}>
-            <Grid container spacing={4} sx={{ mb: 4 }}>
-              <Grid item xs={12}>
+          
+            <Grid container spacing={0} sx={{ mb: 4, width: '100%' }}>
+              <Grid item xs={12} sx={{ width: '100%' }}>
                 <Autocomplete
+                  fullWidth
                   options={margins}
                   getOptionLabel={(option) => `${option.symbol} (${option.margin}x Margin)`}
-                  value={margins.find(item => item.symbol === selectedSymbolRaw) || null}
-                  onChange={(event, newValue) => {
-                    if (newValue) {
-                      selectSuggestion(newValue);
-                    }
-                  }}
+                  value={margins.find((item) => item.symbol === selectedSymbolRaw) || null}
+                  onChange={(event, newValue) => newValue && selectSuggestion(newValue)}
+                  // Force the Autocomplete wrapper to be 100% wide
+                  sx={{ width: '100%' }}
                   renderInput={(params) => (
                     <TextField
                       {...params}
                       label="Stock Symbol"
-                      placeholder="Type to search stocks..."
+                      placeholder="Search stocks..."
                       required
                       fullWidth
                       sx={{
+                        width: '100%',
                         '& .MuiInputBase-root': {
-                          fontSize: '1.5rem',
-                          padding: '20px 24px',
-                          minHeight: '70px'
+                          fontSize: '1.1rem',      // Reduced font size
+                          padding: '8px 16px',     // Standard vertical padding
+                          minHeight: '56px',       // Standard MUI height
+                          borderRadius: '8px',     // Clean, modern corners
                         },
-                        '& .MuiInputLabel-root': { fontSize: '1.4rem' }
+                        '& .MuiInputLabel-root': {
+                          fontSize: '1rem',
+                          transform: 'translate(14px, 16px) scale(1)'
+                        },
+                        '& .MuiInputLabel-shrink': {
+                          transform: 'translate(14px, -9px) scale(0.75)'
+                        }
                       }}
                     />
-                  )}
-                  renderOption={(props, option) => (
-                    <Box component="li" {...props}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                        <Typography variant="body1"><strong>{option.symbol}</strong></Typography>
-                        <Typography variant="body2" color="text.secondary">{option.margin}x Margin</Typography>
-                      </Box>
-                    </Box>
                   )}
                 />
               </Grid>
