@@ -1,6 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import api from '../api/axios';
+import { authAPI } from '../api/axios';
+import {
+  Container,
+  Box,
+  Card,
+  CardContent,
+  CardHeader,
+  TextField,
+  Button,
+  Alert,
+  IconButton,
+  Collapse,
+} from '@mui/material';
+import { Email, Person, Save, Close, Settings as SettingsIcon } from '@mui/icons-material';
 
 const Settings = () => {
   const { user, login } = useAuth();
@@ -21,7 +34,7 @@ const Settings = () => {
     setSuccessMessage('');
     setErrorMessage('');
     try {
-      const response = await api.patch('/api/auth/username', { email, username });
+      const response = await authAPI.updateUsername(email, username);
       setSuccessMessage('Settings updated successfully');
       // Update the context with the new username
       login({ ...user, username });
@@ -31,78 +44,99 @@ const Settings = () => {
   };
 
   return (
-    <>
-      <main className="container flex-grow-1">
-        <div className="py-5">
-          <div className="row justify-content-center">
-            <div className="col-md-8 col-lg-6">
-              <div className="card shadow">
-                <div className="card-header bg-primary text-white">
-                  <h4 className="mb-0">
-                    <i className="fas fa-cog me-2"></i>Account Settings
-                  </h4>
-                </div>
-                <div className="card-body">
-                  {successMessage && (
-                    <div className="alert alert-success alert-dismissible fade show" role="alert">
-                      <i className="fas fa-check-circle me-2"></i>{successMessage}
-                      <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setSuccessMessage('')}></button>
-                    </div>
-                  )}
+    <Container maxWidth="md" sx={{ flexGrow: 1, py: 5 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+        <Card sx={{ minWidth: 400, maxWidth: 600, boxShadow: 3 }}>
+          <CardHeader
+            title={
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <SettingsIcon sx={{ mr: 1 }} />
+                Account Settings
+              </Box>
+            }
+            sx={{ backgroundColor: 'primary.main', color: 'primary.contrastText' }}
+          />
+          <CardContent sx={{ p: 3 }}>
+            <Collapse in={!!successMessage}>
+              <Alert
+                severity="success"
+                action={
+                  <IconButton
+                    aria-label="close"
+                    color="inherit"
+                    size="small"
+                    onClick={() => setSuccessMessage('')}
+                  >
+                    <Close fontSize="inherit" />
+                  </IconButton>
+                }
+                sx={{ mb: 2 }}
+              >
+                {successMessage}
+              </Alert>
+            </Collapse>
 
-                  {errorMessage && (
-                    <div className="alert alert-danger alert-dismissible fade show" role="alert">
-                      <i className="fas fa-exclamation-triangle me-2"></i>{errorMessage}
-                      <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorMessage('')}></button>
-                    </div>
-                  )}
+            <Collapse in={!!errorMessage}>
+              <Alert
+                severity="error"
+                action={
+                  <IconButton
+                    aria-label="close"
+                    color="inherit"
+                    size="small"
+                    onClick={() => setErrorMessage('')}
+                  >
+                    <Close fontSize="inherit" />
+                  </IconButton>
+                }
+                sx={{ mb: 2 }}
+              >
+                {errorMessage}
+              </Alert>
+            </Collapse>
 
-                  <form onSubmit={handleSubmit}>
-                    <div className="mb-3">
-                      <label htmlFor="email" className="form-label">
-                        <i className="fas fa-envelope me-1"></i>Email Address
-                      </label>
-                      <input
-                        type="email"
-                        className="form-control"
-                        id="email"
-                        value={email}
-                        readOnly
-                      />
-                      <div className="form-text">Email address cannot be changed</div>
-                    </div>
-
-                    <div className="mb-3">
-                      <label htmlFor="username" className="form-label">
-                        <i className="fas fa-user me-1"></i>Username
-                      </label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        id="username"
-                        name="username"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        required
-                        minLength="3"
-                        maxLength="50"
-                      />
-                      <div className="form-text">Choose a username (3-50 characters)</div>
-                    </div>
-
-                    <div className="d-grid">
-                      <button type="submit" className="btn btn-primary">
-                        <i className="fas fa-save me-2"></i>Save Changes
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-    </>
+            <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
+              <TextField
+                margin="normal"
+                fullWidth
+                id="email"
+                label="Email Address"
+                value={email}
+                InputProps={{
+                  readOnly: true,
+                  startAdornment: <Email sx={{ mr: 1, color: 'action.active' }} />,
+                }}
+                helperText="Email address cannot be changed"
+              />
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="username"
+                label="Username"
+                name="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                inputProps={{ minLength: 3, maxLength: 50 }}
+                InputProps={{
+                  startAdornment: <Person sx={{ mr: 1, color: 'action.active' }} />,
+                }}
+                helperText="Choose a username (3-50 characters)"
+              />
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                sx={{ mt: 3, mb: 2 }}
+                startIcon={<Save />}
+              >
+                Save Changes
+              </Button>
+            </Box>
+          </CardContent>
+        </Card>
+      </Box>
+    </Container>
   );
 };
 

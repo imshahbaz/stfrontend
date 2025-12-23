@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import api from '../api/axios';
+import { authAPI } from '../api/axios';
 
 const AuthContext = createContext(null);
 
@@ -13,7 +13,7 @@ export const AuthProvider = ({ children }) => {
         const checkAuth = async () => {
             try {
                 // This calls your protected GET /auth/me (token is in cookies)
-                const res = await api.get('api/auth/me');
+                const res = await authAPI.getMe();
                 setUser(res.data);
                 setToken('cookie'); // Indicate token is in cookies
             } catch (err) {
@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = async () => {
-        await api.post('/api/auth/logout');
+        await authAPI.logout();
         setUser(null);
         setToken(null);
         localStorage.removeItem('auth_token');

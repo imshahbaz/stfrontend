@@ -1,13 +1,28 @@
 import React from 'react';
+import { Box, Typography, Link } from '@mui/material';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
   return (
-    <footer className="bg-light text-center text-lg-start mt-auto">
-      <div className="text-center p-3" style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}>
-        &copy; {currentYear} <a className="text-dark" href="/">Trades Application</a>. All rights reserved.
-      </div>
-    </footer>
+    <Box
+      component="footer"
+      sx={{
+        bgcolor: 'background.default',
+        textAlign: 'center',
+        py: 3,
+        mt: 'auto',
+        borderTop: 1,
+        borderColor: 'divider',
+      }}
+    >
+      <Typography variant="body2" color="text.secondary">
+        &copy; {currentYear}{' '}
+        <Link href="/" color="inherit" underline="hover">
+          Shahbaz Trades Application
+        </Link>
+        . All rights reserved.
+      </Typography>
+    </Box>
   );
 };
 
