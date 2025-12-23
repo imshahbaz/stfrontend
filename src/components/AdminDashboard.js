@@ -1,5 +1,18 @@
 import { useState } from 'react';
 import api from '../api/axios';
+import {
+  Container,
+  Box,
+  Typography,
+  Card,
+  CardHeader,
+  CardContent,
+  Button,
+  Grid,
+  Alert,
+  CircularProgress,
+} from '@mui/material';
+import { CloudUpload, Dashboard } from '@mui/icons-material';
 
 const AdminDashboard = () => {
   const [file, setFile] = useState(null);
@@ -45,84 +58,85 @@ const AdminDashboard = () => {
   };
 
   return (
-    <>
-      <main className="container flex-grow-1">
-        <div className="py-5">
-          <div className="row mb-4">
-            <div className="col-12">
-              <h2 className="text-primary mb-4">
-                <i className="fas fa-tachometer-alt me-2"></i>Admin Dashboard
-              </h2>
-            </div>
-          </div>
+    <Container maxWidth="lg" sx={{ flexGrow: 1, py: 5 }}>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" component="h1" color="primary" gutterBottom>
+          <Dashboard sx={{ mr: 1, verticalAlign: 'middle' }} />
+          Admin Dashboard
+        </Typography>
+      </Box>
 
-          <div className="row">
-            {/* Margin Data Management */}
-            <div className="col-lg-6 mb-4">
-              <div className="card h-100 shadow">
-                <div className="card-header bg-primary text-white">
-                  <h5 className="mb-0">
-                    <i className="fas fa-upload me-2"></i>Margin Data Management
-                  </h5>
-                </div>
-                <div className="card-body">
-                  <p className="text-muted">Upload CSV files to load margin data into the system.</p>
+      <Grid container spacing={4}>
+        {/* Margin Data Management */}
+        <Grid item xs={12} md={6}>
+          <Card sx={{ height: '100%', boxShadow: 3 }}>
+            <CardHeader
+              title={
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <CloudUpload sx={{ mr: 1 }} />
+                  Margin Data Management
+                </Box>
+              }
+              sx={{ backgroundColor: 'primary.main', color: 'primary.contrastText' }}
+            />
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                Upload CSV files to load margin data into the system.
+              </Typography>
 
-                  <form onSubmit={handleSubmit} encType="multipart/form-data">
-                    <div className="mb-3">
-                      <label htmlFor="csvFile" className="form-label">
-                        <i className="fas fa-file-csv me-1"></i>CSV File
-                      </label>
-                      <input
-                        type="file"
-                        className="form-control"
-                        id="csvFile"
-                        name="file"
-                        accept=".csv"
-                        onChange={handleFileChange}
-                        required
-                      />
-                      <div className="form-text">Select a CSV file containing margin data</div>
-                    </div>
+              <Box component="form" onSubmit={handleSubmit} encType="multipart/form-data">
+                <Button
+                  variant="outlined"
+                  component="label"
+                  fullWidth
+                  sx={{ mb: 2 }}
+                >
+                  <CloudUpload sx={{ mr: 1 }} />
+                  Select CSV File
+                  <input
+                    type="file"
+                    hidden
+                    accept=".csv"
+                    onChange={handleFileChange}
+                    required
+                  />
+                </Button>
+                {file && (
+                  <Typography variant="body2" sx={{ mb: 2 }}>
+                    Selected: {file.name}
+                  </Typography>
+                )}
 
-                    <div className="d-grid">
-                      <button type="submit" className="btn btn-primary" disabled={uploading}>
-                        {uploading ? (
-                          <>
-                            <i className="fas fa-spinner fa-spin me-2"></i>Uploading...
-                          </>
-                        ) : (
-                          <>
-                            <i className="fas fa-upload me-2"></i>Upload and Load Data
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </form>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  fullWidth
+                  disabled={uploading}
+                  startIcon={uploading ? <CircularProgress size={20} /> : <CloudUpload />}
+                >
+                  {uploading ? 'Uploading...' : 'Upload and Load Data'}
+                </Button>
+              </Box>
 
-                  {showResult && (
-                    <div className="mt-3">
-                      {successMessage && (
-                        <div className="alert alert-success">
-                          <i className="fas fa-check-circle me-2"></i>
-                          {successMessage}
-                        </div>
-                      )}
-                      {errorMessage && (
-                        <div className="alert alert-danger">
-                          <i className="fas fa-exclamation-triangle me-2"></i>
-                          {errorMessage}
-                        </div>
-                      )}
-                    </div>
+              {showResult && (
+                <Box sx={{ mt: 3 }}>
+                  {successMessage && (
+                    <Alert severity="success">
+                      {successMessage}
+                    </Alert>
                   )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-    </>
+                  {errorMessage && (
+                    <Alert severity="error">
+                      {errorMessage}
+                    </Alert>
+                  )}
+                </Box>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+    </Container>
   );
 };
 

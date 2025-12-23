@@ -1,7 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api/axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import {
+  Container,
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  TextField,
+  Button,
+  Alert,
+  CircularProgress,
+} from '@mui/material';
+import { Email, Lock, Login as LoginIcon } from '@mui/icons-material';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -19,13 +31,9 @@ const Login = () => {
 
   if (loading) {
     return (
-      <main className="container my-5 flex-grow-1 d-flex align-items-center justify-content-center">
-        <div className="text-center">
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-        </div>
-      </main>
+      <Container maxWidth="sm" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+        <CircularProgress />
+      </Container>
     );
   }
 
@@ -47,78 +55,83 @@ const Login = () => {
   };
 
   return (
-    <main className="container my-5 flex-grow-1 d-flex align-items-center justify-content-center">
-      <div className="row justify-content-center w-100">
-        <div className="col-md-6 col-lg-4">
-          <div className="card shadow-2-strong">
-            <div className="card-body p-5">
-              <div className="hero text-center mb-4">
-                <h2 className="fw-bold text-primary mb-2">Welcome Back</h2>
-                <p className="text-muted">Sign in to your account</p>
-              </div>
+    <Container maxWidth="sm" sx={{ mt: 5, mb: 5, flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Card sx={{ minWidth: 400, boxShadow: 3 }}>
+        <CardContent sx={{ p: 5 }}>
+          <Box sx={{ textAlign: 'center', mb: 4 }}>
+            <Typography variant="h4" component="h2" color="primary" gutterBottom>
+              Welcome Back
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              Sign in to your account
+            </Typography>
+          </Box>
 
-              {error && (
-                <div className="alert alert-danger" role="alert">
-                  <i className="fas fa-exclamation-triangle me-2"></i>
-                  {error}
-                </div>
-              )}
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
 
-              {message && (
-                <div className="alert alert-success" role="alert">
-                  <i className="fas fa-check-circle me-2"></i>
-                  {message}
-                </div>
-              )}
+          {message && (
+            <Alert severity="success" sx={{ mb: 2 }}>
+              {message}
+            </Alert>
+          )}
 
-              <form onSubmit={handleSubmit}>
-                <div className="mb-3">
-                  <label htmlFor="email" className="form-label">
-                    <i className="fas fa-envelope me-1"></i>Email Address
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    className="form-control"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
+          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="email"
+              label="Email Address"
+              name="email"
+              autoComplete="email"
+              autoFocus
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              InputProps={{
+                startAdornment: <Email sx={{ mr: 1, color: 'action.active' }} />,
+              }}
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              name="password"
+              label="Password"
+              type="password"
+              id="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              InputProps={{
+                startAdornment: <Lock sx={{ mr: 1, color: 'action.active' }} />,
+              }}
+            />
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{ mt: 3, mb: 2 }}
+              startIcon={<LoginIcon />}
+            >
+              Sign In
+            </Button>
+          </Box>
 
-                <div className="mb-3">
-                  <label htmlFor="password" className="form-label">
-                    <i className="fas fa-lock me-1"></i>Password
-                  </label>
-                  <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    className="form-control"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div className="d-grid">
-                  <button className="btn btn-primary btn-lg" type="submit">
-                    <i className="fas fa-sign-in-alt me-2"></i>Sign In
-                  </button>
-                </div>
-              </form>
-
-              <div className="text-center mt-4">
-                <p className="mb-0">Don't have an account?
-                  <a href="/signup" className="text-primary fw-bold">Sign up</a>
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
+          <Box sx={{ textAlign: 'center', mt: 4 }}>
+            <Typography variant="body2">
+              Don't have an account?{' '}
+              <Link href="/signup" variant="body2" color="primary">
+                Sign up
+              </Link>
+            </Typography>
+          </Box>
+        </CardContent>
+      </Card>
+    </Container>
   );
 };
 

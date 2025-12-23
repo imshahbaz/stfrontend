@@ -1,7 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import api from '../api/axios';
-import { useNavigate } from 'react-router-dom';
+import { userAPI } from '../api/axios';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import {
+  Container,
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  TextField,
+  Button,
+  Alert,
+  CircularProgress,
+} from '@mui/material';
+import { Email, Lock, VpnKey, PersonAdd, Check } from '@mui/icons-material';
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -22,13 +34,9 @@ const Signup = () => {
 
   if (loading) {
     return (
-      <main className="container my-5 flex-grow-1 d-flex align-items-center justify-content-center">
-        <div className="text-center">
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-        </div>
-      </main>
+      <Container maxWidth="sm" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+        <CircularProgress />
+      </Container>
     );
   }
 
@@ -41,7 +49,7 @@ const Signup = () => {
     setError('');
     setMessage('');
     try {
-      const response = await api.post(`${process.env.REACT_APP_BACKEND_URL}/signup`, { email, password });
+      const response = await userAPI.signup(email, password);
       setOtpSent(true);
       setMessage('OTP sent to your email');
     } catch (error) {
@@ -54,7 +62,7 @@ const Signup = () => {
     setError('');
     setMessage('');
     try {
-      const response = await api.post(`${process.env.REACT_APP_BACKEND_URL}/verify-otp`, { email, otp });
+      const response = await userAPI.verifyOtp(email, otp);
       setMessage('Account created successfully');
       // Handle success, e.g., redirect to login
     } catch (error) {
@@ -63,124 +71,130 @@ const Signup = () => {
   };
 
   return (
-    <>
-      <main className="container my-5 flex-grow-1 d-flex align-items-center justify-content-center">
-        <div className="row justify-content-center w-100">
-          <div className="col-md-6 col-lg-5">
-            <div className="card shadow-2-strong">
-              <div className="card-body p-5">
-                <div className="hero text-center mb-4">
-                  <h2 className="fw-bold text-primary mb-2">Create Account</h2>
-                  <p className="text-muted">Join Shahbaz Trades today</p>
-                </div>
+    <Container maxWidth="sm" sx={{ mt: 5, mb: 5, flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Card sx={{ minWidth: 400, boxShadow: 3 }}>
+        <CardContent sx={{ p: 5 }}>
+          <Box sx={{ textAlign: 'center', mb: 4 }}>
+            <Typography variant="h4" component="h2" color="primary" gutterBottom>
+              Create Account
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              Join Shahbaz Trades today
+            </Typography>
+          </Box>
 
-                {error && (
-                  <div className="alert alert-danger" role="alert">
-                    <i className="fas fa-exclamation-triangle me-2"></i>
-                    {error}
-                  </div>
-                )}
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
 
-                {message && (
-                  <div className="alert alert-success" role="alert">
-                    <i className="fas fa-check-circle me-2"></i>
-                    {message}
-                  </div>
-                )}
+          {message && (
+            <Alert severity="success" sx={{ mb: 2 }}>
+              {message}
+            </Alert>
+          )}
 
-                {!otpSent ? (
-                  <form onSubmit={handleSendOtp}>
-                    <div className="mb-3">
-                      <label htmlFor="email" className="form-label">
-                        <i className="fas fa-envelope me-1"></i>Email Address
-                      </label>
-                      <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        className="form-control"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                      />
-                    </div>
+          {!otpSent ? (
+            <Box component="form" onSubmit={handleSendOtp} sx={{ mt: 1 }}>
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="email"
+                label="Email Address"
+                name="email"
+                autoComplete="email"
+                autoFocus
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                InputProps={{
+                  startAdornment: <Email sx={{ mr: 1, color: 'action.active' }} />,
+                }}
+              />
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                name="password"
+                label="Password"
+                type="password"
+                id="password"
+                autoComplete="new-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                InputProps={{
+                  startAdornment: <Lock sx={{ mr: 1, color: 'action.active' }} />,
+                }}
+              />
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                name="confirmPassword"
+                label="Confirm Password"
+                type="password"
+                id="confirmPassword"
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                InputProps={{
+                  startAdornment: <Lock sx={{ mr: 1, color: 'action.active' }} />,
+                }}
+              />
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                sx={{ mt: 3, mb: 2 }}
+                startIcon={<PersonAdd />}
+              >
+                Send OTP
+              </Button>
+            </Box>
+          ) : (
+            <Box component="form" onSubmit={handleVerifyOtp} sx={{ mt: 1 }}>
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="otp"
+                label="Enter 6-digit OTP"
+                name="otp"
+                autoComplete="one-time-code"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                inputProps={{ maxLength: 6, pattern: '[0-9]{6}' }}
+                InputProps={{
+                  startAdornment: <VpnKey sx={{ mr: 1, color: 'action.active' }} />,
+                }}
+              />
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                color="success"
+                sx={{ mt: 3, mb: 2 }}
+                startIcon={<Check />}
+              >
+                Verify & Create Account
+              </Button>
+            </Box>
+          )}
 
-                    <div className="mb-3">
-                      <label htmlFor="password" className="form-label">
-                        <i className="fas fa-lock me-1"></i>Password
-                      </label>
-                      <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        className="form-control"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                      />
-                    </div>
-
-                    <div className="mb-3">
-                      <label htmlFor="confirmPassword" className="form-label">
-                        <i className="fas fa-lock me-1"></i>Confirm Password
-                      </label>
-                      <input
-                        type="password"
-                        id="confirmPassword"
-                        name="confirmPassword"
-                        className="form-control"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        required
-                      />
-                    </div>
-
-                    <div className="d-grid">
-                      <button className="btn btn-primary btn-lg" type="submit">
-                        <i className="fas fa-user-plus me-2"></i>Send OTP
-                      </button>
-                    </div>
-                  </form>
-                ) : (
-                  <form onSubmit={handleVerifyOtp}>
-                    <div className="mb-3">
-                      <label htmlFor="otp" className="form-label">
-                        <i className="fas fa-key me-1"></i>Enter 6-digit OTP
-                      </label>
-                      <input
-                        type="text"
-                        id="otp"
-                        name="otp"
-                        className="form-control"
-                        value={otp}
-                        onChange={(e) => setOtp(e.target.value)}
-                        required
-                        maxLength="6"
-                        pattern="[0-9]{6}"
-                      />
-                    </div>
-
-                    <div className="d-grid">
-                      <button className="btn btn-success btn-lg" type="submit">
-                        <i className="fas fa-check me-2"></i>Verify & Create Account
-                      </button>
-                    </div>
-                  </form>
-                )}
-
-                {!otpSent && (
-                  <div className="text-center mt-4">
-                    <p className="mb-0">Already have an account?
-                      <a href="/login" className="text-primary fw-bold">Sign in</a>
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-    </>
+          {!otpSent && (
+            <Box sx={{ textAlign: 'center', mt: 4 }}>
+              <Typography variant="body2">
+                Already have an account?{' '}
+                <Link href="/login" variant="body2" color="primary">
+                  Sign in
+                </Link>
+              </Typography>
+            </Box>
+          )}
+        </CardContent>
+      </Card>
+    </Container>
   );
 };
 

@@ -1,6 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import api from '../api/axios';
+import { strategyAPI } from '../api/axios';
 import { Link } from 'react-router-dom';
+import {
+  Container,
+  Box,
+  Typography,
+  Card,
+  CardContent,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Button,
+  CircularProgress,
+  Alert,
+  Collapse,
+} from '@mui/material';
+import { TrendingUp, ShoppingCart } from '@mui/icons-material';
 
 const Strategies = () => {
   const [strategies, setStrategies] = useState([]);
@@ -13,7 +32,7 @@ const Strategies = () => {
   useEffect(() => {
     const fetchStrategies = async () => {
       try {
-        const response = await api.get(`${process.env.REACT_APP_BACKEND_URL}/api/strategy`);
+        const response = await strategyAPI.getStrategies();
         setStrategies(response.data);
       } catch (error) {
         console.error('Error fetching strategies:', error);
@@ -47,7 +66,7 @@ const Strategies = () => {
     }
 
     try {
-      const response = await api.get(`${process.env.REACT_APP_BACKEND_URL}/api/chartink/fetchWithMargin?strategy=${encodeURIComponent(strategyName)}`);
+      const response = await strategyAPI.fetchWithMargin(strategyName);
       // Store in cache
       setCache(prev => ({ ...prev, [strategyName]: response.data }));
       setStrategyData(response.data);
@@ -73,79 +92,118 @@ const Strategies = () => {
   };
 
   return (
-    <main className="container my-5 flex-grow-1">
-      <div className="hero text-center mb-5">
-        <h1 className="display-3 fw-bold text-primary">Available Strategies</h1>
-        <p className="lead text-muted">Explore and select a strategy to analyze the market.</p>
-      </div>
+    <Container maxWidth="lg" sx={{ flexGrow: 1, py: 5 }}>
+      <Box sx={{ textAlign: 'center', mb: 5 }}>
+        <TrendingUp sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
+        <Typography variant="h3" component="h1" color="primary" gutterBottom>
+          Available Strategies
+        </Typography>
+        <Typography variant="h6" color="text.secondary">
+          Explore and select a strategy to analyze the market.
+        </Typography>
+      </Box>
 
-      <div className="card shadow-2-strong">
-        <div className="card-body">
-          <table className="table table-striped table-hover mb-0">
-            <thead className="bg-primary text-white">
-              <tr>
-                <th scope="col">Name</th>
-              </tr>
-            </thead>
-            <tbody>
-              {strategies.map((strategy, index) => (
-                <tr key={`${strategy.id}-${index}`}>
-                  <td>
-                    <a href="#" onClick={(e) => { e.preventDefault(); fetchStrategyData(strategy.name); }} className="text-decoration-none">
-                      {strategy.name}
-                    </a>
-                  </td>
-                </tr>
-              ))}
-              {strategies.length === 0 && (
-                <tr key="no-strategies">
-                  <td className="text-center">No strategies found.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <Card sx={{ boxShadow: 3, mb: 4 }}>
+        <CardContent sx={{ p: 0 }}>
+          <TableContainer component={Paper} elevation={0}>
+            <Table>
+              <TableHead sx={{ backgroundColor: 'primary.main' }}>
+                <TableRow>
+                  <TableCell sx={{ color: 'primary.contrastText', fontWeight: 'bold' }}>Name</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {strategies.map((strategy, index) => (
+                  <TableRow key={`${strategy.id}-${index}`} hover>
+                    <TableCell>
+                      <Button
+                        variant="text"
+                        onClick={() => fetchStrategyData(strategy.name)}
+                        sx={{ textTransform: 'none', justifyContent: 'flex-start' }}
+                      >
+                        {strategy.name}
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {strategies.length === 0 && (
+                  <TableRow>
+                    <TableCell sx={{ textAlign: 'center' }}>No strategies found.</TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </CardContent>
+      </Card>
 
-      <div id="strategy-data-container" className="mt-5" style={{ display: selectedStrategy ? 'block' : 'none' }}>
-        <h3>Results for: <span id="selected-strategy-name" className="text-primary">{selectedStrategy}</span></h3>
-        <table id="strategy-data-table" className="table table-bordered table-hover mt-3" style={{ display: strategyData.length > 0 ? 'table' : 'none' }}>
-          <thead className="table-primary">
-            <tr>
-              <th scope="col">NSE Code</th>
-              <th scope="col">Name</th>
-              <th scope="col">Close Price</th>
-              <th scope="col">Margin</th>
-              <th scope="col">Action</th>
-            </tr>
-          </thead>
-          <tbody id="strategy-data-body">
-            {strategyData.map((stock, index) => (
-              <tr key={`${stock.symbol}-${index}`}>
-                <td data-label="NSE Code">{stock.symbol}</td>
-                <td data-label="Name">{stock.name}</td>
-                <td data-label="Close Price">{stock.close}</td>
-                <td data-label="Margin">{stock.margin}</td>
-                <td data-label="Action">
-                  <button className="buy-trigger btn btn-primary" onClick={() => handleBuy(stock)}>Buy</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <div id="loading-message" className="text-center my-3" style={{ display: loading ? 'block' : 'none' }}>
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-          <p>Loading data...</p>
-        </div>
-        <p id="error-message" className="text-danger text-center font-weight-bold" style={{ display: error ? 'block' : 'none' }}>{error}</p>
-      </div>
+      <Collapse in={!!selectedStrategy}>
+        <Box sx={{ mt: 4 }}>
+          <Typography variant="h4" component="h3" color="primary" gutterBottom>
+            Results for: {selectedStrategy}
+          </Typography>
 
-      <div className="mt-5 text-center">
-        <Link to="/" className="btn btn-secondary btn-lg">Back to Home</Link>
-      </div>
-    </main>
+          {loading && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', my: 3 }}>
+              <CircularProgress />
+              <Typography sx={{ ml: 2 }}>Loading data...</Typography>
+            </Box>
+          )}
+
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
+
+          {strategyData.length > 0 && (
+            <Card sx={{ boxShadow: 3 }}>
+              <CardContent sx={{ p: 0 }}>
+                <TableContainer component={Paper} elevation={0}>
+                  <Table>
+                    <TableHead sx={{ backgroundColor: 'primary.main' }}>
+                      <TableRow>
+                        <TableCell sx={{ color: 'primary.contrastText', fontWeight: 'bold' }}>NSE Code</TableCell>
+                        <TableCell sx={{ color: 'primary.contrastText', fontWeight: 'bold' }}>Name</TableCell>
+                        <TableCell sx={{ color: 'primary.contrastText', fontWeight: 'bold' }}>Close Price</TableCell>
+                        <TableCell sx={{ color: 'primary.contrastText', fontWeight: 'bold' }}>Margin</TableCell>
+                        <TableCell sx={{ color: 'primary.contrastText', fontWeight: 'bold' }}>Action</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {strategyData.map((stock, index) => (
+                        <TableRow key={`${stock.symbol}-${index}`} hover>
+                          <TableCell>{stock.symbol}</TableCell>
+                          <TableCell>{stock.name}</TableCell>
+                          <TableCell>{stock.close}</TableCell>
+                          <TableCell>{stock.margin}</TableCell>
+                          <TableCell>
+                            <Button
+                              variant="contained"
+                              startIcon={<ShoppingCart />}
+                              onClick={() => handleBuy(stock)}
+                              size="small"
+                            >
+                              Buy
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </CardContent>
+            </Card>
+          )}
+        </Box>
+      </Collapse>
+
+      <Box sx={{ mt: 5, textAlign: 'center' }}>
+        <Button component={Link} to="/" variant="outlined" size="large">
+          Back to Home
+        </Button>
+      </Box>
+    </Container>
   );
 };
 
