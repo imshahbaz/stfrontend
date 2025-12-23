@@ -33,8 +33,7 @@ const Calculator = () => {
   const [results, setResults] = useState(null);
   const [alertMessage, setAlertMessage] = useState('');
 
-  useEffect(() => {
-    const fetchMargins = async () => {
+  const fetchMargins = async () => {
       try {
         const response = await marginAPI.getAllMargins();
         setMargins(response.data);
@@ -42,6 +41,8 @@ const Calculator = () => {
         console.error('Error fetching margins:', error);
       }
     };
+
+  useEffect(() => {
     fetchMargins();
   }, []);
 
@@ -260,7 +261,7 @@ const Calculator = () => {
 
           {results && (
             <Box sx={{ mt: 4, width: '100%' }}>
-              <Typography variant="h4" component="h3" align="center" gutterBottom sx={{ fontWeight: 700, mb: 3 }}>
+              <Typography variant="h4" component="h3" align="center" gutterBottom sx={{ fontWeight: 700, mb: 3 }} color="primary" >
                 Calculation Summary
               </Typography>
 
@@ -281,7 +282,7 @@ const Calculator = () => {
                     }}
                   >
                     <CardContent sx={{ flexGrow: 1, p: 3 }}>
-                      <Typography variant="h6" color="text.secondary" gutterBottom sx={{ textTransform: 'uppercase', fontWeight: 800, fontSize: '0.9rem', letterSpacing: '1px' }}>
+                      <Typography variant="h6" color="primary" gutterBottom sx={{ textTransform: 'uppercase', fontWeight: 800, fontSize: '0.9rem', letterSpacing: '1px' }}>
                         Capital Breakdown
                       </Typography>
                       <Divider sx={{ mb: 2, opacity: 0.1 }} />
@@ -319,7 +320,7 @@ const Calculator = () => {
                     }}
                   >
                     <CardContent sx={{ flexGrow: 1, p: 3 }}>
-                      <Typography variant="h6" color="text.secondary" gutterBottom sx={{ textTransform: 'uppercase', fontWeight: 800, fontSize: '0.9rem', letterSpacing: '1px' }}>
+                      <Typography variant="h6" color="primary" gutterBottom sx={{ textTransform: 'uppercase', fontWeight: 800, fontSize: '0.9rem', letterSpacing: '1px' }}>
                         Performance Metrics
                       </Typography>
                       <Divider sx={{ mb: 2, opacity: 0.1 }} />
