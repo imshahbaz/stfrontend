@@ -16,6 +16,7 @@ import {
   Autocomplete,
   Grid,
   Alert,
+  Divider
 } from '@mui/material';
 import { Calculate } from '@mui/icons-material';
 
@@ -123,7 +124,7 @@ const Calculator = () => {
       <Card sx={{ boxShadow: 3 }}>
         <CardContent sx={{ p: 4 }}>
           <Box component="form" onSubmit={(e) => { e.preventDefault(); calculateReturns(); }}>
-          
+
             <Grid container spacing={0} sx={{ mb: 4, width: '100%' }}>
               <Grid item xs={12} sx={{ width: '100%' }}>
                 <Autocomplete
@@ -258,59 +259,87 @@ const Calculator = () => {
           )}
 
           {results && (
-            <Box sx={{ mt: 4 }}>
-              <Typography variant="h4" component="h3" align="center" gutterBottom>
+            <Box sx={{ mt: 4, width: '100%' }}>
+              <Typography variant="h4" component="h3" align="center" gutterBottom sx={{ fontWeight: 700, mb: 3 }}>
                 Calculation Summary
               </Typography>
-              <Grid container spacing={4}>
-                <Grid item xs={12} md={6}>
-                  <Card sx={{ height: '100%', bgcolor: 'grey.50' }}>
-                    <CardContent>
-                      <Typography variant="h6" component="h5" color="text.secondary" gutterBottom sx={{ textTransform: 'uppercase', fontWeight: 'bold' }}>
+
+              {/* Grid container with full width and standard spacing */}
+              <Grid container spacing={3} sx={{ width: '100%', margin: 0 }}>
+
+                {/* Capital Breakdown Card */}
+                <Grid item xs={12} md={6} sx={{ display: 'flex' }}>
+                  <Card
+                    sx={{
+                      width: '100%', // Forces the card to fill exactly 50% of parent
+                      display: 'flex',
+                      flexDirection: 'column',
+                      transition: 'box-shadow 0.3s',
+                      '&:hover': {
+                        boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+                      },
+                    }}
+                  >
+                    <CardContent sx={{ flexGrow: 1, p: 3 }}>
+                      <Typography variant="h6" color="text.secondary" gutterBottom sx={{ textTransform: 'uppercase', fontWeight: 800, fontSize: '0.9rem', letterSpacing: '1px' }}>
                         Capital Breakdown
                       </Typography>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography>Total Investment:</Typography>
-                        <Typography fontWeight="bold">₹ {results.totalInvestment}</Typography>
+                      <Divider sx={{ mb: 2, opacity: 0.1 }} />
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
+                        <Typography variant="body1">Total Investment:</Typography>
+                        <Typography variant="body1" fontWeight="bold">₹ {results.totalInvestment}</Typography>
                       </Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography>Your Investment:</Typography>
-                        <Typography fontWeight="bold" color="primary.main">₹ {results.margin}</Typography>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
+                        <Typography variant="body1">Your Investment:</Typography>
+                        <Typography variant="body1" fontWeight="bold" color="primary.main">₹ {results.margin}</Typography>
                       </Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography>Borrowed Funding:</Typography>
-                        <Typography fontWeight="bold">₹ {results.fundingAmount}</Typography>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
+                        <Typography variant="body1">Borrowed Funding:</Typography>
+                        <Typography variant="body1" fontWeight="bold">₹ {results.fundingAmount}</Typography>
                       </Box>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <Typography>MTF Interest (15% p.a.):</Typography>
-                        <Typography fontWeight="bold" color="error.main">₹ {results.interest}</Typography>
+                        <Typography variant="body1">MTF Interest (15% p.a.):</Typography>
+                        <Typography variant="body1" fontWeight="bold" color="error.main">₹ {results.interest}</Typography>
                       </Box>
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid item xs={12} md={6}>
-                  <Card sx={{ height: '100%', bgcolor: 'grey.50' }}>
-                    <CardContent>
-                      <Typography variant="h6" component="h5" color="text.secondary" gutterBottom sx={{ textTransform: 'uppercase', fontWeight: 'bold' }}>
+
+                {/* Performance Metrics Card */}
+                <Grid item xs={12} md={6} sx={{ display: 'flex' }}>
+                  <Card
+                    sx={{
+                      width: '100%', // Forces the card to fill exactly 50% of parent
+                      display: 'flex',
+                      flexDirection: 'column',
+                      transition: 'box-shadow 0.3s',
+                      '&:hover': {
+                        boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+                      },
+                    }}
+                  >
+                    <CardContent sx={{ flexGrow: 1, p: 3 }}>
+                      <Typography variant="h6" color="text.secondary" gutterBottom sx={{ textTransform: 'uppercase', fontWeight: 800, fontSize: '0.9rem', letterSpacing: '1px' }}>
                         Performance Metrics
                       </Typography>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography>Gross Profit:</Typography>
-                        <Typography fontWeight="bold">₹ {results.profit}</Typography>
+                      <Divider sx={{ mb: 2, opacity: 0.1 }} />
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
+                        <Typography variant="body1">Gross Profit:</Typography>
+                        <Typography variant="body1" fontWeight="bold">₹ {results.profit}</Typography>
                       </Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography>Taxes & Charges:</Typography>
-                        <Typography fontWeight="bold" color="error.main">₹ {results.totalCharges}</Typography>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
+                        <Typography variant="body1">Taxes & Charges:</Typography>
+                        <Typography variant="body1" fontWeight="bold" color="error.main">₹ {results.totalCharges}</Typography>
                       </Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography>Net Profit/Loss:</Typography>
-                        <Typography fontWeight="bold" fontSize="1.25rem" color={results.isProfit ? 'success.main' : 'error.main'}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5, mt: 1 }}>
+                        <Typography variant="body1" sx={{ fontWeight: 'bold' }}>Net Profit/Loss:</Typography>
+                        <Typography variant="h6" fontWeight="800" color={results.isProfit ? 'success.main' : 'error.main'}>
                           ₹ {results.netProfit}
                         </Typography>
                       </Box>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <Typography>Return on Margin:</Typography>
-                        <Typography fontWeight="bold" color={results.isProfit ? 'success.main' : 'error.main'}>
+                        <Typography variant="body1">Return on Margin:</Typography>
+                        <Typography variant="body1" fontWeight="bold" color={results.isProfit ? 'success.main' : 'error.main'}>
                           {results.profitPercent}%
                         </Typography>
                       </Box>
