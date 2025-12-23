@@ -23,7 +23,6 @@ function App() {
   const [theme, setTheme] = useState('dark');
 
   useEffect(() => {
-    // Load theme
     const savedTheme = localStorage.getItem('theme') || 'dark';
     setTheme(savedTheme);
   }, []);
@@ -50,12 +49,12 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
+                <Route path="/strategies" element={<Strategies />} />
+                <Route path="/calculator" element={<Calculator />} />
 
                 {/* --- User Protected Routes --- */}
                 {/* These require the user to be logged in (any role) */}
                 <Route element={<ProtectedRoute />}>
-                  <Route path="/strategies" element={<Strategies />} />
-                  <Route path="/calculator" element={<Calculator />} />
                   <Route path="/settings" element={<Settings />} />
                 </Route>
 

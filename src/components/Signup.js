@@ -49,9 +49,9 @@ const Signup = () => {
     setError('');
     setMessage('');
     try {
-      const response = await userAPI.signup(email, password);
-      setOtpSent(true);
-      setMessage('OTP sent to your email');
+      const response = await userAPI.signup(email, password,confirmPassword);
+      setOtpSent(response.data.otpSent);
+      setMessage(response.data.message || 'OTP sent to your email');
     } catch (error) {
       setError(error.response?.data?.message || 'Failed to send OTP');
     }
@@ -63,8 +63,7 @@ const Signup = () => {
     setMessage('');
     try {
       const response = await userAPI.verifyOtp(email, otp);
-      setMessage('Account created successfully');
-      // Handle success, e.g., redirect to login
+      navigate('/login');
     } catch (error) {
       setError(error.response?.data?.message || 'OTP verification failed');
     }

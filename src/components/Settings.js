@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import api from '../api/axios';
+import { authAPI } from '../api/axios';
 import {
   Container,
   Box,
@@ -35,7 +35,7 @@ const Settings = () => {
     setSuccessMessage('');
     setErrorMessage('');
     try {
-      const response = await api.patch('/api/auth/username', { email, username });
+      const response = await authAPI.updateUsername(email, username);
       setSuccessMessage('Settings updated successfully');
       // Update the context with the new username
       login({ ...user, username });

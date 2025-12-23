@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import api from '../api/axios';
+import { marginAPI } from '../api/axios';
 import {
   Container,
   Box,
@@ -35,7 +35,7 @@ const Calculator = () => {
   useEffect(() => {
     const fetchMargins = async () => {
       try {
-        const response = await api.get(`${process.env.REACT_APP_BACKEND_URL}/api/margin/all`);
+        const response = await marginAPI.getAllMargins();
         setMargins(response.data);
       } catch (error) {
         console.error('Error fetching margins:', error);
@@ -124,7 +124,7 @@ const Calculator = () => {
         <CardContent sx={{ p: 4 }}>
           <Box component="form" onSubmit={(e) => { e.preventDefault(); calculateReturns(); }}>
             <Grid container spacing={4} sx={{ mb: 4 }}>
-              <Grid item xs={12} md={8} sx={{ mx: 'auto' }}>
+              <Grid item xs={12}>
                 <Autocomplete
                   options={margins}
                   getOptionLabel={(option) => `${option.symbol} (${option.margin}x Margin)`}
@@ -141,6 +141,14 @@ const Calculator = () => {
                       placeholder="Type to search stocks..."
                       required
                       fullWidth
+                      sx={{
+                        '& .MuiInputBase-root': {
+                          fontSize: '1.5rem',
+                          padding: '20px 24px',
+                          minHeight: '70px'
+                        },
+                        '& .MuiInputLabel-root': { fontSize: '1.4rem' }
+                      }}
                     />
                   )}
                   renderOption={(props, option) => (

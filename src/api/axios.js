@@ -41,8 +41,8 @@ export const authAPI = {
 
 // User API methods
 export const userAPI = {
-  signup: (email, password) => api.post('/signup', { email, password }),
-  verifyOtp: (email, otp) => api.post('/verify-otp', { email, otp }),
+  signup: (email, password,confirmPassword) => api.post('/api/auth/signup', { email, password ,confirmPassword}),
+  verifyOtp: (email, otp) => api.post('/api/auth/verify-otp', { email, otp }),
 };
 
 // Strategy API methods

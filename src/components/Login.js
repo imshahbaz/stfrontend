@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../api/axios';
+import { authAPI } from '../api/axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -42,11 +42,11 @@ const Login = () => {
     setError('');
     setMessage('');
     try {
-      const response = await api.post(`${process.env.REACT_APP_BACKEND_URL}/api/auth/login`, { email, password });
+      const response = await authAPI.login(email, password);
       const { auth_token } = response.data; // Assuming token is in response body
       localStorage.setItem('auth_token', auth_token); // Store token for Authorization header
       // After login, fetch user data from /api/auth/me
-      const userResponse = await api.get(`${process.env.REACT_APP_BACKEND_URL}/api/auth/me`);
+      const userResponse = await authAPI.getMe();
       login(userResponse.data); // Set user state in AuthContext
       navigate('/');
     } catch (error) {
@@ -124,7 +124,7 @@ const Login = () => {
           <Box sx={{ textAlign: 'center', mt: 4 }}>
             <Typography variant="body2">
               Don't have an account?{' '}
-              <Link href="/signup" variant="body2" color="primary">
+              <Link to="/signup" style={{ color: 'primary.main', textDecoration: 'none' }}>
                 Sign up
               </Link>
             </Typography>
