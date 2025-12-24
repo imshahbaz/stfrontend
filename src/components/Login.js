@@ -43,12 +43,12 @@ const Login = () => {
     setMessage('');
     try {
       const response = await authAPI.login(email, password);
-      const { auth_token } = response.data; // Assuming token is in response body
-      localStorage.setItem('auth_token', auth_token); // Store token for Authorization header
-      // After login, fetch user data from /api/auth/me
-      const userResponse = await authAPI.getMe();
-      login(userResponse.data); // Set user state in AuthContext
-      navigate('/');
+      if (response.status === 200) {
+        login(response.data);
+        navigate('/');
+      } else {
+        setError('Login failed');
+      }
     } catch (error) {
       setError(error.response?.data?.message || 'Login failed');
     }

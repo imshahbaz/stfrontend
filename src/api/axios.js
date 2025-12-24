@@ -1,34 +1,24 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: process.env.REACT_APP_BACKEND_URL, 
-    withCredentials: true,
+  baseURL: process.env.REACT_APP_BACKEND_URL,
+  withCredentials: true,
 });
-
-// Request interceptor to add Authorization header
-api.interceptors.request.use(
-    (config) => {
-        const token = localStorage.getItem('auth_token');
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-    },
-    (error) => Promise.reject(error)
-);
 
 // Interceptor to handle session expiry (401 errors)
 api.interceptors.response.use(
-    (response) => response,
-    (error) => {
-        if (error.response && error.response.status === 401) {
-            // If the token is expired or invalid, clear state
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('user');
-            window.dispatchEvent(new Event('auth-expired'));
-        }
-        return Promise.reject(error);
+  (response) => response,
+  (error) => {
+    const isAuthMe = error.config?.url?.includes('/auth/me');
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('user');
+      window.dispatchEvent(new Event('auth-expired'));
+      if (isAuthMe) {
+        return Promise.resolve({ data: null });
+      }
     }
+    return Promise.reject(error);
+  }
 );
 
 // Auth API methods
@@ -41,7 +31,7 @@ export const authAPI = {
 
 // User API methods
 export const userAPI = {
-  signup: (email, password,confirmPassword) => api.post('/api/auth/signup', { email, password ,confirmPassword}),
+  signup: (email, password, confirmPassword) => api.post('/api/auth/signup', { email, password, confirmPassword }),
   verifyOtp: (email, otp) => api.post('/api/auth/verify-otp', { email, otp }),
 };
 

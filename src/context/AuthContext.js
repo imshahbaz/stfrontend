@@ -1,24 +1,25 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useRef } from 'react';
 import { authAPI } from '../api/axios';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null); // Stores { email, role }
-    const [token, setToken] = useState(null); // Stores JWT token
+    const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Initial check: Runs once when the app opens
+    const isInitialized = useRef(false);
+
     useEffect(() => {
         const checkAuth = async () => {
+            if (isInitialized.current) return;
+            isInitialized.current = true;
+
             try {
-                // This calls your protected GET /auth/me (token is in cookies)
                 const res = await authAPI.getMe();
                 setUser(res.data);
-                setToken('cookie'); // Indicate token is in cookies
             } catch (err) {
                 setUser(null);
-                setToken(null);
+                localStorage.removeItem('user');
             } finally {
                 setLoading(false);
             }
@@ -26,30 +27,29 @@ export const AuthProvider = ({ children }) => {
 
         checkAuth();
 
-        // Listen for the 401 interceptor event
-        const handleExpiry = () => {
-            setUser(null);
-            setToken(null);
-        };
         window.addEventListener('auth-expired', handleExpiry);
-        return () => window.removeEventListener('auth-expired', handleExpiry);
+
+        return () => {
+            window.removeEventListener('auth-expired', handleExpiry);
+        };
     }, []);
+
+    const handleExpiry = () => {
+        setUser(null);
+    };
 
     const login = (userData) => {
         setUser(userData);
-        setToken('cookie'); // Token is in cookies
     };
 
     const logout = async () => {
         await authAPI.logout();
         setUser(null);
-        setToken(null);
-        localStorage.removeItem('auth_token');
         localStorage.removeItem('user');
     };
 
     return (
-        <AuthContext.Provider value={{ user, token, login, logout, loading }}>
+        <AuthContext.Provider value={{ user, login, logout, loading }}>
             {children}
         </AuthContext.Provider>
     );
