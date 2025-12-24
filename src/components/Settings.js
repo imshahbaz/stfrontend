@@ -36,9 +36,13 @@ const Settings = () => {
     setErrorMessage('');
     try {
       const response = await userPreferenceAPI.updateUsername(email, username);
-      setSuccessMessage('Settings updated successfully');
-      // Update the context with the new username
-      login({ ...user, username });
+      if (response.status === 200 && response.data.success) {
+        login({ ...user, username });
+        setSuccessMessage(response.data.message || 'Settings updated successfully');
+      }
+      else {
+        setErrorMessage(response.data.error || 'Failed to update settings');
+      }
     } catch (error) {
       setErrorMessage(error.response?.data?.message || 'Failed to update settings');
     }
@@ -49,97 +53,97 @@ const Settings = () => {
       <Grid container spacing={4}>
         <Grid item xs={12} md={6}>
           <Card sx={{ height: '100%', boxShadow: 3 }}>
-          <CardHeader
-            title={
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <SettingsIcon sx={{ mr: 1 }} />
-                Account Settings
+            <CardHeader
+              title={
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <SettingsIcon sx={{ mr: 1 }} />
+                  Account Settings
+                </Box>
+              }
+              sx={{ backgroundColor: 'primary.main', color: 'primary.contrastText' }}
+            />
+            <CardContent sx={{ p: 3 }}>
+              <Collapse in={!!successMessage}>
+                <Alert
+                  severity="success"
+                  action={
+                    <IconButton
+                      aria-label="close"
+                      color="inherit"
+                      size="small"
+                      onClick={() => setSuccessMessage('')}
+                    >
+                      <Close fontSize="inherit" />
+                    </IconButton>
+                  }
+                  sx={{ mb: 2 }}
+                >
+                  {successMessage}
+                </Alert>
+              </Collapse>
+
+              <Collapse in={!!errorMessage}>
+                <Alert
+                  severity="error"
+                  action={
+                    <IconButton
+                      aria-label="close"
+                      color="inherit"
+                      size="small"
+                      onClick={() => setErrorMessage('')}
+                    >
+                      <Close fontSize="inherit" />
+                    </IconButton>
+                  }
+                  sx={{ mb: 2 }}
+                >
+                  {errorMessage}
+                </Alert>
+              </Collapse>
+
+              <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
+                <TextField
+                  margin="normal"
+                  fullWidth
+                  id="email"
+                  label="Email Address"
+                  value={email}
+                  InputProps={{
+                    readOnly: true,
+                    startAdornment: <Email sx={{ mr: 1, color: 'action.active' }} />,
+                  }}
+                  helperText="Email address cannot be changed"
+                />
+                <TextField
+                  margin="normal"
+                  required
+                  fullWidth
+                  id="username"
+                  label="Username"
+                  name="username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  inputProps={{ minLength: 3, maxLength: 50 }}
+                  InputProps={{
+                    startAdornment: <Person sx={{ mr: 1, color: 'action.active' }} />,
+                  }}
+                  helperText="Choose a username (3-50 characters)"
+                />
+                <Button
+                  type="submit"
+                  fullWidth
+                  variant="contained"
+                  sx={{ mt: 3, mb: 2 }}
+                  startIcon={<Save />}
+                >
+                  Save Changes
+                </Button>
               </Box>
-            }
-            sx={{ backgroundColor: 'primary.main', color: 'primary.contrastText' }}
-          />
-          <CardContent sx={{ p: 3 }}>
-            <Collapse in={!!successMessage}>
-              <Alert
-                severity="success"
-                action={
-                  <IconButton
-                    aria-label="close"
-                    color="inherit"
-                    size="small"
-                    onClick={() => setSuccessMessage('')}
-                  >
-                    <Close fontSize="inherit" />
-                  </IconButton>
-                }
-                sx={{ mb: 2 }}
-              >
-                {successMessage}
-              </Alert>
-            </Collapse>
-
-            <Collapse in={!!errorMessage}>
-              <Alert
-                severity="error"
-                action={
-                  <IconButton
-                    aria-label="close"
-                    color="inherit"
-                    size="small"
-                    onClick={() => setErrorMessage('')}
-                  >
-                    <Close fontSize="inherit" />
-                  </IconButton>
-                }
-                sx={{ mb: 2 }}
-              >
-                {errorMessage}
-              </Alert>
-            </Collapse>
-
-            <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
-              <TextField
-                margin="normal"
-                fullWidth
-                id="email"
-                label="Email Address"
-                value={email}
-                InputProps={{
-                  readOnly: true,
-                  startAdornment: <Email sx={{ mr: 1, color: 'action.active' }} />,
-                }}
-                helperText="Email address cannot be changed"
-              />
-              <TextField
-                margin="normal"
-                required
-                fullWidth
-                id="username"
-                label="Username"
-                name="username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                inputProps={{ minLength: 3, maxLength: 50 }}
-                InputProps={{
-                  startAdornment: <Person sx={{ mr: 1, color: 'action.active' }} />,
-                }}
-                helperText="Choose a username (3-50 characters)"
-              />
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                sx={{ mt: 3, mb: 2 }}
-                startIcon={<Save />}
-              >
-                Save Changes
-              </Button>
-            </Box>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </Grid>
       </Grid>
-    </Grid>
-  </Container>
+    </Container>
   );
 };
 
