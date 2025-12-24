@@ -25,8 +25,12 @@ export const authAPI = {
   login: (email, password) => api.post('/api/auth/login', { email, password }),
   logout: () => api.post('/api/auth/logout'),
   getMe: () => api.get('/api/auth/me'),
-  updateUsername: (email, username) => api.patch('/api/auth/username', { email, username }),
 };
+
+export const userPreferenceAPI = {
+  updateUsername: (email, username) => api.patch('/api/user/username', { email, username }),
+  updateTheme: (theme) => api.patch('/api/user/theme', { theme }),
+}
 
 // User API methods
 export const userAPI = {
