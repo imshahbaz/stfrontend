@@ -19,7 +19,6 @@ export const AuthProvider = ({ children }) => {
                 setUser(res.data);
             } catch (err) {
                 setUser(null);
-                localStorage.removeItem('user');
             } finally {
                 setLoading(false);
             }
@@ -45,7 +44,6 @@ export const AuthProvider = ({ children }) => {
     const logout = async () => {
         await authAPI.logout();
         setUser(null);
-        localStorage.removeItem('user');
     };
 
     return (

@@ -11,7 +11,6 @@ api.interceptors.response.use(
   (error) => {
     const isAuthMe = error.config?.url?.includes('/auth/me');
     if (error.response && error.response.status === 401) {
-      localStorage.removeItem('user');
       window.dispatchEvent(new Event('auth-expired'));
       if (isAuthMe) {
         return Promise.resolve({ data: null });
