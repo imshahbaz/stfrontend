@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import api, { strategyAPI } from '../api/axios';
+import { strategyAPI ,marginAPI} from '../api/axios';
 import {
   Container,
   Box,
@@ -62,11 +62,7 @@ const AdminDashboard = () => {
     setErrorMessage('');
 
     try {
-      const response = await api.post(`${process.env.REACT_APP_BACKEND_URL}/api/margin/load-from-csv`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const response = await marginAPI.loadFromCsv(formData);
       if (response.status === 200) {
         setSuccessMessage('CSV data loaded successfully!');
       }
@@ -82,7 +78,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchStrategies = async () => {
       try {
-        const response = await strategyAPI.getStrategies();
+        const response = await strategyAPI.getStrategiesAdmin();
         setStrategies(response.data);
       } catch (error) {
         console.error('Error fetching strategies:', error);
@@ -112,14 +108,14 @@ const AdminDashboard = () => {
 
     try {
       if (editingId) {
-        await strategyAPI.updateStrategy(editingId, strategyForm);
+        await strategyAPI.updateStrategy(strategyForm);
         setStrategySuccess('Strategy updated successfully!');
       } else {
         await strategyAPI.createStrategy(strategyForm);
         setStrategySuccess('Strategy created successfully!');
       }
       // Refresh strategies
-      const response = await strategyAPI.getStrategies();
+      const response = await strategyAPI.getStrategiesAdmin();
       setStrategies(response.data);
       // Reset form
       setStrategyForm({ name: '', scanClause: '', active: false });
@@ -133,7 +129,7 @@ const AdminDashboard = () => {
 
   const handleEdit = (strategy) => {
     setStrategyForm({ name: strategy.name, scanClause: strategy.scanClause, active: strategy.active });
-    setEditingId(strategy.id);
+    setEditingId(strategy.name);
   };
 
   const handleDelete = async (id) => {
@@ -141,7 +137,7 @@ const AdminDashboard = () => {
 
     try {
       await strategyAPI.deleteStrategy(id);
-      setStrategies(prev => prev.filter(s => s.id !== id));
+      setStrategies(prev => prev.filter(s => s.name !== id));
       setStrategySuccess('Strategy deleted successfully!');
     } catch (error) {
       setStrategyError(error.response?.data?.message || 'Failed to delete strategy');
@@ -336,7 +332,7 @@ const AdminDashboard = () => {
                     </TableHead>
                     <TableBody>
                       {strategies.map((strategy) => (
-                        <TableRow key={strategy.id}>
+                        <TableRow key={strategy.name}>
                           <TableCell>{strategy.name}</TableCell>
                           {/* <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {strategy.scanClause}
@@ -346,14 +342,14 @@ const AdminDashboard = () => {
                             <IconButton onClick={() => handleEdit(strategy)} size="small">
                               <Edit />
                             </IconButton>
-                            <IconButton onClick={() => handleDelete(strategy.id)} size="small" color="error">
+                            <IconButton onClick={() => handleDelete(strategy.name)} size="small" color="error">
                               <Delete />
                             </IconButton>
                           </TableCell>
                         </TableRow>
                       ))}
                       {strategies.length === 0 && (
-                        <TableRow>
+                        <TableRow key="no-strategies">
                           <TableCell colSpan={4} sx={{ textAlign: 'center' }}>
                             No strategies found.
                           </TableCell>
