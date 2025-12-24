@@ -42,6 +42,9 @@ export const userAPI = {
 export const strategyAPI = {
   getStrategies: () => api.get('/api/strategy'),
   fetchWithMargin: (strategyName) => api.get(`/api/chartink/fetchWithMargin?strategy=${encodeURIComponent(strategyName)}`),
+  createStrategy: (strategyData) => api.post('/api/strategy', strategyData),
+  updateStrategy: (id, strategyData) => api.put(`/api/strategy/${id}`, strategyData),
+  deleteStrategy: (id) => api.delete(`/api/strategy/${id}`),
 };
 
 // Margin API methods
