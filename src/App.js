@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { Box, Typography, Backdrop, CircularProgress } from '@mui/material';
+import { Box, Backdrop, CircularProgress } from '@mui/material';
 import createAppTheme from './theme';
 
 // 1. Import Auth Context and Protected Route
@@ -18,6 +18,7 @@ import Strategies from './components/Strategies';
 import Calculator from './components/Calculator';
 import Settings from './components/Settings';
 import AdminDashboard from './components/AdminDashboard';
+import Unauthorized from './components/Unauthorized';
 import { userPreferenceAPI } from "../src/api/axios";
 
 function App() {
@@ -88,8 +89,8 @@ function AppContent() {
                 <Route path="/admin/dashboard" element={<AdminDashboard />} />
               </Route>
 
-              {/* Optional: Unauthorized page for non-admins */}
-              <Route path="/unauthorized" element={<Typography variant="h4" align="center">Access Denied</Typography>} />
+              {/* Unauthorized page for non-admins */}
+              <Route path="/unauthorized" element={<Unauthorized />} />
             </Routes>
           </Box>
           <Footer />
