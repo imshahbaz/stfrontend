@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { strategyAPI ,marginAPI} from '../api/axios';
+import { strategyAPI, marginAPI } from '../api/axios';
 import {
   Container,
   Box,
@@ -74,16 +74,17 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchStrategies = async () => {
+    try {
+      const response = await strategyAPI.getStrategiesAdmin();
+      setStrategies(response.data);
+    } catch (error) {
+      console.error('Error fetching strategies:', error);
+    }
+  };
+
   // Strategy management functions
   useEffect(() => {
-    const fetchStrategies = async () => {
-      try {
-        const response = await strategyAPI.getStrategiesAdmin();
-        setStrategies(response.data);
-      } catch (error) {
-        console.error('Error fetching strategies:', error);
-      }
-    };
     fetchStrategies();
   }, []);
 
