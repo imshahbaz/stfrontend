@@ -22,8 +22,9 @@ import {
   TableCell,
   IconButton,
   Paper,
+  Collapse,
 } from '@mui/material';
-import { CloudUpload, Dashboard, Add, Edit, Delete } from '@mui/icons-material';
+import { CloudUpload, Dashboard, Add, Edit, Delete, ExpandMore, ExpandLess } from '@mui/icons-material';
 
 const AdminDashboard = () => {
   const [file, setFile] = useState(null);
@@ -39,6 +40,7 @@ const AdminDashboard = () => {
   const [strategyLoading, setStrategyLoading] = useState(false);
   const [strategySuccess, setStrategySuccess] = useState('');
   const [strategyError, setStrategyError] = useState('');
+  const [tableExpanded, setTableExpanded] = useState(false);
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -312,44 +314,55 @@ const AdminDashboard = () => {
                 </Box>
               )}
 
-              <TableContainer component={Paper} elevation={0}>
-                <Table>
-                  <TableHead sx={{ backgroundColor: 'grey.100' }}>
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Scan Clause</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Active</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {strategies.map((strategy) => (
-                      <TableRow key={strategy.id}>
-                        <TableCell>{strategy.name}</TableCell>
-                        <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {strategy.scanClause}
-                        </TableCell>
-                        <TableCell>{strategy.active ? 'Yes' : 'No'}</TableCell>
-                        <TableCell>
-                          <IconButton onClick={() => handleEdit(strategy)} size="small">
-                            <Edit />
-                          </IconButton>
-                          <IconButton onClick={() => handleDelete(strategy.id)} size="small" color="error">
-                            <Delete />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {strategies.length === 0 && (
+              <Button
+                onClick={() => setTableExpanded(!tableExpanded)}
+                startIcon={tableExpanded ? <ExpandLess /> : <ExpandMore />}
+                variant="outlined"
+                sx={{ mb: 2 }}
+              >
+                {tableExpanded ? 'Hide Strategies' : 'Show Strategies'}
+              </Button>
+
+              <Collapse in={tableExpanded}>
+                <TableContainer component={Paper} elevation={0}>
+                  <Table>
+                    <TableHead sx={{ backgroundColor: 'grey.100' }}>
                       <TableRow>
-                        <TableCell colSpan={4} sx={{ textAlign: 'center' }}>
-                          No strategies found.
-                        </TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
+                        {/* <TableCell sx={{ fontWeight: 'bold' }}>Scan Clause</TableCell> */}
+                        <TableCell sx={{ fontWeight: 'bold' }}>Active</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
                       </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+                    </TableHead>
+                    <TableBody>
+                      {strategies.map((strategy) => (
+                        <TableRow key={strategy.id}>
+                          <TableCell>{strategy.name}</TableCell>
+                          {/* <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {strategy.scanClause}
+                          </TableCell> */}
+                          <TableCell>{strategy.active ? 'Yes' : 'No'}</TableCell>
+                          <TableCell>
+                            <IconButton onClick={() => handleEdit(strategy)} size="small">
+                              <Edit />
+                            </IconButton>
+                            <IconButton onClick={() => handleDelete(strategy.id)} size="small" color="error">
+                              <Delete />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {strategies.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={4} sx={{ textAlign: 'center' }}>
+                            No strategies found.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Collapse>
             </CardContent>
           </Card>
         </Grid>
