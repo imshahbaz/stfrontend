@@ -28,7 +28,7 @@ function App() {
 }
 
 function AppContent() {
-  const { user, loading ,login} = useAuth();
+  const { user, loading, login } = useAuth();
   const [theme, setTheme] = useState('dark');
 
   useEffect(() => {
@@ -90,7 +90,7 @@ function AppContent() {
               </Route>
 
               {/* Unauthorized page for non-admins */}
-              <Route path="/unauthorized" element={<Unauthorized />} />
+              <Route path="/unauthorized" element={<Unauthorized showLogin={!user} />} />
             </Routes>
           </Box>
           <Footer />
