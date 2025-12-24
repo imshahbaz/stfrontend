@@ -17,6 +17,7 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
+  ListItemButton
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -67,41 +68,51 @@ const Header = ({ toggleTheme, theme }) => {
       onKeyDown={toggleDrawer(false)}
     >
       <List>
-        <ListItem button onClick={toggleTheme}>
-          <ListItemIcon>
-            {theme === 'dark' ? <Brightness7 /> : <Brightness4 />}
-          </ListItemIcon>
-          <ListItemText primary="Toggle Theme" />
+        {/* --- Toggle Theme --- */}
+        <ListItem disablePadding>
+          <ListItemButton onClick={toggleTheme}>
+            <ListItemIcon>
+              {theme === 'dark' ? <Brightness7 /> : <Brightness4 />}
+            </ListItemIcon>
+            <ListItemText primary="Toggle Theme" />
+          </ListItemButton>
         </ListItem>
+
         {user ? (
           <>
+            {/* --- Admin Dashboard --- */}
             {user?.role === 'ADMIN' && (
-              <ListItem button component={Link} to="/admin/dashboard">
-                <ListItemIcon>
-                  <Dashboard />
-                </ListItemIcon>
-                <ListItemText primary="Admin Dashboard" />
+              <ListItem disablePadding>
+                <ListItemButton component={Link} to="/admin/dashboard">
+                  <ListItemIcon><Dashboard /></ListItemIcon>
+                  <ListItemText primary="Admin Dashboard" />
+                </ListItemButton>
               </ListItem>
             )}
-            <ListItem button component={Link} to="/settings">
-              <ListItemIcon>
-                <Settings />
-              </ListItemIcon>
-              <ListItemText primary="Settings" />
+
+            {/* --- Settings --- */}
+            <ListItem disablePadding>
+              <ListItemButton component={Link} to="/settings">
+                <ListItemIcon><Settings /></ListItemIcon>
+                <ListItemText primary="Settings" />
+              </ListItemButton>
             </ListItem>
-            <ListItem button onClick={handleLogout}>
-              <ListItemIcon>
-                <Logout />
-              </ListItemIcon>
-              <ListItemText primary="Logout" />
+
+            {/* --- Logout --- */}
+            <ListItem disablePadding>
+              <ListItemButton onClick={handleLogout}>
+                <ListItemIcon><Logout /></ListItemIcon>
+                <ListItemText primary="Logout" />
+              </ListItemButton>
             </ListItem>
           </>
         ) : (
-          <ListItem button component={Link} to="/login">
-            <ListItemIcon>
-              <Login />
-            </ListItemIcon>
-            <ListItemText primary="Login" />
+          /* --- Login --- */
+          <ListItem disablePadding>
+            <ListItemButton component={Link} to="/login">
+              <ListItemIcon><Login /></ListItemIcon>
+              <ListItemText primary="Login" />
+            </ListItemButton>
           </ListItem>
         )}
       </List>
