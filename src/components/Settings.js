@@ -12,6 +12,7 @@ import {
   Alert,
   IconButton,
   Collapse,
+  Grid,
 } from '@mui/material';
 import { Email, Person, Save, Close, Settings as SettingsIcon } from '@mui/icons-material';
 
@@ -44,9 +45,10 @@ const Settings = () => {
   };
 
   return (
-    <Container maxWidth="md" sx={{ flexGrow: 1, py: 5 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-        <Card sx={{ minWidth: 400, maxWidth: 600, boxShadow: 3 }}>
+    <Container maxWidth="lg" sx={{ flexGrow: 1, py: 5 }}>
+      <Grid container spacing={4}>
+        <Grid item xs={12} md={6}>
+          <Card sx={{ height: '100%', boxShadow: 3 }}>
           <CardHeader
             title={
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -135,8 +137,9 @@ const Settings = () => {
             </Box>
           </CardContent>
         </Card>
-      </Box>
-    </Container>
+      </Grid>
+    </Grid>
+  </Container>
   );
 };
 
