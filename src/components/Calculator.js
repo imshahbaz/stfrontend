@@ -1,15 +1,26 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { marginAPI } from '../api/axios';
 import {
   Container, Box, Typography, Card, CardContent, TextField, Button,
   RadioGroup, FormControlLabel, Radio, FormControl, FormLabel,
   Autocomplete, Grid, Divider, Stack, Paper
 } from '@mui/material';
-import { Calculate, ArrowForward, ArrowBack, ReceiptLong, AccountBalanceWallet, Edit } from '@mui/icons-material';
+import { 
+  Calculate, 
+  ArrowForward, 
+  ArrowBack, 
+  ReceiptLong, 
+  AccountBalanceWallet, 
+  Edit,
+  RestartAlt 
+} from '@mui/icons-material';
 
 const Calculator = () => {
-  const [view, setView] = useState('form');
+  // View States
+  const [view, setView] = useState('form'); // 'form' or 'results'
   const [activeStep, setActiveStep] = useState(1);
+  
+  // Data States
   const [margins, setMargins] = useState([]);
   const [selectedLeverage, setSelectedLeverage] = useState('');
   const [selectedSymbolRaw, setSelectedSymbolRaw] = useState('');
@@ -19,29 +30,34 @@ const Calculator = () => {
   const [daysHeld, setDaysHeld] = useState('');
   const [quantity, setQuantity] = useState('');
   const [quantityType, setQuantityType] = useState('quantity');
+  
+  // Calculation & UI States
   const [results, setResults] = useState(null);
   const [errors, setErrors] = useState({});
 
+  // Fetch NSE Data from Cache/API
   useEffect(() => {
     const fetchMargins = async () => {
       try {
         const response = await marginAPI.getAllMargins();
         setMargins(response.data);
-      } catch (error) { console.error(error); }
+      } catch (error) {
+        console.error("Error fetching margin data:", error);
+      }
     };
     fetchMargins();
   }, []);
 
-  // --- VALIDATION LOGIC PER STEP ---
+  // --- PART-BY-PART VALIDATION ---
   const validateStep = (step) => {
     const newErrors = {};
     
     if (step === 1) {
-      if (!selectedLeverage) newErrors.selectedLeverage = 'Stock selection is required';
+      if (!selectedSymbolRaw) newErrors.selectedLeverage = 'Stock selection is required';
       if (!buyPrice || isNaN(parseFloat(buyPrice)) || parseFloat(buyPrice) <= 0) 
         newErrors.buyPrice = 'Enter a valid buy price';
       if (!sellPrice || isNaN(parseFloat(sellPrice)) || parseFloat(sellPrice) <= 0) 
-        newErrors.sellPrice = 'Enter a valid sell price/percent';
+        newErrors.sellPrice = 'Enter a valid sell target';
     }
     
     if (step === 2) {
@@ -56,11 +72,21 @@ const Calculator = () => {
   };
 
   const handleNext = () => {
-    if (validateStep(1)) {
-      setActiveStep(2);
-    }
+    if (validateStep(1)) setActiveStep(2);
   };
 
+  const resetForm = () => {
+    setActiveStep(1);
+    setBuyPrice('');
+    setSellPrice('');
+    setDaysHeld('');
+    setQuantity('');
+    setSelectedSymbolRaw('');
+    setSelectedLeverage('');
+    setErrors({});
+  };
+
+  // --- CALCULATION LOGIC ---
   const calculateReturns = () => {
     if (!validateStep(2)) return;
 
@@ -79,7 +105,8 @@ const Calculator = () => {
     const grossProfit = (sp - bp) * shares;
     const turnover = (bp + sp) * shares;
 
-    const brokerage = 40;
+    // Standard Charges (Approximate NSE/BSE values)
+    const brokerage = 40; // Flat ₹20 per order
     const STT = (days > 0) ? turnover * 0.001 : shares * sp * 0.00025;
     const stampCharges = shares * bp * (days > 0 ? 0.00015 : 0.00003);
     const transCharges = turnover * 0.0000345;
@@ -87,10 +114,14 @@ const Calculator = () => {
     const gst = 0.18 * (sebiCharges + brokerage + transCharges);
     const totalCharges = brokerage + STT + transCharges + stampCharges + gst + sebiCharges;
 
+    // MTF Interest Calculation (15% per annum)
     const mtfInterest = (fundedAmt * 0.15 * days) / 365;
     const netProfit = grossProfit - mtfInterest - totalCharges;
 
-    const f = (n) => new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+    const f = (n) => new Intl.NumberFormat('en-IN', { 
+        minimumFractionDigits: 2, 
+        maximumFractionDigits: 2 
+    }).format(n);
 
     setResults({
       totalValue: f(totalValue),
@@ -105,6 +136,7 @@ const Calculator = () => {
       shares: shares,
       symbol: selectedSymbolRaw
     });
+    
     setView('results');
   };
 
@@ -114,7 +146,9 @@ const Calculator = () => {
         <Card variant="outlined" sx={{ borderRadius: 4, boxShadow: 3 }}>
           <Box sx={{ p: 3, textAlign: 'center', bgcolor: 'primary.main', color: 'white' }}>
             <Typography variant="h5" fontWeight="800">Trade Calculator</Typography>
-            <Typography variant="caption">Step {activeStep} of 2: {activeStep === 1 ? 'Asset Details' : 'Position Size'}</Typography>
+            <Typography variant="caption" sx={{ opacity: 0.9 }}>
+                Step {activeStep} of 2: {activeStep === 1 ? 'Asset Details' : 'Position Sizing'}
+            </Typography>
           </Box>
 
           <CardContent sx={{ p: 4 }}>
@@ -124,6 +158,7 @@ const Calculator = () => {
                   fullWidth
                   options={margins}
                   getOptionLabel={(o) => `${o.symbol} (${o.margin}x)`}
+                  value={margins.find(m => m.symbol === selectedSymbolRaw) || null}
                   onChange={(e, v) => { 
                     setSelectedLeverage(v?.margin || ''); 
                     setSelectedSymbolRaw(v?.symbol || ''); 
@@ -135,6 +170,7 @@ const Calculator = () => {
                     />
                   )}
                 />
+                
                 <Grid container spacing={2}>
                   <Grid item xs={6}>
                     <TextField fullWidth label="Buy Price" type="number" value={buyPrice} 
@@ -149,15 +185,17 @@ const Calculator = () => {
                     />
                   </Grid>
                 </Grid>
+
                 <FormControl component="fieldset">
-                  <FormLabel sx={{ fontWeight: 700, mb: 1, fontSize: '0.8rem' }}>SELL CALCULATION</FormLabel>
+                  <FormLabel sx={{ fontWeight: 700, mb: 1, fontSize: '0.75rem', color: 'text.secondary' }}>SELL CALCULATION BY</FormLabel>
                   <RadioGroup row value={sellType} onChange={e => setSellType(e.target.value)}>
-                    <FormControlLabel value="exact" control={<Radio />} label="Price" />
-                    <FormControlLabel value="percent" control={<Radio />} label="Percent" />
+                    <FormControlLabel value="exact" control={<Radio size="small"/>} label="Price" />
+                    <FormControlLabel value="percent" control={<Radio size="small" />} label="Percent" />
                   </RadioGroup>
                 </FormControl>
+
                 <Button fullWidth variant="contained" size="large" onClick={handleNext} endIcon={<ArrowForward />} sx={{ py: 2, borderRadius: 2 }}>
-                  Next: Sizing
+                  Next: Position Sizing
                 </Button>
               </Stack>
             ) : (
@@ -166,6 +204,7 @@ const Calculator = () => {
                   onChange={e => { setDaysHeld(e.target.value); setErrors(prev => ({ ...prev, daysHeld: '' })); }} 
                   required error={!!errors.daysHeld} helperText={errors.daysHeld} 
                 />
+                
                 <TextField
                   fullWidth
                   label={quantityType === 'quantity' ? "Number of Shares" : "Investment Capital"}
@@ -176,56 +215,89 @@ const Calculator = () => {
                   error={!!errors.quantity}
                   helperText={errors.quantity}
                 />
+
                 <FormControl component="fieldset">
-                  <FormLabel sx={{ fontWeight: 700, mb: 1, fontSize: '0.8rem' }}>ENTRY MODE</FormLabel>
+                  <FormLabel sx={{ fontWeight: 700, mb: 1, fontSize: '0.75rem', color: 'text.secondary' }}>ENTRY MODE</FormLabel>
                   <RadioGroup row value={quantityType} onChange={e => setQuantityType(e.target.value)}>
-                    <FormControlLabel value="quantity" control={<Radio />} label="By Units" />
-                    <FormControlLabel value="investment" control={<Radio />} label="By Capital" />
+                    <FormControlLabel value="quantity" control={<Radio size="small" />} label="By Units" />
+                    <FormControlLabel value="investment" control={<Radio size="small" />} label="By Capital" />
                   </RadioGroup>
                 </FormControl>
+
                 <Box sx={{ display: 'flex', gap: 2 }}>
-                  <Button fullWidth variant="outlined" onClick={() => setActiveStep(1)} startIcon={<ArrowBack />} sx={{ py: 2 }}>Back</Button>
-                  <Button fullWidth variant="contained" color="success" onClick={calculateReturns} startIcon={<Calculate />} sx={{ py: 2 }}>Calculate</Button>
+                  <Button fullWidth variant="outlined" onClick={() => setActiveStep(1)} startIcon={<ArrowBack />} sx={{ py: 1.5 }}>Back</Button>
+                  <Button fullWidth variant="contained" color="success" onClick={calculateReturns} startIcon={<Calculate />} sx={{ py: 1.5 }}>Calculate</Button>
                 </Box>
               </Stack>
             )}
           </CardContent>
         </Card>
       ) : (
-        /* RESULTS VIEW */
+        /* RESULTS VIEW - FULL FORM REPLACEMENT */
         <Stack spacing={3}>
-          <Card sx={{ borderRadius: 4, textAlign: 'center', p: 4, boxShadow: 6 }}>
-            <Typography variant="overline" sx={{ letterSpacing: 2, fontWeight: 700, opacity: 0.9 }}>NET PROFIT / LOSS</Typography>
-            <Typography variant="h2" fontWeight="900" sx={{ color: results.isProfit ? 'success.main' : 'error.main' }}>₹ {results.net}</Typography>
-            <Typography variant="h6">{results.roi}% Return on Margin</Typography>
+          <Card sx={{ 
+            borderRadius: 4, 
+            textAlign: 'center', 
+            p: 4, 
+            boxShadow: 6,
+            background: results.isProfit 
+              ? 'linear-gradient(135deg, #2e7d32 0%, #4caf50 100%)' 
+              : 'linear-gradient(135deg, #c62828 0%, #ef5350 100%)',
+            color: 'white'
+          }}>
+            <Typography variant="overline" sx={{ letterSpacing: 2, fontWeight: 700, opacity: 0.9 }}>NET P&L RESULT</Typography>
+            <Typography variant="h2" fontWeight="900" sx={{ my: 1 }}>₹ {results.net}</Typography>
+            <Typography variant="h6" sx={{ opacity: 0.9 }}>{results.roi}% Return on Margin</Typography>
 
-            <Button onClick={() => setView('form')} fullWidth variant="contained" color="primary" sx={{ mt: 3, mb: 2 }} startIcon={<Edit />}>
-              Edit Trade
-            </Button>
+            <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
+                <Button 
+                    onClick={() => {
+                        setView('form');
+                        setActiveStep(1); // Return to Part 1
+                    }} 
+                    fullWidth 
+                    variant="contained" 
+                    color="inherit" 
+                    sx={{ color: 'text.primary', borderRadius: 2 }} 
+                    startIcon={<Edit />}
+                >
+                    Edit Trade
+                </Button>
+                <Button 
+                    onClick={() => {
+                        resetForm();
+                        setView('form');
+                    }} 
+                    variant="outlined" 
+                    sx={{ color: 'white', borderColor: 'white', borderRadius: 2 }} 
+                >
+                    <RestartAlt />
+                </Button>
+            </Stack>
           </Card>
 
           <Paper variant="outlined" sx={{ p: 3, borderRadius: 4 }}>
             <Typography variant="subtitle2" color="primary" fontWeight="800" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <AccountBalanceWallet fontSize="small" /> CAPITAL DETAILS
+              <AccountBalanceWallet fontSize="small" /> CAPITAL & POSITION
             </Typography>
             <Divider sx={{ mb: 2 }} />
             <Stack spacing={1.5}>
               <DetailRow label="Stock Symbol" value={results.symbol} />
-              <DetailRow label="Total Exposure" value={`₹ ${results.totalValue}`} />
-              <DetailRow label="Your Margin" value={`₹ ${results.margin}`} bold />
-              <DetailRow label="Units (Shares)" value={results.shares} />
+              <DetailRow label="Total Value (Leveraged)" value={`₹ ${results.totalValue}`} />
+              <DetailRow label="Capital Required" value={`₹ ${results.margin}`} bold />
+              <DetailRow label="Shares Bought" value={results.shares} />
             </Stack>
           </Paper>
 
           <Paper variant="outlined" sx={{ p: 3, borderRadius: 4 }}>
             <Typography variant="subtitle2" color="error.main" fontWeight="800" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <ReceiptLong fontSize="small" /> CHARGES BREAKDOWN
+              <ReceiptLong fontSize="small" /> DEDUCTIONS BREAKDOWN
             </Typography>
             <Divider sx={{ mb: 2 }} />
             <Stack spacing={1.5}>
-              <DetailRow label="Gross P&L" value={`₹ ${results.gross}`} />
+              <DetailRow label="Gross Profit/Loss" value={`₹ ${results.gross}`} />
               <DetailRow label="MTF Interest (15%)" value={`₹ ${results.interest}`} />
-              <DetailRow label="Taxes & Brokerage" value={`₹ ${results.charges}`} bold />
+              <DetailRow label="Regulatory Charges" value={`₹ ${results.charges}`} bold />
             </Stack>
           </Paper>
         </Stack>
