@@ -155,7 +155,7 @@ const Strategies = memo(() => {
                       <Box sx={{ display: 'flex', mt: 2, gap: 4 }}>
                         <Box>
                           <Typography variant="caption" color="text.secondary" display="block">Margin</Typography>
-                          <Typography variant="body2" sx={{ fontWeight: 'medium' }}>{stock.margin}%</Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 'medium' }}>{stock.margin}x</Typography>
                         </Box>
                         {/* You can add more metrics here like Volume or Change % */}
                       </Box>
