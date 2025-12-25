@@ -37,20 +37,41 @@ const Login = () => {
     );
   }
 
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePassword = (password) => {
+    return password.length >= 6; // Basic check
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setMessage('');
+
+    if (!validateEmail(email)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+
+    if (!validatePassword(password)) {
+      setError('Password must be at least 6 characters long.');
+      return;
+    }
+
     try {
       const response = await authAPI.login(email, password);
       if (response.status === 200) {
         login(response.data);
         navigate('/');
       } else {
-        setError('Login failed');
+        setError('Login failed. Please check your credentials.');
       }
     } catch (error) {
-      setError(error.response?.data?.message || 'Login failed');
+      const errorMessage = error.response?.data?.message || 'Login failed. Please try again.';
+      setError(errorMessage);
     }
   };
 
@@ -110,6 +131,7 @@ const Login = () => {
                 startAdornment: <Lock sx={{ mr: 1, color: 'action.active' }} />,
               }}
             />
+
             <Button
               type="submit"
               fullWidth

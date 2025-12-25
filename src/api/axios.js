@@ -42,6 +42,7 @@ export const userAPI = {
 export const strategyAPI = {
   getStrategies: () => api.get('/api/strategy'),
   fetchWithMargin: (strategyName) => api.get(`/api/chartink/fetchWithMargin?strategy=${encodeURIComponent(strategyName)}`),
+  fetchChartData: (symbol) => api.get(`/api/nse/history?symbol=${encodeURIComponent(symbol)}`),
   createStrategy: (strategyData) => api.post('/api/strategy', strategyData),
   updateStrategy: (strategyData) => api.put('/api/strategy', strategyData),
   deleteStrategy: (id) => api.delete('/api/strategy', {

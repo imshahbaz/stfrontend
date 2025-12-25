@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   AppBar,
@@ -34,6 +34,7 @@ import {
 const Header = ({ toggleTheme, theme }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const muiTheme = useTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
   const [anchorEl, setAnchorEl] = useState(null);
@@ -107,13 +108,15 @@ const Header = ({ toggleTheme, theme }) => {
             </ListItem>
           </>
         ) : (
-          /* --- Login --- */
-          <ListItem disablePadding>
-            <ListItemButton component={Link} to="/login">
-              <ListItemIcon><Login /></ListItemIcon>
-              <ListItemText primary="Login" />
-            </ListItemButton>
-          </ListItem>
+          location.pathname !== '/login' && (
+            /* --- Login --- */
+            <ListItem disablePadding>
+              <ListItemButton component={Link} to="/login">
+                <ListItemIcon><Login /></ListItemIcon>
+                <ListItemText primary="Login" />
+              </ListItemButton>
+            </ListItem>
+          )
         )}
       </List>
     </Box>
@@ -191,9 +194,11 @@ const Header = ({ toggleTheme, theme }) => {
                 </Menu>
               </>
             ) : (
-              <Button color="inherit" component={Link} to="/login" startIcon={<Login />}>
-                Login
-              </Button>
+              location.pathname !== '/login' && (
+                <Button color="inherit" component={Link} to="/login" startIcon={<Login />}>
+                  Login
+                </Button>
+              )
             )}
           </>
         )}
