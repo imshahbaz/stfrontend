@@ -1,26 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { marginAPI } from '../api/axios';
 import {
-  Container,
-  Box,
-  Typography,
-  Card,
-  CardContent,
-  TextField,
-  Button,
-  RadioGroup,
-  FormControlLabel,
-  Radio,
-  FormControl,
-  FormLabel,
-  Autocomplete,
-  Grid,
-  Alert,
-  Divider
-} from '@mui/material';
-import { Calculate } from '@mui/icons-material';
+  Container, Box, Typography, Card, CardContent, TextField, Button,
+  RadioGroup, FormControlLabel, Radio, FormControl, FormLabel,
+  Autocomplete, Grid, Divider, Stack, Paper} from '@mui/material';
+import { Calculate, ArrowForward, ArrowBack, ReceiptLong, AccountBalanceWallet, Edit } from '@mui/icons-material';
 
 const Calculator = () => {
+  const [view, setView] = useState('form'); // 'form' or 'results'
+  const [activeStep, setActiveStep] = useState(1);
   const [margins, setMargins] = useState([]);
   const [selectedLeverage, setSelectedLeverage] = useState('');
   const [selectedSymbolRaw, setSelectedSymbolRaw] = useState('');
@@ -31,39 +19,23 @@ const Calculator = () => {
   const [quantity, setQuantity] = useState('');
   const [quantityType, setQuantityType] = useState('quantity');
   const [results, setResults] = useState(null);
-  const [alertMessage, setAlertMessage] = useState('');
 
-  const fetchMargins = async () => {
+  useEffect(() => {
+    const fetchMargins = async () => {
       try {
         const response = await marginAPI.getAllMargins();
         setMargins(response.data);
-      } catch (error) {
-        console.error('Error fetching margins:', error);
-      }
+      } catch (error) { console.error(error); }
     };
-
-  useEffect(() => {
     fetchMargins();
   }, []);
 
-  const selectSuggestion = (item) => {
-    setSelectedLeverage(item.margin);
-    setSelectedSymbolRaw(item.symbol);
-  };
-
   const calculateReturns = () => {
-    const symbol = selectedSymbolRaw;
     const leverage = parseFloat(selectedLeverage);
     const bp = parseFloat(buyPrice);
     const spInput = parseFloat(sellPrice);
-    const days = parseInt(daysHeld);
+    const days = parseInt(daysHeld) || 0;
     const qtyVal = parseFloat(quantity);
-
-    if (!symbol || isNaN(leverage) || isNaN(bp) || isNaN(spInput) || isNaN(qtyVal)) {
-      setAlertMessage('Please select a stock and fill all calculation fields.');
-      setResults(null);
-      return;
-    }
 
     let sp = (sellType === 'exact') ? spInput : bp * (1 + spInput / 100);
     let shares = (quantityType === 'quantity') ? qtyVal : Math.trunc((qtyVal * leverage) / bp);
@@ -71,11 +43,9 @@ const Calculator = () => {
     const totalValue = shares * bp;
     const marginUsed = totalValue / leverage;
     const fundedAmt = totalValue - marginUsed;
-
     const grossProfit = (sp - bp) * shares;
     const turnover = (bp + sp) * shares;
 
-    // standard brokerage assumptions
     const brokerage = 40;
     const STT = (days > 0) ? turnover * 0.001 : shares * sp * 0.00025;
     const stampCharges = shares * bp * (days > 0 ? 0.00015 : 0.00003);
@@ -84,276 +54,148 @@ const Calculator = () => {
     const gst = 0.18 * (sebiCharges + brokerage + transCharges);
     const totalCharges = brokerage + STT + transCharges + stampCharges + gst + sebiCharges;
 
-    const mtfInterest = (fundedAmt * 0.15 * (days || 0)) / 365;
+    const mtfInterest = (fundedAmt * 0.15 * days) / 365;
     const netProfit = grossProfit - mtfInterest - totalCharges;
-    const roMargin = (netProfit / marginUsed) * 100;
 
-    const formatInr = (n) => {
-      return new Intl.NumberFormat('en-IN', {
-        style: 'decimal',
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      }).format(n);
-    };
+    const f = (n) => new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
 
     setResults({
-      totalInvestment: formatInr(totalValue),
-      margin: formatInr(marginUsed),
-      fundingAmount: formatInr(fundedAmt),
-      interest: formatInr(mtfInterest),
-      profit: formatInr(grossProfit),
-      totalCharges: formatInr(totalCharges),
-      netProfit: formatInr(netProfit),
-      profitPercent: roMargin.toFixed(2),
-      isProfit: netProfit >= 0
+      totalValue: f(totalValue),
+      margin: f(marginUsed),
+      funding: f(fundedAmt),
+      interest: f(mtfInterest),
+      gross: f(grossProfit),
+      charges: f(totalCharges),
+      net: f(netProfit),
+      roi: ((netProfit / marginUsed) * 100).toFixed(2),
+      isProfit: netProfit >= 0,
+      shares: shares,
+      symbol: selectedSymbolRaw
     });
-    setAlertMessage('');
+    setView('results');
   };
 
   return (
-    <Container maxWidth="lg" sx={{ flexGrow: 1, py: 5 }}>
-      <Box sx={{ textAlign: 'center', mb: 5 }}>
-        <Calculate sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
-        <Typography variant="h3" component="h1" color="primary" gutterBottom>
-          Trade Calculator
-        </Typography>
-        <Typography variant="h6" color="text.secondary">
-          Analyze your trades with real-time margin and interest calculations.
-        </Typography>
-      </Box>
+    <Container maxWidth="sm" sx={{ py: 4 }}>
+      {view === 'form' ? (
+        <Card variant="outlined" sx={{ borderRadius: 4, boxShadow: 3 }}>
+          <Box sx={{ p: 3, textAlign: 'center', bgcolor: 'primary.main', color: 'white' }}>
+            <Typography variant="h5" fontWeight="800">Trade Calculator</Typography>
+            <Typography variant="caption">Step {activeStep} of 2: {activeStep === 1 ? 'Asset Details' : 'Position Size'}</Typography>
+          </Box>
 
-      <Card sx={{ boxShadow: 3 }}>
-        <CardContent sx={{ p: 4 }}>
-          <Box component="form" onSubmit={(e) => { e.preventDefault(); calculateReturns(); }}>
-
-            <Grid container spacing={0} sx={{ mb: 4, width: '100%' }}>
-              <Grid item xs={12} sx={{ width: '100%' }}>
+          <CardContent sx={{ p: 4 }}>
+            {activeStep === 1 ? (
+              <Stack spacing={4}>
                 <Autocomplete
                   fullWidth
                   options={margins}
-                  getOptionLabel={(option) => `${option.symbol} (${option.margin}x Margin)`}
-                  value={margins.find((item) => item.symbol === selectedSymbolRaw) || null}
-                  onChange={(event, newValue) => newValue && selectSuggestion(newValue)}
-                  // Force the Autocomplete wrapper to be 100% wide
-                  sx={{ width: '100%' }}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="Stock Symbol"
-                      placeholder="Search stocks..."
-                      required
-                      fullWidth
-                      sx={{
-                        width: '100%',
-                        '& .MuiInputBase-root': {
-                          fontSize: '1.1rem',      // Reduced font size
-                          padding: '8px 16px',     // Standard vertical padding
-                          minHeight: '56px',       // Standard MUI height
-                          borderRadius: '8px',     // Clean, modern corners
-                        },
-                        '& .MuiInputLabel-root': {
-                          fontSize: '1rem',
-                          transform: 'translate(14px, 16px) scale(1)'
-                        },
-                        '& .MuiInputLabel-shrink': {
-                          transform: 'translate(14px, -9px) scale(0.75)'
-                        }
-                      }}
-                    />
-                  )}
+                  getOptionLabel={(o) => `${o.symbol} (${o.margin}x)`}
+                  onChange={(e, v) => { setSelectedLeverage(v?.margin || ''); setSelectedSymbolRaw(v?.symbol || ''); }}
+                  renderInput={(params) => <TextField {...params} label="Select Stock" variant="outlined" />}
                 />
-              </Grid>
-            </Grid>
-
-            <Grid container spacing={4} sx={{ mb: 4 }}>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  label="Buy Price"
-                  type="number"
-                  value={buyPrice}
-                  onChange={(e) => setBuyPrice(e.target.value)}
-                  required
-                  fullWidth
-                  inputProps={{ step: "0.01" }}
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  label="Sell Price / %"
-                  type="number"
-                  value={sellPrice}
-                  onChange={(e) => setSellPrice(e.target.value)}
-                  required
-                  fullWidth
-                  inputProps={{ step: "0.01" }}
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
+                <Grid container spacing={2}>
+                  <Grid item xs={6}><TextField fullWidth label="Buy Price" type="number" value={buyPrice} onChange={e => setBuyPrice(e.target.value)} /></Grid>
+                  <Grid item xs={6}><TextField fullWidth label={sellType === 'exact' ? "Sell Price" : "Profit %"} type="number" value={sellPrice} onChange={e => setSellPrice(e.target.value)} /></Grid>
+                </Grid>
                 <FormControl component="fieldset">
-                  <FormLabel component="legend">Sell Calculation Type</FormLabel>
-                  <RadioGroup
-                    row
-                    value={sellType}
-                    onChange={(e) => setSellType(e.target.value)}
-                  >
-                    <FormControlLabel value="exact" control={<Radio />} label="Exact Price" />
-                    <FormControlLabel value="percent" control={<Radio />} label="Percentage" />
+                  <FormLabel sx={{ fontWeight: 700, mb: 1, fontSize: '0.8rem' }}>SELL CALCULATION</FormLabel>
+                  <RadioGroup row value={sellType} onChange={e => setSellType(e.target.value)}>
+                    <FormControlLabel value="exact" control={<Radio />} label="Price" />
+                    <FormControlLabel value="percent" control={<Radio />} label="Percent" />
                   </RadioGroup>
                 </FormControl>
-              </Grid>
-            </Grid>
-
-            <Grid container spacing={4} sx={{ mb: 4 }}>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  label="Days Held"
-                  type="number"
-                  value={daysHeld}
-                  onChange={(e) => setDaysHeld(e.target.value)}
-                  required
-                  fullWidth
-                  inputProps={{ min: 0 }}
+                <Button fullWidth variant="contained" size="large" onClick={() => setActiveStep(2)} endIcon={<ArrowForward />} sx={{ py: 2, borderRadius: 2 }}>
+                  Next: Sizing
+                </Button>
+              </Stack>
+            ) : (
+              <Stack spacing={4}>
+                <TextField fullWidth label="Holding Duration (Days)" type="number" value={daysHeld} onChange={e => setDaysHeld(e.target.value)} />
+                <TextField 
+                  fullWidth 
+                  label={quantityType === 'quantity' ? "Number of Shares" : "Investment Capital"} 
+                  type="number" 
+                  value={quantity} 
+                  onChange={e => setQuantity(e.target.value)} 
                 />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  label="Quantity / Investment"
-                  type="number"
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
-                  required
-                  fullWidth
-                  inputProps={{ step: "0.01" }}
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
                 <FormControl component="fieldset">
-                  <FormLabel component="legend">Entry Mode</FormLabel>
-                  <RadioGroup
-                    row
-                    value={quantityType}
-                    onChange={(e) => setQuantityType(e.target.value)}
-                  >
+                  <FormLabel sx={{ fontWeight: 700, mb: 1, fontSize: '0.8rem' }}>ENTRY MODE</FormLabel>
+                  <RadioGroup row value={quantityType} onChange={e => setQuantityType(e.target.value)}>
                     <FormControlLabel value="quantity" control={<Radio />} label="By Units" />
                     <FormControlLabel value="investment" control={<Radio />} label="By Capital" />
                   </RadioGroup>
                 </FormControl>
-              </Grid>
-            </Grid>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Button fullWidth variant="outlined" onClick={() => setActiveStep(1)} startIcon={<ArrowBack />} sx={{ py: 2 }}>Back</Button>
+                  <Button fullWidth variant="contained" color="success" onClick={calculateReturns} startIcon={<Calculate />} sx={{ py: 2 }}>Calculate</Button>
+                </Box>
+              </Stack>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
+        /* RESULTS VIEW - REPLACES THE FORM */
+        <Stack spacing={3}>
+          <Card sx={{ 
+            borderRadius: 4, 
+            bgcolor: results.isProfit ? 'success.main' : 'error.main', 
+            color: 'white',
+            textAlign: 'center',
+            p: 4,
+            boxShadow: 6
+          }}>
+            <Typography variant="overline" sx={{ letterSpacing: 2, fontWeight: 700, opacity: 0.9 }}>NET PROFIT / LOSS</Typography>
+            <Typography variant="h2" fontWeight="900">₹ {results.net}</Typography>
+            <Typography variant="h6">{results.roi}% Return on Margin</Typography>
+            
+            <Button 
+                onClick={() => setView('form')} 
+                variant="contained" 
+                color="inherit" 
+                size="small"
+                startIcon={<Edit />}
+                sx={{ mt: 3, color: 'text.primary', borderRadius: 5 }}
+            >
+                Edit Trade
+            </Button>
+          </Card>
 
-            <Box sx={{ textAlign: 'center', mb: 4 }}>
-              <Button
-                type="submit"
-                variant="contained"
-                size="large"
-                sx={{ px: 5 }}
-              >
-                Calculate Returns
-              </Button>
-            </Box>
-          </Box>
+          <Paper variant="outlined" sx={{ p: 3, borderRadius: 4 }}>
+            <Typography variant="subtitle2" color="primary" fontWeight="800" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <AccountBalanceWallet fontSize="small"/> CAPITAL DETAILS
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            <Stack spacing={1.5}>
+              <DetailRow label="Stock Symbol" value={results.symbol} />
+              <DetailRow label="Total Exposure" value={`₹ ${results.totalValue}`} />
+              <DetailRow label="Your Margin" value={`₹ ${results.margin}`} bold />
+              <DetailRow label="Units (Shares)" value={results.shares} />
+            </Stack>
+          </Paper>
 
-          {alertMessage && (
-            <Alert severity="error" sx={{ mb: 4 }}>
-              {alertMessage}
-            </Alert>
-          )}
-
-          {results && (
-            <Box sx={{ mt: 4, width: '100%' }}>
-              <Typography variant="h4" component="h3" align="center" gutterBottom sx={{ fontWeight: 700, mb: 3 }} color="primary" >
-                Calculation Summary
-              </Typography>
-
-              {/* Grid container with full width and standard spacing */}
-              <Grid container spacing={3} sx={{ width: '100%', margin: 0 }}>
-
-                {/* Capital Breakdown Card */}
-                <Grid item xs={12} md={6} sx={{ display: 'flex' }}>
-                  <Card
-                    sx={{
-                      width: '100%', // Forces the card to fill exactly 50% of parent
-                      display: 'flex',
-                      flexDirection: 'column',
-                      transition: 'box-shadow 0.3s',
-                      '&:hover': {
-                        boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
-                      },
-                    }}
-                  >
-                    <CardContent sx={{ flexGrow: 1, p: 3 }}>
-                      <Typography variant="h6" color="primary" gutterBottom sx={{ textTransform: 'uppercase', fontWeight: 800, fontSize: '0.9rem', letterSpacing: '1px' }}>
-                        Capital Breakdown
-                      </Typography>
-                      <Divider sx={{ mb: 2, opacity: 0.1 }} />
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
-                        <Typography variant="body1">Total Investment:</Typography>
-                        <Typography variant="body1" fontWeight="bold">₹ {results.totalInvestment}</Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
-                        <Typography variant="body1">Your Investment:</Typography>
-                        <Typography variant="body1" fontWeight="bold" color="primary.main">₹ {results.margin}</Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
-                        <Typography variant="body1">Borrowed Funding:</Typography>
-                        <Typography variant="body1" fontWeight="bold">₹ {results.fundingAmount}</Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <Typography variant="body1">MTF Interest (15% p.a.):</Typography>
-                        <Typography variant="body1" fontWeight="bold" color="error.main">₹ {results.interest}</Typography>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
-
-                {/* Performance Metrics Card */}
-                <Grid item xs={12} md={6} sx={{ display: 'flex' }}>
-                  <Card
-                    sx={{
-                      width: '100%', // Forces the card to fill exactly 50% of parent
-                      display: 'flex',
-                      flexDirection: 'column',
-                      transition: 'box-shadow 0.3s',
-                      '&:hover': {
-                        boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
-                      },
-                    }}
-                  >
-                    <CardContent sx={{ flexGrow: 1, p: 3 }}>
-                      <Typography variant="h6" color="primary" gutterBottom sx={{ textTransform: 'uppercase', fontWeight: 800, fontSize: '0.9rem', letterSpacing: '1px' }}>
-                        Performance Metrics
-                      </Typography>
-                      <Divider sx={{ mb: 2, opacity: 0.1 }} />
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
-                        <Typography variant="body1">Gross Profit:</Typography>
-                        <Typography variant="body1" fontWeight="bold">₹ {results.profit}</Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
-                        <Typography variant="body1">Taxes & Charges:</Typography>
-                        <Typography variant="body1" fontWeight="bold" color="error.main">₹ {results.totalCharges}</Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5, mt: 1 }}>
-                        <Typography variant="body1" sx={{ fontWeight: 'bold' }}>Net Profit/Loss:</Typography>
-                        <Typography variant="h6" fontWeight="800" color={results.isProfit ? 'success.main' : 'error.main'}>
-                          ₹ {results.netProfit}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <Typography variant="body1">Return on Margin:</Typography>
-                        <Typography variant="body1" fontWeight="bold" color={results.isProfit ? 'success.main' : 'error.main'}>
-                          {results.profitPercent}%
-                        </Typography>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              </Grid>
-            </Box>
-          )}
-        </CardContent>
-      </Card>
+          <Paper variant="outlined" sx={{ p: 3, borderRadius: 4 }}>
+            <Typography variant="subtitle2" color="error.main" fontWeight="800" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <ReceiptLong fontSize="small"/> CHARGES BREAKDOWN
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            <Stack spacing={1.5}>
+              <DetailRow label="Gross P&L" value={`₹ ${results.gross}`} />
+              <DetailRow label="MTF Interest (15%)" value={`₹ ${results.interest}`} />
+              <DetailRow label="Taxes & Brokerage" value={`₹ ${results.charges}`} bold />
+            </Stack>
+          </Paper>
+        </Stack>
+      )}
     </Container>
   );
 };
+
+const DetailRow = ({ label, value, bold }) => (
+  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+    <Typography variant="body2" color="text.secondary">{label}</Typography>
+    <Typography variant="body2" fontWeight={bold ? 900 : 600}>{value}</Typography>
+  </Box>
+);
 
 export default Calculator;
