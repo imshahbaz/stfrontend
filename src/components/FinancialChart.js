@@ -2,9 +2,8 @@ import React, { useMemo } from 'react';
 import Chart from 'react-apexcharts';
 import { Box } from '@mui/material';
 
-const FinancialChart = ({ rawData, height = 'auto', theme = 'dark', enableZoom = true }) => {
+const FinancialChart = ({ rawData, height = 350, theme = 'dark', enableZoom = true }) => {
 
-    // 1. Data Transformation
     const { candleSeries, rsiSeries } = useMemo(() => {
         const actualArray = Array.isArray(rawData) ? rawData : (rawData?.data || []);
 
@@ -13,29 +12,26 @@ const FinancialChart = ({ rawData, height = 'auto', theme = 'dark', enableZoom =
             Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11
         };
 
+        // 1. Data Transformation
         const formatted = actualArray.map(d => {
             const [day, month, year] = d.mtimestamp.split('-');
-            // const timestamp = new Date(year, months[month], day).getTime();
-            const timestamp = Date.UTC(
-                parseInt(year),
-                months[month],
-                parseInt(day),
-                12, 0, 0
-            );
+            const timestamp = Date.UTC(parseInt(year), months[month], parseInt(day));
 
             return {
-                x: timestamp,
+                // IMPORTANT: Use a String for 'x' to remove weekend gaps
+                x: `${day} ${month} ${year.slice(-2)}`, 
                 y: [
                     parseFloat(d.chOpeningPrice),
                     parseFloat(d.chTradeHighPrice),
                     parseFloat(d.chTradeLowPrice),
                     parseFloat(d.chClosingPrice)
                 ],
-                close: parseFloat(d.chClosingPrice) // for RSI calc
+                close: parseFloat(d.chClosingPrice),
+                sortKey: timestamp
             };
-        }).sort((a, b) => a.x - b.x);
+        }).sort((a, b) => a.sortKey - b.sortKey);
 
-        // Improved RSI Calculation using EMA
+        // 2. RSI Calculation
         const rsiData = [];
         let emaGains = 0, emaLosses = 0;
         const period = 14;
@@ -51,12 +47,10 @@ const FinancialChart = ({ rawData, height = 'auto', theme = 'dark', enableZoom =
             const loss = diff < 0 ? -diff : 0;
 
             if (i < period) {
-                // Initial simple average
                 emaGains += gain / period;
                 emaLosses += loss / period;
                 rsiData.push({ x: formatted[i].x, y: 50 });
             } else {
-                // EMA calculation
                 emaGains = (gain * multiplier) + (emaGains * (1 - multiplier));
                 emaLosses = (loss * multiplier) + (emaLosses * (1 - multiplier));
                 const rs = emaGains / (emaLosses || 1);
@@ -71,67 +65,70 @@ const FinancialChart = ({ rawData, height = 'auto', theme = 'dark', enableZoom =
         };
     }, [rawData]);
 
-    // 2. Chart Configurations
-    const candleHeight = height === '100%' ? '70%' : height;
-    const rsiHeight = height === '100%' ? '30%' : 150;
+    // 3. Chart Options
+    const commonXAxis = {
+        type: 'category', // REQUIRED to remove gaps
+        axisBorder: { color: theme === 'dark' ? '#2a2e39' : '#E5E7EB' },
+        labels: {
+            style: { colors: '#9ca3af', fontSize: '11px' }
+        }
+    };
 
     const candleOptions = {
         chart: {
             type: 'candlestick',
-            height: candleHeight,
+            height: 350,
             toolbar: { show: true },
             background: theme === 'dark' ? '#131722' : '#FFFFFF',
-            zoom: { enabled: enableZoom },
-            pan: { enabled: enableZoom }
+            zoom: { enabled: enableZoom, type: 'x' }
         },
         theme: { mode: theme },
-        xaxis: { type: 'datetime', axisBorder: { color: theme === 'dark' ? '#2a2e39' : '#E5E7EB' } },
-        yaxis: { tooltip: { enabled: true } },
+        xaxis: { 
+            ...commonXAxis,
+            tickAmount: 10 // Reduces label crowding
+        },
+        yaxis: { 
+            tooltip: { enabled: true },
+            forceNiceScale: false, // Tightens the Y-axis
+            labels: { formatter: (val) => val.toFixed(2) }
+        },
         grid: { borderColor: theme === 'dark' ? '#2a2e39' : '#E5E7EB' }
     };
 
     const rsiOptions = {
-        chart: { type: 'line', height: rsiHeight, background: theme === 'dark' ? '#131722' : '#FFFFFF', toolbar: { show: false } },
+        chart: { 
+            type: 'line', 
+            height: 150, 
+            background: theme === 'dark' ? '#131722' : '#FFFFFF', 
+            toolbar: { show: false } 
+        },
         theme: { mode: theme },
-        stroke: { width: 2, colors: theme === 'dark' ? ['#7b1fa2'] : ['#1976d2'] },
-        xaxis: { type: 'datetime', labels: { show: false } },
+        stroke: { width: 2, colors: ['#7b1fa2'] },
+        xaxis: { 
+            ...commonXAxis,
+            labels: { show: false } // Hide labels on RSI for a cleaner look
+        },
         yaxis: {
             min: 0,
             max: 100,
             tickAmount: 2,
             labels: {
-                formatter: function(value) {
-                    return Math.round(value);
-                }
+                formatter: (val) => Math.round(val).toString() // Whole numbers for axis
             }
         },
         tooltip: {
             y: {
-                formatter: function(value) {
-                    return value.toFixed(2);
-                }
+                formatter: (val) => val.toFixed(2) // 2 decimals for value
             }
-        },
+        }
     };
 
     if (!candleSeries[0].data.length) return null;
 
     return (
         <Box sx={{ bgcolor: theme === 'dark' ? '#131722' : 'background.paper', p: 1, borderRadius: 2 }}>
-            {/* Price Chart */}
-            <Chart
-                options={candleOptions}
-                series={candleSeries}
-                type="candlestick"
-                height={350}
-            />
-            
-            <Chart
-                options={rsiOptions}
-                series={rsiSeries}
-                type="line"
-                height={150}
-            />
+            <Chart options={candleOptions} series={candleSeries} type="candlestick" height={350} />
+            <Chart options={rsiOptions} series={rsiSeries} type="line" height={150} />
         </Box>
     );
 };
