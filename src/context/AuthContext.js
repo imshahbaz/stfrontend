@@ -9,45 +9,64 @@ export const AuthProvider = ({ children }) => {
 
     const isInitialized = useRef(false);
 
-    useEffect(() => {
-        const checkAuth = async () => {
-            if (isInitialized.current) return;
-            isInitialized.current = true;
-
-            try {
-                const res = await authAPI.getMe();
-                setUser(res.data);
-            } catch (err) {
+    // Function to re-verify session and fetch latest user data
+    const refreshUserData = async () => {
+        try {
+            const res = await authAPI.getMe();
+            setUser(res.data);
+        } catch (err) {
+            // Only clear user if the error is an Auth error (401/403)
+            if (err.response?.status === 401 || err.response?.status === 403) {
                 setUser(null);
-            } finally {
-                setLoading(false);
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        // Initial Mount Auth Check
+        if (!isInitialized.current) {
+            isInitialized.current = true;
+            refreshUserData();
+        }
+
+        // --- DEVICE SYNC LOGIC ---
+        // Re-check auth whenever user returns to the tab (Syncs changes from other devices)
+        const handleFocus = () => {
+            // Optional: only refresh if we already have a user (logged in)
+            if (isInitialized.current) {
+                refreshUserData();
             }
         };
 
-        checkAuth();
+        const handleExpiry = () => {
+            setUser(null);
+        };
 
+        window.addEventListener('focus', handleFocus);
         window.addEventListener('auth-expired', handleExpiry);
 
         return () => {
+            window.removeEventListener('focus', handleFocus);
             window.removeEventListener('auth-expired', handleExpiry);
         };
     }, []);
-
-    const handleExpiry = () => {
-        setUser(null);
-    };
 
     const login = (userData) => {
         setUser(userData);
     };
 
     const logout = async () => {
-        await authAPI.logout();
-        setUser(null);
+        try {
+            await authAPI.logout();
+        } finally {
+            setUser(null);
+        }
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, loading }}>
+        <AuthContext.Provider value={{ user, login, logout, loading, refreshUserData }}>
             {children}
         </AuthContext.Provider>
     );
