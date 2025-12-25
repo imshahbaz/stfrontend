@@ -1,9 +1,8 @@
 import React, { useMemo } from 'react';
 import Chart from 'react-apexcharts';
-import { Box, Divider, useTheme } from '@mui/material';
+import { Box } from '@mui/material';
 
 const FinancialChart = ({ rawData, height = 'auto', theme = 'dark', enableZoom = true }) => {
-    const muiTheme = useTheme();
 
     // 1. Data Transformation
     const { candleSeries, rsiSeries } = useMemo(() => {
@@ -126,7 +125,7 @@ const FinancialChart = ({ rawData, height = 'auto', theme = 'dark', enableZoom =
                 type="candlestick"
                 height={350}
             />
-            <Divider sx={{ bgcolor: 'divider' }} />
+            
             <Chart
                 options={rsiOptions}
                 series={rsiSeries}
