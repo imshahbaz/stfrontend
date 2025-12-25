@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { strategyAPI, marginAPI } from '../api/axios';
 import {
   Container,
@@ -23,6 +23,8 @@ import {
   IconButton,
   Paper,
   Collapse,
+  useMediaQuery,
+  Chip
 } from '@mui/material';
 import { CloudUpload, Dashboard, Add, Edit, Delete, ExpandMore, ExpandLess } from '@mui/icons-material';
 
@@ -41,6 +43,8 @@ const AdminDashboard = () => {
   const [strategySuccess, setStrategySuccess] = useState('');
   const [strategyError, setStrategyError] = useState('');
   const [tableExpanded, setTableExpanded] = useState(false);
+
+  const isMobile = useMediaQuery('(max-width:600px)');
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -83,7 +87,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // Strategy management functions
   useEffect(() => {
     fetchStrategies();
   }, []);
@@ -115,10 +118,8 @@ const AdminDashboard = () => {
         await strategyAPI.createStrategy(strategyForm);
         setStrategySuccess('Strategy created successfully!');
       }
-      // Refresh strategies
       const response = await strategyAPI.getStrategiesAdmin();
       setStrategies(response.data);
-      // Reset form
       setStrategyForm({ name: '', scanClause: '', active: false });
       setEditingId(null);
     } catch (error) {
@@ -131,6 +132,8 @@ const AdminDashboard = () => {
   const handleEdit = (strategy) => {
     setStrategyForm({ name: strategy.name, scanClause: strategy.scanClause, active: strategy.active });
     setEditingId(strategy.name);
+    // Scroll to top of form for better UX on mobile
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDelete = async (id) => {
@@ -153,7 +156,7 @@ const AdminDashboard = () => {
   return (
     <Container maxWidth="lg" sx={{ flexGrow: 1, py: 5 }}>
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" component="h1" color="primary" gutterBottom>
+        <Typography variant="h4" component="h1" color="primary" gutterBottom sx={{ fontWeight: 'bold' }}>
           <Dashboard sx={{ mr: 1, verticalAlign: 'middle' }} />
           Admin Dashboard
         </Typography>
@@ -195,7 +198,7 @@ const AdminDashboard = () => {
                   />
                 </Button>
                 {file && (
-                  <Typography variant="body2" sx={{ mb: 2 }}>
+                  <Typography variant="body2" sx={{ mb: 2, fontStyle: 'italic' }}>
                     Selected: {file.name}
                   </Typography>
                 )}
@@ -205,7 +208,7 @@ const AdminDashboard = () => {
                   variant="contained"
                   fullWidth
                   disabled={uploading}
-                  startIcon={uploading ? <CircularProgress size={20} /> : <CloudUpload />}
+                  startIcon={uploading ? <CircularProgress size={20} color="inherit" /> : <CloudUpload />}
                 >
                   {uploading ? 'Uploading...' : 'Upload and Load Data'}
                 </Button>
@@ -213,39 +216,27 @@ const AdminDashboard = () => {
 
               {showResult && (
                 <Box sx={{ mt: 3 }}>
-                  {successMessage && (
-                    <Alert severity="success">
-                      {successMessage}
-                    </Alert>
-                  )}
-                  {errorMessage && (
-                    <Alert severity="error">
-                      {errorMessage}
-                    </Alert>
-                  )}
+                  {successMessage && <Alert severity="success">{successMessage}</Alert>}
+                  {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
                 </Box>
               )}
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Strategy Maintenance */}
+        {/* Strategy Maintenance Form */}
         <Grid item xs={12} md={6}>
           <Card sx={{ height: '100%', boxShadow: 3 }}>
             <CardHeader
               title={
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <Add sx={{ mr: 1 }} />
-                  Strategy Maintenance
+                  {editingId ? 'Edit Strategy' : 'New Strategy'}
                 </Box>
               }
               sx={{ backgroundColor: 'primary.main', color: 'primary.contrastText' }}
             />
             <CardContent sx={{ p: 3 }}>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                Add, edit, or delete strategies for the system.
-              </Typography>
-
               <Box component="form" onSubmit={handleStrategySubmit} sx={{ mb: 3 }}>
                 <TextField
                   label="Name"
@@ -283,13 +274,14 @@ const AdminDashboard = () => {
                   <Button
                     type="submit"
                     variant="contained"
+                    fullWidth={isMobile}
                     disabled={strategyLoading}
-                    startIcon={strategyLoading ? <CircularProgress size={20} /> : editingId ? <Edit /> : <Add />}
+                    startIcon={strategyLoading ? <CircularProgress size={20} color="inherit" /> : editingId ? <Edit /> : <Add />}
                   >
-                    {strategyLoading ? 'Saving...' : editingId ? 'Update' : 'Add'}
+                    {strategyLoading ? 'Saving...' : editingId ? 'Update' : 'Add Strategy'}
                   </Button>
                   {editingId && (
-                    <Button variant="outlined" onClick={handleCancel}>
+                    <Button variant="outlined" fullWidth={isMobile} onClick={handleCancel}>
                       Cancel
                     </Button>
                   )}
@@ -298,16 +290,8 @@ const AdminDashboard = () => {
 
               {(strategySuccess || strategyError) && (
                 <Box sx={{ mb: 3 }}>
-                  {strategySuccess && (
-                    <Alert severity="success">
-                      {strategySuccess}
-                    </Alert>
-                  )}
-                  {strategyError && (
-                    <Alert severity="error">
-                      {strategyError}
-                    </Alert>
-                  )}
+                  {strategySuccess && <Alert severity="success">{strategySuccess}</Alert>}
+                  {strategyError && <Alert severity="error">{strategyError}</Alert>}
                 </Box>
               )}
 
@@ -315,50 +299,91 @@ const AdminDashboard = () => {
                 onClick={() => setTableExpanded(!tableExpanded)}
                 startIcon={tableExpanded ? <ExpandLess /> : <ExpandMore />}
                 variant="outlined"
+                fullWidth
                 sx={{ mb: 2 }}
               >
-                {tableExpanded ? 'Hide Strategies' : 'Show Strategies'}
+                {tableExpanded ? 'Hide Strategy List' : 'View Strategy List'}
               </Button>
 
               <Collapse in={tableExpanded}>
-                <TableContainer component={Paper} elevation={0}>
-                  <Table>
-                    <TableHead sx={{ backgroundColor: 'grey.100' }}>
-                      <TableRow>
-                        <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
-                        {/* <TableCell sx={{ fontWeight: 'bold' }}>Scan Clause</TableCell> */}
-                        <TableCell sx={{ fontWeight: 'bold' }}>Active</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {strategies.map((strategy) => (
-                        <TableRow key={strategy.name}>
-                          <TableCell>{strategy.name}</TableCell>
-                          {/* <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {strategy.scanClause}
-                          </TableCell> */}
-                          <TableCell>{strategy.active ? 'Yes' : 'No'}</TableCell>
-                          <TableCell>
-                            <IconButton onClick={() => handleEdit(strategy)} size="small">
-                              <Edit />
-                            </IconButton>
-                            <IconButton onClick={() => handleDelete(strategy.name)} size="small" color="error">
-                              <Delete />
-                            </IconButton>
-                          </TableCell>
+                {isMobile ? (
+                  /* MOBILE LIST: STACKED CARDS */
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+                    {strategies.map((strategy) => (
+                      <Card key={strategy.name} variant="outlined" sx={{ borderRadius: 2 }}>
+                        <CardContent sx={{ pb: '16px !important' }}>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                              {strategy.name}
+                            </Typography>
+                            <Chip 
+                              label={strategy.active ? "Active" : "Inactive"} 
+                              color={strategy.active ? "success" : "default"} 
+                              size="small"
+                              variant="outlined"
+                            />
+                          </Box>
+                          
+                          <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+                            <Button 
+                              variant="outlined" 
+                              startIcon={<Edit />} 
+                              fullWidth 
+                              size="small"
+                              onClick={() => handleEdit(strategy)}
+                            >
+                              Edit
+                            </Button>
+                            <Button 
+                              variant="outlined" 
+                              color="error" 
+                              startIcon={<Delete />} 
+                              fullWidth 
+                              size="small"
+                              onClick={() => handleDelete(strategy.name)}
+                            >
+                              Delete
+                            </Button>
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    ))}
+                    {strategies.length === 0 && (
+                      <Typography variant="body2" sx={{ textAlign: 'center', py: 2 }}>
+                        No strategies found.
+                      </Typography>
+                    )}
+                  </Box>
+                ) : (
+                  /* DESKTOP TABLE */
+                  <TableContainer component={Paper} elevation={0} variant="outlined">
+                    <Table size="small">
+                      <TableHead sx={{ backgroundColor: 'grey.100' }}>
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Active</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold', textAlign: 'right' }}>Actions</TableCell>
                         </TableRow>
-                      ))}
-                      {strategies.length === 0 && (
-                        <TableRow key="no-strategies">
-                          <TableCell colSpan={4} sx={{ textAlign: 'center' }}>
-                            No strategies found.
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+                      </TableHead>
+                      <TableBody>
+                        {strategies.map((strategy) => (
+                          <TableRow key={strategy.name} hover>
+                            <TableCell>{strategy.name}</TableCell>
+                            <TableCell>{strategy.active ? 'Yes' : 'No'}</TableCell>
+                            <TableCell sx={{ textAlign: 'right' }}>
+                              <IconButton onClick={() => handleEdit(strategy)} size="small">
+                                <Edit fontSize="small" />
+                              </IconButton>
+                              <IconButton onClick={() => handleDelete(strategy.name)} size="small" color="error">
+                                <Delete fontSize="small" />
+                              </IconButton>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
               </Collapse>
             </CardContent>
           </Card>
