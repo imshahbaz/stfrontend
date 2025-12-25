@@ -19,6 +19,7 @@ const Calculator = () => {
   const [quantity, setQuantity] = useState('');
   const [quantityType, setQuantityType] = useState('quantity');
   const [results, setResults] = useState(null);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     const fetchMargins = async () => {
@@ -30,7 +31,20 @@ const Calculator = () => {
     fetchMargins();
   }, []);
 
+  const validateInputs = () => {
+    const newErrors = {};
+    if (!selectedLeverage) newErrors.selectedLeverage = 'Stock selection is required';
+    if (!buyPrice || isNaN(parseFloat(buyPrice))) newErrors.buyPrice = 'Valid buy price is required';
+    if (!sellPrice || isNaN(parseFloat(sellPrice))) newErrors.sellPrice = 'Valid sell price or percentage is required';
+    if (!daysHeld || isNaN(parseInt(daysHeld))) newErrors.daysHeld = 'Valid holding duration is required';
+    if (!quantity || isNaN(parseFloat(quantity))) newErrors.quantity = 'Valid quantity or capital is required';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const calculateReturns = () => {
+    if (!validateInputs()) return;
+
     const leverage = parseFloat(selectedLeverage);
     const bp = parseFloat(buyPrice);
     const spInput = parseFloat(sellPrice);
@@ -91,12 +105,12 @@ const Calculator = () => {
                   fullWidth
                   options={margins}
                   getOptionLabel={(o) => `${o.symbol} (${o.margin}x)`}
-                  onChange={(e, v) => { setSelectedLeverage(v?.margin || ''); setSelectedSymbolRaw(v?.symbol || ''); }}
-                  renderInput={(params) => <TextField {...params} label="Select Stock" variant="outlined" />}
+                  onChange={(e, v) => { setSelectedLeverage(v?.margin || ''); setSelectedSymbolRaw(v?.symbol || ''); setErrors({ ...errors, selectedLeverage: '' }); }}
+                  renderInput={(params) => <TextField {...params} label="Select Stock" variant="outlined" required error={!!errors.selectedLeverage} helperText={errors.selectedLeverage} />}
                 />
                 <Grid container spacing={2}>
-                  <Grid item xs={6}><TextField fullWidth label="Buy Price" type="number" value={buyPrice} onChange={e => setBuyPrice(e.target.value)} /></Grid>
-                  <Grid item xs={6}><TextField fullWidth label={sellType === 'exact' ? "Sell Price" : "Profit %"} type="number" value={sellPrice} onChange={e => setSellPrice(e.target.value)} /></Grid>
+                  <Grid item xs={6}><TextField fullWidth label="Buy Price" type="number" value={buyPrice} onChange={e => { setBuyPrice(e.target.value); setErrors({ ...errors, buyPrice: '' }); }} required error={!!errors.buyPrice} helperText={errors.buyPrice} /></Grid>
+                  <Grid item xs={6}><TextField fullWidth label={sellType === 'exact' ? "Sell Price" : "Profit %"} type="number" value={sellPrice} onChange={e => { setSellPrice(e.target.value); setErrors({ ...errors, sellPrice: '' }); }} required error={!!errors.sellPrice} helperText={errors.sellPrice} /></Grid>
                 </Grid>
                 <FormControl component="fieldset">
                   <FormLabel sx={{ fontWeight: 700, mb: 1, fontSize: '0.8rem' }}>SELL CALCULATION</FormLabel>
@@ -111,13 +125,16 @@ const Calculator = () => {
               </Stack>
             ) : (
               <Stack spacing={4}>
-                <TextField fullWidth label="Holding Duration (Days)" type="number" value={daysHeld} onChange={e => setDaysHeld(e.target.value)} />
-                <TextField 
-                  fullWidth 
-                  label={quantityType === 'quantity' ? "Number of Shares" : "Investment Capital"} 
-                  type="number" 
-                  value={quantity} 
-                  onChange={e => setQuantity(e.target.value)} 
+                <TextField fullWidth label="Holding Duration (Days)" type="number" value={daysHeld} onChange={e => { setDaysHeld(e.target.value); setErrors({ ...errors, daysHeld: '' }); }} required error={!!errors.daysHeld} helperText={errors.daysHeld} />
+                <TextField
+                  fullWidth
+                  label={quantityType === 'quantity' ? "Number of Shares" : "Investment Capital"}
+                  type="number"
+                  value={quantity}
+                  onChange={e => { setQuantity(e.target.value); setErrors({ ...errors, quantity: '' }); }}
+                  required
+                  error={!!errors.quantity}
+                  helperText={errors.quantity}
                 />
                 <FormControl component="fieldset">
                   <FormLabel sx={{ fontWeight: 700, mb: 1, fontSize: '0.8rem' }}>ENTRY MODE</FormLabel>
@@ -137,25 +154,23 @@ const Calculator = () => {
       ) : (
         /* RESULTS VIEW - REPLACES THE FORM */
         <Stack spacing={3}>
-          <Card sx={{ 
-            borderRadius: 4, 
-            bgcolor: results.isProfit ? 'success.main' : 'error.main', 
-            color: 'white',
+          <Card sx={{
+            borderRadius: 4,
             textAlign: 'center',
             p: 4,
             boxShadow: 6
           }}>
             <Typography variant="overline" sx={{ letterSpacing: 2, fontWeight: 700, opacity: 0.9 }}>NET PROFIT / LOSS</Typography>
-            <Typography variant="h2" fontWeight="900">₹ {results.net}</Typography>
+            <Typography variant="h2" fontWeight="900" sx={{ color: results.isProfit ? 'success.main' : 'error.main' }}>₹ {results.net}</Typography>
             <Typography variant="h6">{results.roi}% Return on Margin</Typography>
             
-            <Button 
-                onClick={() => setView('form')} 
-                variant="contained" 
-                color="inherit" 
+            <Button
+                onClick={() => setView('form')}
+                variant="contained"
+                color="primary"
                 size="small"
                 startIcon={<Edit />}
-                sx={{ mt: 3, color: 'text.primary', borderRadius: 5 }}
+                sx={{ mt: 3, borderRadius: 5 }}
             >
                 Edit Trade
             </Button>
