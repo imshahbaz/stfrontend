@@ -92,12 +92,23 @@ const FinancialChart = ({ rawData, height = 350, theme = 'dark', enableZoom = tr
         theme: { mode: 'dark' },
         stroke: { width: 2, colors: ['#7b1fa2'] },
         xaxis: { type: 'datetime', labels: { show: false } },
-        yaxis: { min: 0, max: 100, tickAmount: 2 },
-        annotations: {
-            position: 'back',
-            yaxis: [{ y: 30, borderColor: '#ef5350', label: { text: '30' } },
-            { y: 70, borderColor: '#26a69a', label: { text: '70' } }]
-        }
+        yaxis: {
+            min: 0,
+            max: 100,
+            tickAmount: 2,
+            labels: {
+                formatter: function(value) {
+                    return Math.round(value);
+                }
+            }
+        },
+        tooltip: {
+            y: {
+                formatter: function(value) {
+                    return value.toFixed(2);
+                }
+            }
+        },
     };
 
     if (!candleSeries[0].data.length) return null;
