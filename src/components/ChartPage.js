@@ -7,6 +7,7 @@ import {
   CircularProgress,
   Alert,
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { ArrowBack } from '@mui/icons-material';
 import FinancialChart from './FinancialChart';
 import { useChartData } from '../hooks/useChartData';
@@ -15,6 +16,7 @@ const ChartPage = () => {
   const { symbol } = useParams();
   const navigate = useNavigate();
   const { chartData, chartLoading, chartError, fetchChartData } = useChartData();
+  const theme = useTheme();
 
   useEffect(() => {
     if (symbol) {
@@ -49,7 +51,7 @@ const ChartPage = () => {
             {chartError}
           </Alert>
         ) : (
-          <FinancialChart rawData={chartData} height="100%" />
+          <FinancialChart rawData={chartData} height="100%" theme={theme.palette.mode} />
         )}
       </Box>
     </Box>

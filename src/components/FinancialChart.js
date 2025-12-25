@@ -1,8 +1,9 @@
 import React, { useMemo } from 'react';
 import Chart from 'react-apexcharts';
-import { Box } from '@mui/material';
+import { Box, Divider, useTheme } from '@mui/material';
 
 const FinancialChart = ({ rawData, height = 'auto', theme = 'dark', enableZoom = true }) => {
+    const muiTheme = useTheme();
 
     // 1. Data Transformation
     const { candleSeries, rsiSeries } = useMemo(() => {
@@ -80,20 +81,20 @@ const FinancialChart = ({ rawData, height = 'auto', theme = 'dark', enableZoom =
             type: 'candlestick',
             height: candleHeight,
             toolbar: { show: true },
-            background: '#131722',
+            background: theme === 'dark' ? '#131722' : '#FFFFFF',
             zoom: { enabled: enableZoom },
             pan: { enabled: enableZoom }
         },
         theme: { mode: theme },
-        xaxis: { type: 'datetime', axisBorder: { color: '#2a2e39' } },
+        xaxis: { type: 'datetime', axisBorder: { color: theme === 'dark' ? '#2a2e39' : '#E5E7EB' } },
         yaxis: { tooltip: { enabled: true } },
-        grid: { borderColor: '#2a2e39' }
+        grid: { borderColor: theme === 'dark' ? '#2a2e39' : '#E5E7EB' }
     };
 
     const rsiOptions = {
-        chart: { type: 'line', height: rsiHeight, background: '#131722', toolbar: { show: false } },
-        theme: { mode: 'dark' },
-        stroke: { width: 2, colors: ['#7b1fa2'] },
+        chart: { type: 'line', height: rsiHeight, background: theme === 'dark' ? '#131722' : '#FFFFFF', toolbar: { show: false } },
+        theme: { mode: theme },
+        stroke: { width: 2, colors: theme === 'dark' ? ['#7b1fa2'] : ['#1976d2'] },
         xaxis: { type: 'datetime', labels: { show: false } },
         yaxis: {
             min: 0,
@@ -117,7 +118,7 @@ const FinancialChart = ({ rawData, height = 'auto', theme = 'dark', enableZoom =
     if (!candleSeries[0].data.length) return null;
 
     return (
-        <Box sx={{ bgcolor: '#131722', p: 1, borderRadius: 2 }}>
+        <Box sx={{ bgcolor: theme === 'dark' ? '#131722' : 'background.paper', p: 1, borderRadius: 2 }}>
             {/* Price Chart */}
             <Chart
                 options={candleOptions}
@@ -125,7 +126,7 @@ const FinancialChart = ({ rawData, height = 'auto', theme = 'dark', enableZoom =
                 type="candlestick"
                 height={350}
             />
-            {/* RSI Chart */}
+            <Divider sx={{ bgcolor: 'divider' }} />
             <Chart
                 options={rsiOptions}
                 series={rsiSeries}
