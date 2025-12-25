@@ -3,7 +3,7 @@ import { marginAPI } from '../api/axios';
 import {
   Container, Box, Typography, Card, CardContent, TextField, Button,
   RadioGroup, FormControlLabel, Radio, FormControl, FormLabel,
-  Autocomplete, Grid, Divider, Stack, Paper
+  Autocomplete, Divider, Stack, Paper
 } from '@mui/material';
 import { 
   Calculate, 
@@ -17,7 +17,7 @@ import {
 
 const Calculator = () => {
   // View States
-  const [view, setView] = useState('form'); // 'form' or 'results'
+  const [view, setView] = useState('form'); 
   const [activeStep, setActiveStep] = useState(1);
   
   // Data States
@@ -35,7 +35,6 @@ const Calculator = () => {
   const [results, setResults] = useState(null);
   const [errors, setErrors] = useState({});
 
-  // Fetch NSE Data from Cache/API
   useEffect(() => {
     const fetchMargins = async () => {
       try {
@@ -48,10 +47,8 @@ const Calculator = () => {
     fetchMargins();
   }, []);
 
-  // --- PART-BY-PART VALIDATION ---
   const validateStep = (step) => {
     const newErrors = {};
-    
     if (step === 1) {
       if (!selectedSymbolRaw) newErrors.selectedLeverage = 'Stock selection is required';
       if (!buyPrice || isNaN(parseFloat(buyPrice)) || parseFloat(buyPrice) <= 0) 
@@ -59,14 +56,12 @@ const Calculator = () => {
       if (!sellPrice || isNaN(parseFloat(sellPrice)) || parseFloat(sellPrice) <= 0) 
         newErrors.sellPrice = 'Enter a valid sell target';
     }
-    
     if (step === 2) {
       if (daysHeld === '' || isNaN(parseInt(daysHeld)) || parseInt(daysHeld) < 0) 
         newErrors.daysHeld = 'Enter valid holding days (min 0)';
       if (!quantity || isNaN(parseFloat(quantity)) || parseFloat(quantity) <= 0) 
         newErrors.quantity = quantityType === 'quantity' ? 'Enter quantity' : 'Enter capital amount';
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -86,7 +81,6 @@ const Calculator = () => {
     setErrors({});
   };
 
-  // --- CALCULATION LOGIC ---
   const calculateReturns = () => {
     if (!validateStep(2)) return;
 
@@ -105,8 +99,7 @@ const Calculator = () => {
     const grossProfit = (sp - bp) * shares;
     const turnover = (bp + sp) * shares;
 
-    // Standard Charges (Approximate NSE/BSE values)
-    const brokerage = 40; // Flat ₹20 per order
+    const brokerage = 40;
     const STT = (days > 0) ? turnover * 0.001 : shares * sp * 0.00025;
     const stampCharges = shares * bp * (days > 0 ? 0.00015 : 0.00003);
     const transCharges = turnover * 0.0000345;
@@ -114,7 +107,6 @@ const Calculator = () => {
     const gst = 0.18 * (sebiCharges + brokerage + transCharges);
     const totalCharges = brokerage + STT + transCharges + stampCharges + gst + sebiCharges;
 
-    // MTF Interest Calculation (15% per annum)
     const mtfInterest = (fundedAmt * 0.15 * days) / 365;
     const netProfit = grossProfit - mtfInterest - totalCharges;
 
@@ -171,20 +163,28 @@ const Calculator = () => {
                   )}
                 />
                 
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Buy Price" type="number" value={buyPrice} 
-                      onChange={e => { setBuyPrice(e.target.value); setErrors(prev => ({ ...prev, buyPrice: '' })); }} 
-                      required error={!!errors.buyPrice} helperText={errors.buyPrice} 
-                    />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label={sellType === 'exact' ? "Sell Price" : "Profit %"} type="number" value={sellPrice} 
-                      onChange={e => { setSellPrice(e.target.value); setErrors(prev => ({ ...prev, sellPrice: '' })); }} 
-                      required error={!!errors.sellPrice} helperText={errors.sellPrice} 
-                    />
-                  </Grid>
-                </Grid>
+                {/* Updated Part 1 inputs to match Part 2 (Full width stacked) */}
+                <TextField 
+                  fullWidth 
+                  label="Buy Price" 
+                  type="number" 
+                  value={buyPrice} 
+                  onChange={e => { setBuyPrice(e.target.value); setErrors(prev => ({ ...prev, buyPrice: '' })); }} 
+                  required 
+                  error={!!errors.buyPrice} 
+                  helperText={errors.buyPrice} 
+                />
+
+                <TextField 
+                  fullWidth 
+                  label={sellType === 'exact' ? "Sell Price" : "Profit %"} 
+                  type="number" 
+                  value={sellPrice} 
+                  onChange={e => { setSellPrice(e.target.value); setErrors(prev => ({ ...prev, sellPrice: '' })); }} 
+                  required 
+                  error={!!errors.sellPrice} 
+                  helperText={errors.sellPrice} 
+                />
 
                 <FormControl component="fieldset">
                   <FormLabel sx={{ fontWeight: 700, mb: 1, fontSize: '0.75rem', color: 'text.secondary' }}>SELL CALCULATION BY</FormLabel>
@@ -233,38 +233,26 @@ const Calculator = () => {
           </CardContent>
         </Card>
       ) : (
-        /* RESULTS VIEW - FULL FORM REPLACEMENT */
         <Stack spacing={3}>
-          <Card sx={{
-            borderRadius: 4,
-            textAlign: 'center',
-            p: 4,
-            boxShadow: 6
-          }}>
+          <Card sx={{ borderRadius: 4, textAlign: 'center', p: 4, boxShadow: 6 }}>
             <Typography variant="overline" sx={{ letterSpacing: 2, fontWeight: 700, opacity: 0.9 }}>NET P&L RESULT</Typography>
             <Typography variant="h2" fontWeight="900" sx={{ my: 1, color: results.isProfit ? 'success.main' : 'error.main' }}>₹ {results.net}</Typography>
             <Typography variant="h6" sx={{ opacity: 0.9 }}>{results.roi}% Return on Margin</Typography>
 
             <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
-                <Button
-                    onClick={() => {
-                        setView('form');
-                        setActiveStep(1); // Return to Part 1
-                    }}
-                    fullWidth
-                    variant="contained"
-                    sx={{ borderRadius: 2 }}
+                <Button 
+                    onClick={() => { setView('form'); setActiveStep(1); }} 
+                    fullWidth 
+                    variant="contained" 
+                    sx={{ borderRadius: 2 }} 
                     startIcon={<Edit />}
                 >
                     Edit Trade
                 </Button>
-                <Button
-                    onClick={() => {
-                        resetForm();
-                        setView('form');
-                    }}
-                    variant="contained"
-                    sx={{ borderRadius: 2 }}
+                <Button 
+                    onClick={() => { resetForm(); setView('form'); }} 
+                    variant="contained" 
+                    sx={{ borderRadius: 2 }} 
                 >
                     <RestartAlt />
                 </Button>
