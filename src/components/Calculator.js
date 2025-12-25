@@ -3,7 +3,8 @@ import { marginAPI } from '../api/axios';
 import {
   Container, Box, Typography, Card, CardContent, TextField, Button,
   RadioGroup, FormControlLabel, Radio, FormControl, FormLabel,
-  Autocomplete, Grid, Divider, Stack, Paper} from '@mui/material';
+  Autocomplete, Grid, Divider, Stack, Paper
+} from '@mui/material';
 import { Calculate, ArrowForward, ArrowBack, ReceiptLong, AccountBalanceWallet, Edit } from '@mui/icons-material';
 
 const Calculator = () => {
@@ -163,22 +164,22 @@ const Calculator = () => {
             <Typography variant="overline" sx={{ letterSpacing: 2, fontWeight: 700, opacity: 0.9 }}>NET PROFIT / LOSS</Typography>
             <Typography variant="h2" fontWeight="900" sx={{ color: results.isProfit ? 'success.main' : 'error.main' }}>₹ {results.net}</Typography>
             <Typography variant="h6">{results.roi}% Return on Margin</Typography>
-            
+
             <Button
-                onClick={() => setView('form')}
-                variant="contained"
-                color="primary"
-                size="small"
-                startIcon={<Edit />}
-                sx={{ mt: 3, borderRadius: 5 }}
+              onClick={() => setView('form')}
+              fullWidth
+              variant="contained"
+              color="primary"
+              sx={{ mt: 3, mb: 2 }}
+              startIcon={<Edit />}
             >
-                Edit Trade
+              Edit Trade
             </Button>
           </Card>
 
           <Paper variant="outlined" sx={{ p: 3, borderRadius: 4 }}>
             <Typography variant="subtitle2" color="primary" fontWeight="800" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <AccountBalanceWallet fontSize="small"/> CAPITAL DETAILS
+              <AccountBalanceWallet fontSize="small" /> CAPITAL DETAILS
             </Typography>
             <Divider sx={{ mb: 2 }} />
             <Stack spacing={1.5}>
@@ -191,7 +192,7 @@ const Calculator = () => {
 
           <Paper variant="outlined" sx={{ p: 3, borderRadius: 4 }}>
             <Typography variant="subtitle2" color="error.main" fontWeight="800" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <ReceiptLong fontSize="small"/> CHARGES BREAKDOWN
+              <ReceiptLong fontSize="small" /> CHARGES BREAKDOWN
             </Typography>
             <Divider sx={{ mb: 2 }} />
             <Stack spacing={1.5}>
