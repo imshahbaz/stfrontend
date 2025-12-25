@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import Chart from 'react-apexcharts';
 import { Box } from '@mui/material';
 
-const FinancialChart = ({ rawData, height = 350, theme = 'dark', enableZoom = true }) => {
+const FinancialChart = ({ rawData, height = 'auto', theme = 'dark', enableZoom = true }) => {
 
     // 1. Data Transformation
     const { candleSeries, rsiSeries } = useMemo(() => {
@@ -72,10 +72,13 @@ const FinancialChart = ({ rawData, height = 350, theme = 'dark', enableZoom = tr
     }, [rawData]);
 
     // 2. Chart Configurations
+    const candleHeight = height === '100%' ? '70%' : height;
+    const rsiHeight = height === '100%' ? '30%' : 150;
+
     const candleOptions = {
         chart: {
             type: 'candlestick',
-            height: height,
+            height: candleHeight,
             toolbar: { show: true },
             background: '#131722',
             zoom: { enabled: enableZoom },
@@ -88,7 +91,7 @@ const FinancialChart = ({ rawData, height = 350, theme = 'dark', enableZoom = tr
     };
 
     const rsiOptions = {
-        chart: { type: 'line', height: 150, background: '#131722', toolbar: { show: false } },
+        chart: { type: 'line', height: rsiHeight, background: '#131722', toolbar: { show: false } },
         theme: { mode: 'dark' },
         stroke: { width: 2, colors: ['#7b1fa2'] },
         xaxis: { type: 'datetime', labels: { show: false } },
