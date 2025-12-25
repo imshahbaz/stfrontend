@@ -12,8 +12,6 @@ import {
   Button,
   Alert,
   CircularProgress,
-  Checkbox,
-  FormControlLabel,
 } from '@mui/material';
 import { Email, Lock, Login as LoginIcon } from '@mui/icons-material';
 
@@ -22,7 +20,6 @@ const Login = () => {
   const { login, user, loading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
 
@@ -68,9 +65,6 @@ const Login = () => {
       const response = await authAPI.login(email, password);
       if (response.status === 200) {
         login(response.data);
-        if (rememberMe) {
-          localStorage.setItem('rememberMe', 'true');
-        }
         navigate('/');
       } else {
         setError('Login failed. Please check your credentials.');
@@ -137,21 +131,7 @@ const Login = () => {
                 startAdornment: <Lock sx={{ mr: 1, color: 'action.active' }} />,
               }}
             />
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    color="primary"
-                  />
-                }
-                label="Remember Me"
-              />
-              <Link to="/forgot-password" style={{ color: 'primary.main', textDecoration: 'none' }}>
-                Forgot Password?
-              </Link>
-            </Box>
+
             <Button
               type="submit"
               fullWidth
