@@ -18,8 +18,13 @@ import {
   CircularProgress,
   Alert,
   Collapse,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  IconButton,
 } from '@mui/material';
-import { TrendingUp, ShoppingCart } from '@mui/icons-material';
+import { TrendingUp, ShoppingCart, Close, BarChart } from '@mui/icons-material';
+import FinancialChart from './FinancialChart';
 
 const Strategies = () => {
   const [strategies, setStrategies] = useState([]);
@@ -28,6 +33,10 @@ const Strategies = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [cache, setCache] = useState({});
+  const [chartModalOpen, setChartModalOpen] = useState(false);
+  const [selectedStock, setSelectedStock] = useState(null);
+  const [chartData, setChartData] = useState([]);
+  const [chartLoading, setChartLoading] = useState(false);
 
   useEffect(() => {
     const fetchStrategies = async () => {
@@ -41,9 +50,9 @@ const Strategies = () => {
     fetchStrategies();
 
     // Load KiteConnect script
-    const script = document.createElement('script');
-    script.src = 'https://kite.trade/publisher.js?v=3';
-    document.head.appendChild(script);
+    // const script = document.createElement('script');
+    // script.src = 'https://kite.trade/publisher.js?v=3';
+    // document.head.appendChild(script);
   }, []);
 
   const fetchStrategyData = async (strategyName) => {
@@ -78,17 +87,33 @@ const Strategies = () => {
     }
   };
 
-  const handleBuy = (stock) => {
-    const kite = new window.KiteConnect("kitedemo");
-    kite.add({
-      "exchange": "NSE",
-      "tradingsymbol": stock.symbol,
-      "quantity": 1,
-      "transaction_type": "BUY",
-      "order_type": "MARKET",
-      "product": "CNC"
-    });
-    kite.connect();
+  // const handleBuy = (stock) => {
+  //   const kite = new window.KiteConnect("kitedemo");
+  //   kite.add({
+  //     "exchange": "NSE",
+  //     "tradingsymbol": stock.symbol,
+  //     "quantity": 1,
+  //     "transaction_type": "BUY",
+  //     "order_type": "MARKET",
+  //     "product": "CNC"
+  //   });
+  //   kite.connect();
+  // };
+
+  const handleViewChart = async (stock) => {
+    setSelectedStock(stock);
+    setChartModalOpen(true);
+    setChartLoading(true);
+    setChartData([]);
+
+    try {
+      const response = await strategyAPI.fetchChartData(stock.symbol);
+      setChartData(response.data);
+    } catch (error) {
+      console.error('Error fetching chart data:', error);
+    } finally {
+      setChartLoading(false);
+    }
   };
 
   return (
@@ -167,7 +192,7 @@ const Strategies = () => {
                         <TableCell sx={{ color: 'primary.contrastText', fontWeight: 'bold' }}>Name</TableCell>
                         <TableCell sx={{ color: 'primary.contrastText', fontWeight: 'bold' }}>Close Price</TableCell>
                         <TableCell sx={{ color: 'primary.contrastText', fontWeight: 'bold' }}>Margin</TableCell>
-                        <TableCell sx={{ color: 'primary.contrastText', fontWeight: 'bold' }}>Action</TableCell>
+                        <TableCell sx={{ color: 'primary.contrastText', fontWeight: 'bold' }}>Actions</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -178,13 +203,22 @@ const Strategies = () => {
                           <TableCell>{stock.close}</TableCell>
                           <TableCell>{stock.margin}</TableCell>
                           <TableCell>
-                            <Button
+                            {/* <Button
                               variant="contained"
                               startIcon={<ShoppingCart />}
                               onClick={() => handleBuy(stock)}
                               size="small"
+                              sx={{ mr: 1 }}
                             >
                               Buy
+                            </Button> */}
+                            <Button
+                              variant="outlined"
+                              startIcon={<BarChart />}
+                              onClick={() => handleViewChart(stock)}
+                              size="small"
+                            >
+                              View Chart
                             </Button>
                           </TableCell>
                         </TableRow>
@@ -203,6 +237,39 @@ const Strategies = () => {
           Back to Home
         </Button>
       </Box>
+
+      <Dialog
+        open={chartModalOpen}
+        onClose={() => setChartModalOpen(false)}
+        maxWidth="lg"
+        fullWidth
+      >
+        <DialogTitle>
+          Chart for {selectedStock?.name} ({selectedStock?.symbol})
+          <IconButton
+            aria-label="close"
+            onClick={() => setChartModalOpen(false)}
+            sx={{
+              position: 'absolute',
+              right: 8,
+              top: 8,
+              color: (theme) => theme.palette.grey[500],
+            }}
+          >
+            <Close />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          {chartLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', my: 3 }}>
+              <CircularProgress />
+              <Typography sx={{ ml: 2 }}>Loading chart data...</Typography>
+            </Box>
+          ) : (
+            <FinancialChart rawData={chartData} />
+          )}
+        </DialogContent>
+      </Dialog>
     </Container>
   );
 };
