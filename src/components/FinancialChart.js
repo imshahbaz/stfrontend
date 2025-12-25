@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import Chart from 'react-apexcharts';
 import { Box } from '@mui/material';
 
-const FinancialChart = ({ rawData }) => {
+const FinancialChart = ({ rawData, height = 350, theme = 'dark', enableZoom = true }) => {
 
     // 1. Data Transformation
     const { candleSeries, rsiSeries } = useMemo(() => {
@@ -35,16 +35,35 @@ const FinancialChart = ({ rawData }) => {
             };
         }).sort((a, b) => a.x - b.x);
 
-        // Simple RSI Calculation
-        const rsiData = formatted.map((d, i) => {
-            if (i < 14) return { x: d.x, y: 50 };
-            let gains = 0, losses = 0;
-            for (let j = i - 13; j <= i; j++) {
-                let diff = formatted[j].close - formatted[j - 1].close;
-                if (diff >= 0) gains += diff; else losses -= diff;
+        // Improved RSI Calculation using EMA
+        const rsiData = [];
+        let emaGains = 0, emaLosses = 0;
+        const period = 14;
+        const multiplier = 2 / (period + 1);
+
+        for (let i = 0; i < formatted.length; i++) {
+            if (i === 0) {
+                rsiData.push({ x: formatted[i].x, y: 50 });
+                continue;
             }
-            return { x: d.x, y: 100 - (100 / (1 + (gains / (losses || 1)))) };
-        });
+            const diff = formatted[i].close - formatted[i - 1].close;
+            const gain = diff > 0 ? diff : 0;
+            const loss = diff < 0 ? -diff : 0;
+
+            if (i < period) {
+                // Initial simple average
+                emaGains += gain / period;
+                emaLosses += loss / period;
+                rsiData.push({ x: formatted[i].x, y: 50 });
+            } else {
+                // EMA calculation
+                emaGains = (gain * multiplier) + (emaGains * (1 - multiplier));
+                emaLosses = (loss * multiplier) + (emaLosses * (1 - multiplier));
+                const rs = emaGains / (emaLosses || 1);
+                const rsi = 100 - (100 / (1 + rs));
+                rsiData.push({ x: formatted[i].x, y: rsi });
+            }
+        }
 
         return {
             candleSeries: [{ data: formatted }],
@@ -54,8 +73,15 @@ const FinancialChart = ({ rawData }) => {
 
     // 2. Chart Configurations
     const candleOptions = {
-        chart: { type: 'candlestick', height: 350, toolbar: { show: true }, background: '#131722' },
-        theme: { mode: 'dark' },
+        chart: {
+            type: 'candlestick',
+            height: height,
+            toolbar: { show: true },
+            background: '#131722',
+            zoom: { enabled: enableZoom },
+            pan: { enabled: enableZoom }
+        },
+        theme: { mode: theme },
         xaxis: { type: 'datetime', axisBorder: { color: '#2a2e39' } },
         yaxis: { tooltip: { enabled: true } },
         grid: { borderColor: '#2a2e39' }

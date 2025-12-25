@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import { strategyAPI } from '../api/axios';
+import React, { useEffect, memo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Container,
@@ -22,98 +21,37 @@ import {
   DialogTitle,
   DialogContent,
   IconButton,
+  Skeleton,
 } from '@mui/material';
-import { TrendingUp, ShoppingCart, Close, BarChart } from '@mui/icons-material';
+import { TrendingUp, Close, BarChart } from '@mui/icons-material';
 import FinancialChart from './FinancialChart';
+import { useStrategies } from '../hooks/useStrategies';
+import { useChartData } from '../hooks/useChartData';
 
-const Strategies = () => {
-  const [strategies, setStrategies] = useState([]);
-  const [selectedStrategy, setSelectedStrategy] = useState(null);
-  const [strategyData, setStrategyData] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [cache, setCache] = useState({});
+const Strategies = memo(() => {
+  const {
+    strategies,
+    selectedStrategy,
+    strategyData,
+    loading,
+    error,
+    fetchStrategies,
+    fetchStrategyData,
+  } = useStrategies();
+
+  const { chartData, chartLoading, chartError, fetchChartData } = useChartData();
+
   const [chartModalOpen, setChartModalOpen] = useState(false);
   const [selectedStock, setSelectedStock] = useState(null);
-  const [chartData, setChartData] = useState([]);
-  const [chartLoading, setChartLoading] = useState(false);
 
   useEffect(() => {
-    const fetchStrategies = async () => {
-      try {
-        const response = await strategyAPI.getStrategies();
-        setStrategies(response.data);
-      } catch (error) {
-        console.error('Error fetching strategies:', error);
-      }
-    };
     fetchStrategies();
+  }, [fetchStrategies]);
 
-    // Load KiteConnect script
-    // const script = document.createElement('script');
-    // script.src = 'https://kite.trade/publisher.js?v=3';
-    // document.head.appendChild(script);
-  }, []);
-
-  const fetchStrategyData = async (strategyName) => {
-    // Toggle logic: If already showing this strategy, close it
-    if (selectedStrategy === strategyName) {
-      setSelectedStrategy(null);
-      return;
-    }
-
-    setSelectedStrategy(strategyName);
-    setLoading(true);
-    setError('');
-    setStrategyData([]);
-
-    // Check cache
-    if (cache[strategyName]) {
-      setLoading(false);
-      setStrategyData(cache[strategyName]);
-      return;
-    }
-
-    try {
-      const response = await strategyAPI.fetchWithMargin(strategyName);
-      // Store in cache
-      setCache(prev => ({ ...prev, [strategyName]: response.data }));
-      setStrategyData(response.data);
-    } catch (error) {
-      setError('Error fetching data: ' + error.message);
-      console.error('Error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // const handleBuy = (stock) => {
-  //   const kite = new window.KiteConnect("kitedemo");
-  //   kite.add({
-  //     "exchange": "NSE",
-  //     "tradingsymbol": stock.symbol,
-  //     "quantity": 1,
-  //     "transaction_type": "BUY",
-  //     "order_type": "MARKET",
-  //     "product": "CNC"
-  //   });
-  //   kite.connect();
-  // };
-
-  const handleViewChart = async (stock) => {
+  const handleViewChart = (stock) => {
     setSelectedStock(stock);
     setChartModalOpen(true);
-    setChartLoading(true);
-    setChartData([]);
-
-    try {
-      const response = await strategyAPI.fetchChartData(stock.symbol);
-      setChartData(response.data);
-    } catch (error) {
-      console.error('Error fetching chart data:', error);
-    } finally {
-      setChartLoading(false);
-    }
+    fetchChartData(stock.symbol);
   };
 
   return (
@@ -138,20 +76,30 @@ const Strategies = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {strategies.map((strategy, index) => (
-                  <TableRow key={`${strategy.id}-${index}`} hover>
-                    <TableCell>
-                      <Button
-                        variant="text"
-                        onClick={() => fetchStrategyData(strategy.name)}
-                        sx={{ textTransform: 'none', justifyContent: 'flex-start' }}
-                      >
-                        {strategy.name}
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {strategies.length === 0 && (
+                {loading && strategies.length === 0 ? (
+                  Array.from({ length: 5 }).map((_, index) => (
+                    <TableRow key={`skeleton-${index}`}>
+                      <TableCell>
+                        <Skeleton variant="text" width="60%" />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  strategies.map((strategy, index) => (
+                    <TableRow key={`${strategy.id}-${index}`} hover>
+                      <TableCell>
+                        <Button
+                          variant="text"
+                          onClick={() => fetchStrategyData(strategy.name)}
+                          sx={{ textTransform: 'none', justifyContent: 'flex-start' }}
+                        >
+                          {strategy.name}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+                {strategies.length === 0 && !loading && (
                   <TableRow>
                     <TableCell sx={{ textAlign: 'center' }}>No strategies found.</TableCell>
                   </TableRow>
@@ -265,6 +213,10 @@ const Strategies = () => {
               <CircularProgress />
               <Typography sx={{ ml: 2 }}>Loading chart data...</Typography>
             </Box>
+          ) : chartError ? (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {chartError}
+            </Alert>
           ) : (
             <FinancialChart rawData={chartData} />
           )}
@@ -272,6 +224,6 @@ const Strategies = () => {
       </Dialog>
     </Container>
   );
-};
+});
 
 export default Strategies;
