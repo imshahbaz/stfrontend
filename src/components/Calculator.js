@@ -235,41 +235,36 @@ const Calculator = () => {
       ) : (
         /* RESULTS VIEW - FULL FORM REPLACEMENT */
         <Stack spacing={3}>
-          <Card sx={{ 
-            borderRadius: 4, 
-            textAlign: 'center', 
-            p: 4, 
-            boxShadow: 6,
-            background: results.isProfit 
-              ? 'linear-gradient(135deg, #2e7d32 0%, #4caf50 100%)' 
-              : 'linear-gradient(135deg, #c62828 0%, #ef5350 100%)',
-            color: 'white'
+          <Card sx={{
+            borderRadius: 4,
+            textAlign: 'center',
+            p: 4,
+            boxShadow: 6
           }}>
             <Typography variant="overline" sx={{ letterSpacing: 2, fontWeight: 700, opacity: 0.9 }}>NET P&L RESULT</Typography>
-            <Typography variant="h2" fontWeight="900" sx={{ my: 1 }}>₹ {results.net}</Typography>
+            <Typography variant="h2" fontWeight="900" sx={{ my: 1, color: results.isProfit ? 'success.main' : 'error.main' }}>₹ {results.net}</Typography>
             <Typography variant="h6" sx={{ opacity: 0.9 }}>{results.roi}% Return on Margin</Typography>
 
             <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
-                <Button 
+                <Button
                     onClick={() => {
                         setView('form');
                         setActiveStep(1); // Return to Part 1
-                    }} 
-                    fullWidth 
-                    variant="contained" 
-                    color="inherit" 
-                    sx={{ color: 'text.primary', borderRadius: 2 }} 
+                    }}
+                    fullWidth
+                    variant="contained"
+                    sx={{ borderRadius: 2 }}
                     startIcon={<Edit />}
                 >
                     Edit Trade
                 </Button>
-                <Button 
+                <Button
                     onClick={() => {
                         resetForm();
                         setView('form');
-                    }} 
-                    variant="outlined" 
-                    sx={{ color: 'white', borderColor: 'white', borderRadius: 2 }} 
+                    }}
+                    variant="contained"
+                    sx={{ borderRadius: 2 }}
                 >
                     <RestartAlt />
                 </Button>
