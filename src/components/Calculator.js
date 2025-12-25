@@ -27,7 +27,7 @@ const Calculator = () => {
   const [buyPrice, setBuyPrice] = useState('');
   const [sellPrice, setSellPrice] = useState('');
   const [sellType, setSellType] = useState('exact');
-  const [daysHeld, setDaysHeld] = useState('');
+  const [daysHeld, setDaysHeld] = useState(0);
   const [quantity, setQuantity] = useState('');
   const [quantityType, setQuantityType] = useState('quantity');
   
