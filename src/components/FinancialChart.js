@@ -19,7 +19,7 @@ const FinancialChart = ({ rawData, height = 350, theme = 'dark', enableZoom = tr
 
             return {
                 // IMPORTANT: Use a String for 'x' to remove weekend gaps
-                x: `${day} ${month} ${year.slice(-2)}`, 
+                x: `${day} ${month} ${year.slice(-2)}`,
                 y: [
                     parseFloat(d.chOpeningPrice),
                     parseFloat(d.chTradeHighPrice),
@@ -76,47 +76,71 @@ const FinancialChart = ({ rawData, height = 350, theme = 'dark', enableZoom = tr
 
     const candleOptions = {
         chart: {
+            id: 'price-chart',
+            group: 'financial-sync',
             type: 'candlestick',
             height: 350,
+            animations: { enabled: false },
             toolbar: { show: true },
             background: theme === 'dark' ? '#131722' : '#FFFFFF',
             zoom: { enabled: enableZoom, type: 'x' }
         },
-        theme: { mode: theme },
-        xaxis: { 
-            ...commonXAxis,
-            tickAmount: 10 // Reduces label crowding
+        tooltip: {
+            enabled: true,
+            shared: true,
+            intersect: false
         },
-        yaxis: { 
+        theme: { mode: theme },
+        xaxis: {
+            ...commonXAxis,
+            tickAmount: 10,
+            crosshairs: {
+                show: true,
+                type: 'dashed',
+                stroke: { color: '#9ca3af', dashArray: 3 }
+            }
+        },
+        yaxis: {
             tooltip: { enabled: true },
             forceNiceScale: false, // Tightens the Y-axis
-            labels: { formatter: (val) => val.toFixed(2) }
+            labels: { minWidth: 50, formatter: (val) => val.toFixed(2) }
         },
         grid: { borderColor: theme === 'dark' ? '#2a2e39' : '#E5E7EB' }
     };
 
     const rsiOptions = {
-        chart: { 
-            type: 'line', 
-            height: 150, 
-            background: theme === 'dark' ? '#131722' : '#FFFFFF', 
-            toolbar: { show: false } 
+        chart: {
+            id: 'rsi-chart',
+            group: 'financial-sync',
+            type: 'line',
+            height: 150,
+            animations: { enabled: false },
+            background: theme === 'dark' ? '#131722' : '#FFFFFF',
+            toolbar: { show: false }
         },
         theme: { mode: theme },
         stroke: { width: 2, colors: ['#7b1fa2'] },
-        xaxis: { 
+        xaxis: {
             ...commonXAxis,
-            labels: { show: false } // Hide labels on RSI for a cleaner look
+            labels: { show: false },
+            crosshairs: {
+                show: true,
+                type: 'dashed',
+                stroke: { color: '#9ca3af', dashArray: 3 }
+            }
         },
         yaxis: {
             min: 0,
             max: 100,
             tickAmount: 2,
             labels: {
+                minWidth: 50,
                 formatter: (val) => Math.round(val).toString() // Whole numbers for axis
             }
         },
         tooltip: {
+            shared: true,
+            intersect: false,
             y: {
                 formatter: (val) => val.toFixed(2) // 2 decimals for value
             }
