@@ -1,5 +1,5 @@
-import React, { useEffect, memo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, memo } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Container,
   Box,
@@ -17,18 +17,14 @@ import {
   CircularProgress,
   Alert,
   Collapse,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  IconButton,
   Skeleton,
 } from '@mui/material';
-import { TrendingUp, Close, BarChart } from '@mui/icons-material';
-import FinancialChart from './FinancialChart';
+import { TrendingUp } from '@mui/icons-material';
 import { useStrategies } from '../hooks/useStrategies';
-import { useChartData } from '../hooks/useChartData';
 
 const Strategies = memo(() => {
+  const navigate = useNavigate();
+
   const {
     strategies,
     selectedStrategy,
@@ -39,19 +35,12 @@ const Strategies = memo(() => {
     fetchStrategyData,
   } = useStrategies();
 
-  const { chartData, chartLoading, chartError, fetchChartData } = useChartData();
-
-  const [chartModalOpen, setChartModalOpen] = useState(false);
-  const [selectedStock, setSelectedStock] = useState(null);
-
   useEffect(() => {
     fetchStrategies();
   }, [fetchStrategies]);
 
   const handleViewChart = (stock) => {
-    setSelectedStock(stock);
-    setChartModalOpen(true);
-    fetchChartData(stock.symbol);
+    navigate(`/chart/${stock.symbol}`);
   };
 
   return (
@@ -162,7 +151,6 @@ const Strategies = memo(() => {
                             </Button> */}
                             <Button
                               variant="outlined"
-                              startIcon={<BarChart />}
                               onClick={() => handleViewChart(stock)}
                               size="small"
                             >
@@ -185,43 +173,6 @@ const Strategies = memo(() => {
           Back to Home
         </Button>
       </Box>
-
-      <Dialog
-        open={chartModalOpen}
-        onClose={() => setChartModalOpen(false)}
-        maxWidth="lg"
-        fullWidth
-      >
-        <DialogTitle>
-          Chart for {selectedStock?.name} ({selectedStock?.symbol})
-          <IconButton
-            aria-label="close"
-            onClick={() => setChartModalOpen(false)}
-            sx={{
-              position: 'absolute',
-              right: 8,
-              top: 8,
-              color: (theme) => theme.palette.grey[500],
-            }}
-          >
-            <Close />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent>
-          {chartLoading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', my: 3 }}>
-              <CircularProgress />
-              <Typography sx={{ ml: 2 }}>Loading chart data...</Typography>
-            </Box>
-          ) : chartError ? (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {chartError}
-            </Alert>
-          ) : (
-            <FinancialChart rawData={chartData} />
-          )}
-        </DialogContent>
-      </Dialog>
     </Container>
   );
 });
