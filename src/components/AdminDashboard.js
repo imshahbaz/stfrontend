@@ -132,7 +132,6 @@ const AdminDashboard = () => {
   const handleEdit = (strategy) => {
     setStrategyForm({ name: strategy.name, scanClause: strategy.scanClause, active: strategy.active });
     setEditingId(strategy.name);
-    // Scroll to top of form for better UX on mobile
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -163,7 +162,6 @@ const AdminDashboard = () => {
       </Box>
 
       <Grid container spacing={4}>
-        {/* Margin Data Management */}
         <Grid item xs={12} md={6}>
           <Card sx={{ boxShadow: 3 }}>
             <CardHeader
@@ -224,7 +222,6 @@ const AdminDashboard = () => {
           </Card>
         </Grid>
 
-        {/* Strategy Maintenance Form */}
         <Grid item xs={12} md={6}>
           <Card sx={{ height: '100%', boxShadow: 3 }}>
             <CardHeader
@@ -307,55 +304,68 @@ const AdminDashboard = () => {
 
               <Collapse in={tableExpanded}>
                 {isMobile ? (
-                  /* MOBILE LIST: STACKED CARDS */
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+                  /* MOBILE LIST: HORIZONTAL SCROLL CARDS */
+                  <Box 
+                    sx={{ 
+                      display: 'flex', 
+                      flexWrap: 'nowrap', 
+                      overflowX: 'auto', 
+                      gap: 2, 
+                      mt: 1,
+                      pb: 2,
+                      '&::-webkit-scrollbar': { height: '6px' },
+                      '&::-webkit-scrollbar-thumb': { backgroundColor: '#ccc', borderRadius: '10px' }
+                    }}
+                  >
                     {strategies.map((strategy) => (
-                      <Card key={strategy.name} variant="outlined" sx={{ borderRadius: 2 }}>
-                        <CardContent sx={{ pb: '16px !important' }}>
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                              {strategy.name}
-                            </Typography>
-                            <Chip 
-                              label={strategy.active ? "Active" : "Inactive"} 
-                              color={strategy.active ? "success" : "default"} 
-                              size="small"
-                              variant="outlined"
-                            />
-                          </Box>
-                          
-                          <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
-                            <Button 
-                              variant="outlined" 
-                              startIcon={<Edit />} 
-                              fullWidth 
-                              size="small"
-                              onClick={() => handleEdit(strategy)}
-                            >
-                              Edit
-                            </Button>
-                            <Button 
-                              variant="outlined" 
-                              color="error" 
-                              startIcon={<Delete />} 
-                              fullWidth 
-                              size="small"
-                              onClick={() => handleDelete(strategy.name)}
-                            >
-                              Delete
-                            </Button>
-                          </Box>
-                        </CardContent>
-                      </Card>
+                      <Box key={strategy.name} sx={{ minWidth: '85vw', display: 'flex' }}>
+                        <Card variant="outlined" sx={{ borderRadius: 2, width: '100%', display: 'flex', flexDirection: 'column' }}>
+                          <CardContent sx={{ pb: '16px !important', flexGrow: 1 }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                              <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                {strategy.name}
+                              </Typography>
+                              <Chip 
+                                label={strategy.active ? "Active" : "Inactive"} 
+                                color={strategy.active ? "success" : "default"} 
+                                size="small"
+                                variant="outlined"
+                              />
+                            </Box>
+                            
+                            <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+                              <Button 
+                                variant="outlined" 
+                                startIcon={<Edit />} 
+                                fullWidth 
+                                size="small"
+                                onClick={() => handleEdit(strategy)}
+                              >
+                                Edit
+                              </Button>
+                              <Button 
+                                variant="outlined" 
+                                color="error" 
+                                startIcon={<Delete />} 
+                                fullWidth 
+                                size="small"
+                                onClick={() => handleDelete(strategy.name)}
+                              >
+                                Delete
+                              </Button>
+                            </Box>
+                          </CardContent>
+                        </Card>
+                      </Box>
                     ))}
                     {strategies.length === 0 && (
-                      <Typography variant="body2" sx={{ textAlign: 'center', py: 2 }}>
+                      <Typography variant="body2" sx={{ textAlign: 'center', py: 2, width: '100%' }}>
                         No strategies found.
                       </Typography>
                     )}
                   </Box>
                 ) : (
-                  /* DESKTOP TABLE */
+                  /* DESKTOP TABLE: UNTOUCHED */
                   <TableContainer component={Paper} elevation={0} variant="outlined">
                     <Table size="small">
                       <TableHead sx={{ backgroundColor: 'grey.100' }}>
