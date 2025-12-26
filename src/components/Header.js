@@ -35,7 +35,7 @@ const Header = ({ toggleTheme, theme }) => {
     navigate('/');
   };
 
-  // Active path logic for Bottom Nav
+  // Logic to determine active tab for Bottom Nav
   const currentTab = location.pathname;
 
   return (
@@ -70,7 +70,6 @@ const Header = ({ toggleTheme, theme }) => {
               {theme === 'dark' ? <Brightness7 /> : <Brightness4 />}
             </IconButton>
 
-            {/* Desktop Only Actions */}
             {!isMobile && (
               user ? (
                 <>
@@ -81,7 +80,12 @@ const Header = ({ toggleTheme, theme }) => {
                   <Button onClick={handleLogout} color="error" startIcon={<Logout />}>Logout</Button>
                 </>
               ) : (
-                <Button variant="contained" component={Link} to="/login" startIcon={<Login />}>Login</Button>
+                /* Hide Login button if we are already on the /login page on desktop */
+                location.pathname !== '/login' && (
+                  <Button variant="contained" component={Link} to="/login" startIcon={<Login />}>
+                    Login
+                  </Button>
+                )
               )
             )}
           </Box>
