@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -6,29 +5,22 @@ import {
   Toolbar,
   Typography,
   Button,
-  IconButton,
-  Menu,
-  MenuItem,
   Box,
   useTheme,
   useMediaQuery,
-  Drawer,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  ListItemButton
+  IconButton,
+  BottomNavigation,
+  BottomNavigationAction,
+  Paper
 } from '@mui/material';
 import {
-  Menu as MenuIcon,
   Brightness4,
   Brightness7,
-  AccountCircle,
   Dashboard,
   Settings,
   Logout,
   Login,
-  TrendingUp,
+  TrendingUp
 } from '@mui/icons-material';
 
 const Header = ({ toggleTheme, theme }) => {
@@ -37,173 +29,123 @@ const Header = ({ toggleTheme, theme }) => {
   const location = useLocation();
   const muiTheme = useTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-
-  const handleMenu = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
 
   const handleLogout = () => {
     logout();
     navigate('/');
-    handleClose();
   };
 
-  const toggleDrawer = (open) => (event) => {
-    if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
-      return;
-    }
-    setDrawerOpen(open);
-  };
-
-  const drawerList = () => (
-    <Box
-      sx={{ width: 250 }}
-      role="presentation"
-      onClick={toggleDrawer(false)}
-      onKeyDown={toggleDrawer(false)}
-    >
-      <List>
-        {/* --- Toggle Theme --- */}
-        <ListItem disablePadding>
-          <ListItemButton onClick={toggleTheme}>
-            <ListItemIcon>
-              {theme === 'dark' ? <Brightness7 /> : <Brightness4 />}
-            </ListItemIcon>
-            <ListItemText primary="Toggle Theme" />
-          </ListItemButton>
-        </ListItem>
-
-        {user ? (
-          <>
-            {/* --- Admin Dashboard --- */}
-            {user?.role === 'ADMIN' && (
-              <ListItem disablePadding>
-                <ListItemButton component={Link} to="/admin/dashboard">
-                  <ListItemIcon><Dashboard /></ListItemIcon>
-                  <ListItemText primary="Admin Dashboard" />
-                </ListItemButton>
-              </ListItem>
-            )}
-
-            {/* --- Settings --- */}
-            <ListItem disablePadding>
-              <ListItemButton component={Link} to="/settings">
-                <ListItemIcon><Settings /></ListItemIcon>
-                <ListItemText primary="Settings" />
-              </ListItemButton>
-            </ListItem>
-
-            {/* --- Logout --- */}
-            <ListItem disablePadding>
-              <ListItemButton onClick={handleLogout}>
-                <ListItemIcon><Logout /></ListItemIcon>
-                <ListItemText primary="Logout" />
-              </ListItemButton>
-            </ListItem>
-          </>
-        ) : (
-          location.pathname !== '/login' && (
-            /* --- Login --- */
-            <ListItem disablePadding>
-              <ListItemButton component={Link} to="/login">
-                <ListItemIcon><Login /></ListItemIcon>
-                <ListItemText primary="Login" />
-              </ListItemButton>
-            </ListItem>
-          )
-        )}
-      </List>
-    </Box>
-  );
+  // Logic to determine active tab for Bottom Nav
+  const currentTab = location.pathname;
 
   return (
-    <AppBar position="static">
-      <Toolbar>
-        <TrendingUp sx={{ mr: 2 }} />
-        <Typography variant="h6" component={Link} to="/" sx={{ flexGrow: 1, textDecoration: 'none', color: 'inherit' }}>
-          Shahbaz Trades
-        </Typography>
-
-        {isMobile ? (
-          <>
-            <IconButton
-              size="large"
-              edge="start"
-              color="inherit"
-              aria-label="menu"
-              onClick={toggleDrawer(true)}
+    <>
+      {/* TOP NAVBAR (Logo & Theme Toggle) */}
+      <AppBar
+        position="sticky"
+        elevation={0}
+        sx={{
+          backdropFilter: 'blur(10px)',
+          backgroundColor: theme === 'dark' ? 'rgba(18, 18, 18, 0.8)' : 'rgba(255, 255, 255, 0.95)',
+          borderBottom: `1px solid ${muiTheme.palette.divider}`,
+          color: muiTheme.palette.text.primary,
+          zIndex: muiTheme.zIndex.drawer + 1,
+        }}
+      >
+        <Toolbar sx={{ justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <TrendingUp color="primary" sx={{ fontSize: 28 }} />
+            <Typography
+              variant="h6"
+              component={Link}
+              to="/"
+              sx={{ fontWeight: 800, textDecoration: 'none', color: 'inherit', fontSize: { xs: '1.1rem', md: '1.25rem' } }}
             >
-              <MenuIcon />
-            </IconButton>
-            <Drawer anchor="right" open={drawerOpen} onClose={toggleDrawer(false)}>
-              {drawerList()}
-            </Drawer>
-          </>
-        ) : (
-          <>
-            <Button color="inherit" onClick={toggleTheme} startIcon={theme === 'dark' ? <Brightness7 /> : <Brightness4 />}>
-              Toggle Theme
-            </Button>
+              SHAHBAZ<span style={{ color: muiTheme.palette.primary.main }}>TRADES</span>
+            </Typography>
+          </Box>
 
-            {user ? (
-              <>
-                <Button color="inherit" onClick={handleMenu} startIcon={<AccountCircle />}>
-                  {user?.username}
-                </Button>
-                <Menu
-                  id="menu-appbar"
-                  anchorEl={anchorEl}
-                  anchorOrigin={{
-                    vertical: 'top',
-                    horizontal: 'right',
-                  }}
-                  keepMounted
-                  transformOrigin={{
-                    vertical: 'top',
-                    horizontal: 'right',
-                  }}
-                  open={Boolean(anchorEl)}
-                  onClose={handleClose}
-                >
-                  {user?.role === 'ADMIN' && (
-                    <MenuItem component={Link} to="/admin/dashboard" onClick={handleClose}>
-                      <ListItemIcon>
-                        <Dashboard />
-                      </ListItemIcon>
-                      Admin Dashboard
-                    </MenuItem>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <IconButton onClick={toggleTheme} color="inherit" size="small">
+              {theme === 'dark' ? <Brightness7 /> : <Brightness4 />}
+            </IconButton>
+
+            {!isMobile && (
+              user ? (
+                <>
+                  <Button component={Link} to="/settings" color="inherit" startIcon={<Settings />}>Settings</Button>
+                  {user.role === 'ADMIN' && (
+                    <Button component={Link} to="/admin/dashboard" color="inherit" startIcon={<Dashboard />}>Admin</Button>
                   )}
-                  <MenuItem component={Link} to="/settings" onClick={handleClose}>
-                    <ListItemIcon>
-                      <Settings />
-                    </ListItemIcon>
-                    Settings
-                  </MenuItem>
-                  <MenuItem onClick={handleLogout}>
-                    <ListItemIcon>
-                      <Logout />
-                    </ListItemIcon>
-                    Logout
-                  </MenuItem>
-                </Menu>
-              </>
-            ) : (
-              location.pathname !== '/login' && (
-                <Button color="inherit" component={Link} to="/login" startIcon={<Login />}>
-                  Login
-                </Button>
+                  <Button onClick={handleLogout} color="error" startIcon={<Logout />}>Logout</Button>
+                </>
+              ) : (
+                /* Hide Login button if we are already on the /login page on desktop */
+                location.pathname !== '/login' && (
+                  <Button variant="contained" component={Link} to="/login" startIcon={<Login />}>
+                    Login
+                  </Button>
+                )
               )
             )}
-          </>
-        )}
-      </Toolbar>
-    </AppBar>
+          </Box>
+        </Toolbar>
+      </AppBar>
+
+      {/* MOBILE BOTTOM NAVIGATION */}
+      {isMobile && (
+        <Paper
+          sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1000, borderTop: `1px solid ${muiTheme.palette.divider}` }}
+          elevation={3}
+        >
+          <BottomNavigation
+            showLabels
+            value={currentTab}
+            onChange={(event, newValue) => navigate(newValue)}
+          >
+            <BottomNavigationAction
+              label="Markets"
+              value="/"
+              icon={<TrendingUp />}
+            />
+
+            {user ? (
+              [
+                user.role === 'ADMIN' && (
+                  <BottomNavigationAction
+                    key="admin"
+                    label="Admin"
+                    value="/admin/dashboard"
+                    icon={<Dashboard />}
+                  />
+                ),
+                <BottomNavigationAction
+                  key="settings"
+                  label="Settings"
+                  value="/settings"
+                  icon={<Settings />}
+                />,
+                <BottomNavigationAction
+                  key="logout"
+                  label="Logout"
+                  onClick={handleLogout}
+                  icon={<Logout color="error" />}
+                />
+              ]
+            ) : (
+              <BottomNavigationAction
+                label="Login"
+                value="/login"
+                icon={<Login />}
+              />
+            )}
+          </BottomNavigation>
+        </Paper>
+      )}
+
+      {/* Spacer for mobile to prevent content being hidden behind bottom nav */}
+      {isMobile && <Box sx={{ height: 60 }} />}
+    </>
   );
 };
 
