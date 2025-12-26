@@ -142,9 +142,6 @@ const Header = ({ toggleTheme, theme }) => {
           </BottomNavigation>
         </Paper>
       )}
-
-      {/* Spacer for mobile to prevent content being hidden behind bottom nav */}
-      {isMobile && <Box sx={{ height: 60 }} />}
     </>
   );
 };
