@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Chart from 'react-apexcharts';
-import { Container, Box, Typography, Chip, CircularProgress, Fade, Card, CardContent } from '@mui/material';
+import { Container, Box, Typography, CircularProgress, Fade, Card, CardContent } from '@mui/material';
 import { strategyAPI } from '../api/axios';
 
 const Heatmap = () => {
