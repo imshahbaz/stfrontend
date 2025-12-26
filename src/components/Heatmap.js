@@ -29,20 +29,21 @@ const Heatmap = () => {
   }, [data]);
 
   // Transform data for ApexCharts
+  const isMobile = window.innerWidth < 600;
   const series = [{
     data: data.map(item => ({
       x: item.index,
       // We use absolute change + 1 to determine the size of the box
-      y: Math.abs(item.pChange) + 1, 
+      y: isMobile ? 10 : Math.abs(item.pChange) + 1,
       pChange: item.pChange,
       // Explicitly setting colors: Success Green or Error Red
-      fillColor: item.pChange >= 0 ? '#2e7d32' : '#d32f2f', 
+      fillColor: item.pChange >= 0 ? '#2e7d32' : '#d32f2f',
     }))
   }];
 
   const options = {
     legend: { show: false },
-    chart: { 
+    chart: {
       toolbar: { show: false },
       animations: { enabled: true }
     },
@@ -50,17 +51,18 @@ const Heatmap = () => {
       treemap: {
         enableShades: true,
         shadeIntensity: 0.5,
-        distributed: true // Required to use the fillColor from data
+        distributed: true,
+        dataLabels: { format: 'scale' }
       }
     },
     dataLabels: {
       enabled: true,
       style: {
-        fontSize: '12px',
+        fontSize: isMobile ? '12px' : '14px',
         fontWeight: 'bold',
       },
       // This includes the percentage inside the tile
-      formatter: function(text, op) {
+      formatter: function (text, op) {
         const actualChange = op.w.config.series[op.seriesIndex].data[op.dataPointIndex].pChange;
         return [text, `${actualChange > 0 ? '+' : ''}${actualChange}%`];
       },
@@ -124,7 +126,7 @@ const Heatmap = () => {
               options={options}
               series={series}
               type="treemap"
-              height={window.innerWidth < 600 ? 500 : 600}
+              height={isMobile ? 750 : 600}
             />
           </CardContent>
         </Card>
