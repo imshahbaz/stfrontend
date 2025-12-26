@@ -42,7 +42,7 @@ const Strategies = memo(() => {
       <Box sx={{ textAlign: 'center', mb: 5 }}>
         <TrendingUp sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
         <Typography variant="h3" component="h1" color="primary" gutterBottom sx={{ fontWeight: 'bold' }}>
-          Available Strategies
+          Available Screeners
         </Typography>
         <Typography variant="h6" color="text.secondary">
           Explore and select a strategy to analyze the market.
