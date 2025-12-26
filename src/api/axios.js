@@ -62,4 +62,11 @@ export const marginAPI = {
   }),
 };
 
+// Config API methods
+export const configAPI = {
+  getConfig: () => api.get('/api/config'),
+  updateConfig: (configData) => api.patch('/api/config', configData),
+  reloadConfig: () => api.post('/api/config'),
+};
+
 export default api;
