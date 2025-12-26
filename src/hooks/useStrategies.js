@@ -13,7 +13,7 @@ const initialState = {
 const reducer = (state, action) => {
   switch (action.type) {
     case 'SET_STRATEGIES':
-      return { ...state, strategies: action.payload };
+      return { ...state, strategies: action.payload || [] };
     case 'SET_SELECTED_STRATEGY':
       return { ...state, selectedStrategy: action.payload };
     case 'SET_LOADING':
@@ -21,7 +21,7 @@ const reducer = (state, action) => {
     case 'SET_ERROR':
       return { ...state, error: action.payload };
     case 'SET_STRATEGY_DATA':
-      return { ...state, strategyData: action.payload };
+      return { ...state, strategyData: action.payload || [] };
     case 'SET_CACHE':
       return { ...state, cache: { ...state.cache, [action.key]: action.payload } };
     default:
