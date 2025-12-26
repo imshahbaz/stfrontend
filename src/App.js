@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { Box, Backdrop, CircularProgress } from '@mui/material';
+import { Box, Backdrop, CircularProgress, useMediaQuery } from '@mui/material';
 import createAppTheme from './theme';
 
 // 1. Import Auth Context and Protected Route
@@ -54,6 +54,7 @@ function AppContent() {
   };
 
   const muiTheme = createAppTheme(theme);
+  const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
 
   if (loading) {
     return (
@@ -95,7 +96,7 @@ function AppContent() {
               <Route path="/unauthorized" element={<Unauthorized showLogin={!user} />} />
             </Routes>
           </Box>
-          <Footer />
+          {!isMobile && <Footer />}
         </Box>
       </Router>
     </ThemeProvider>
