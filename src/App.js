@@ -20,6 +20,7 @@ import Settings from './components/Settings';
 import AdminDashboard from './components/AdminDashboard';
 import Unauthorized from './components/Unauthorized';
 import ChartPage from './components/ChartPage';
+import Heatmap from './components/Heatmap';
 import { userPreferenceAPI } from "../src/api/axios";
 
 function App() {
@@ -78,6 +79,7 @@ function AppContent() {
               <Route path="/signup" element={<Signup />} />
               <Route path="/strategies" element={<Strategies />} />
               <Route path="/calculator" element={<Calculator />} />
+              <Route path="/heatmap" element={<Heatmap />} />
               <Route path="/chart/:symbol" element={<ChartPage />} />
 
               {/* --- User Protected Routes --- */}
