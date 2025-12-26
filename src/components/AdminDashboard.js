@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { strategyAPI, marginAPI } from '../api/axios';
+import { strategyAPI, marginAPI, configAPI } from '../api/axios';
 import {
   Container,
   Box,
@@ -50,6 +50,13 @@ const AdminDashboard = () => {
   // Modal State
   const [modalOpen, setModalOpen] = useState(false);
   const [modalConfig, setModalConfig] = useState({ title: '', message: '', onConfirm: null, isConfirm: false });
+
+  // Config management state
+  const [configJson, setConfigJson] = useState('');
+  const [configVisible, setConfigVisible] = useState(false);
+  const [configLoading, setConfigLoading] = useState(false);
+  const [configSuccess, setConfigSuccess] = useState('');
+  const [configError, setConfigError] = useState('');
 
   const isMobile = useMediaQuery('(max-width:600px)');
 
@@ -173,6 +180,41 @@ const AdminDashboard = () => {
   const handleCancel = () => {
     setStrategyForm({ name: '', scanClause: '', active: false });
     setEditingId(null);
+  };
+
+  const fetchConfig = async () => {
+    try {
+      const response = await configAPI.getConfig();
+      setConfigJson(JSON.stringify(response.data, null, 2));
+      setConfigVisible(true);
+    } catch (error) {
+      console.error('Error fetching config:', error);
+    }
+  };
+
+  const handleConfigJsonChange = (e) => {
+    setConfigJson(e.target.value);
+  };
+
+  const handleConfigSubmit = async (e) => {
+    e.preventDefault();
+    setConfigLoading(true);
+    setConfigSuccess('');
+    setConfigError('');
+
+    try {
+      const parsedConfig = JSON.parse(configJson);
+      await configAPI.updateConfig(parsedConfig);
+      setConfigSuccess('Config updated successfully!');
+    } catch (error) {
+      if (error instanceof SyntaxError) {
+        setConfigError('Invalid JSON format. Please check your syntax.');
+      } else {
+        setConfigError(error.response?.data?.message || 'Failed to update config');
+      }
+    } finally {
+      setConfigLoading(false);
+    }
   };
 
   return (
@@ -342,6 +384,53 @@ const AdminDashboard = () => {
                   </TableContainer>
                 )}
               </Collapse>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Config Management Card */}
+        <Grid item xs={12}>
+          <Card sx={{ boxShadow: 3 }}>
+            <CardHeader
+              title={<Box sx={{ display: 'flex', alignItems: 'center' }}><Edit sx={{ mr: 1 }} />Config Management</Box>}
+              sx={{ backgroundColor: 'primary.main', color: 'primary.contrastText' }}
+            />
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                Update application configuration settings.
+              </Typography>
+              <Box component="form" onSubmit={handleConfigSubmit} sx={{ mb: 3, minHeight: '400px' }}>
+                <TextField
+                  label="Config JSON"
+                  value={configJson}
+                  onChange={handleConfigJsonChange}
+                  fullWidth
+                  multiline
+                  rows={15}
+                  sx={{ mb: 2, fontFamily: 'monospace' }}
+                  placeholder={configVisible ? '{"frontendUrl": "", "brevoEmail": "", ...}' : 'Click Fetch to load config'}
+                  disabled={!configVisible}
+                />
+                <Button
+                  type="submit"
+                  variant="contained"
+                  fullWidth
+                  disabled={configLoading || !configVisible}
+                  startIcon={configLoading ? <CircularProgress size={20} color="inherit" /> : <Edit />}
+                >
+                  {configLoading ? 'Updating...' : 'Update Config'}
+                </Button>
+              </Box>
+              <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
+                <Button variant="contained" fullWidth onClick={() => {}}>Reload</Button>
+                <Button variant="contained" fullWidth onClick={fetchConfig}>Fetch</Button>
+              </Box>
+              {(configSuccess || configError) && (
+                <Box sx={{ mt: 3 }}>
+                  {configSuccess && <Alert severity="success">{configSuccess}</Alert>}
+                  {configError && <Alert severity="error">{configError}</Alert>}
+                </Box>
+              )}
             </CardContent>
           </Card>
         </Grid>
