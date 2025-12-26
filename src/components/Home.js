@@ -43,7 +43,7 @@ const Home = () => {
               <CardContent sx={{ textAlign: 'center', p: 3 }}>
                 <TrendingUp sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
                 <Typography variant="h5" component="h3" color="primary" gutterBottom>
-                  Strategy
+                  Screener
                 </Typography>
                 <Typography variant="body1" color="text.secondary">
                   Scan and analyze the market with our advanced strategy tools.
