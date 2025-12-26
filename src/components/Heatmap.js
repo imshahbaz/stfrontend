@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Chart from 'react-apexcharts';
-import { Container, Box, Typography, Chip, CircularProgress } from '@mui/material';
+import { Container, Box, Typography, Chip, CircularProgress, Fade, Card, CardContent } from '@mui/material';
 import { strategyAPI } from '../api/axios';
 
 const Heatmap = () => {
@@ -87,50 +87,49 @@ const Heatmap = () => {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: { xs: 2, md: 4 } }}>
-      <Box sx={{ textAlign: 'center', mb: 3 }}>
-        <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 1 }}>
-          Market Heatmap
-        </Typography>
-        
-        {/* Market Breadth Header */}
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          gap: 2, 
-          bgcolor: 'action.hover', 
-          p: 1.5, 
-          borderRadius: 2 
-        }}>
-          <Chip 
-            label={`${marketBreadth.up} Advances`} 
-            sx={{ bgcolor: '#2e7d32', color: 'white', fontWeight: 'bold' }} 
-            size="small" 
-          />
-          <Chip 
-            label={`${marketBreadth.down} Declines`} 
-            sx={{ bgcolor: '#d32f2f', color: 'white', fontWeight: 'bold' }} 
-            size="small" 
-          />
-        </Box>
-      </Box>
+    <Fade in={true} timeout={1000}>
+      <Container maxWidth="lg" sx={{ flexGrow: 1, py: 5 }}>
+        <Box sx={{ textAlign: 'center', mb: 5 }}>
+          <Typography variant="h3" component="h1" color="primary" gutterBottom sx={{ fontWeight: 'bold' }}>
+            Market Heatmap
+          </Typography>
 
-      <Box sx={{ 
-        bgcolor: 'background.paper', 
-        borderRadius: 2, 
-        p: 1, 
-        boxShadow: '0px 4px 20px rgba(0,0,0,0.1)',
-        minHeight: '500px'
-      }}>
-        <Chart 
-          options={options} 
-          series={series} 
-          type="treemap" 
-          height={window.innerWidth < 600 ? 500 : 600} 
-        />
-      </Box>
-    </Container>
+          {/* Market Breadth Header */}
+          <Card sx={{ mb: 4 }}>
+            <CardContent sx={{ textAlign: 'center', p: 3 }}>
+              <Box sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: 2
+              }}>
+                <Chip
+                  label={`${marketBreadth.up} Advances`}
+                  sx={{ bgcolor: '#2e7d32', color: 'white', fontWeight: 'bold' }}
+                  size="small"
+                />
+                <Chip
+                  label={`${marketBreadth.down} Declines`}
+                  sx={{ bgcolor: '#d32f2f', color: 'white', fontWeight: 'bold' }}
+                  size="small"
+                />
+              </Box>
+            </CardContent>
+          </Card>
+        </Box>
+
+        <Card>
+          <CardContent sx={{ p: 3 }}>
+            <Chart
+              options={options}
+              series={series}
+              type="treemap"
+              height={window.innerWidth < 600 ? 500 : 600}
+            />
+          </CardContent>
+        </Card>
+      </Container>
+    </Fade>
   );
 };
 
