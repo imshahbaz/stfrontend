@@ -97,27 +97,42 @@ const Heatmap = () => {
           </Typography>
 
           {/* Market Breadth Header */}
-          <Card sx={{ mb: 4 }}>
-            <CardContent sx={{ textAlign: 'center', p: 3 }}>
-              <Box sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                gap: 2
-              }}>
-                <Chip
-                  label={`${marketBreadth.up} Advances`}
-                  sx={{ bgcolor: '#2e7d32', color: 'white', fontWeight: 'bold' }}
-                  size="small"
-                />
-                <Chip
-                  label={`${marketBreadth.down} Declines`}
-                  sx={{ bgcolor: '#d32f2f', color: 'white', fontWeight: 'bold' }}
-                  size="small"
-                />
+          <Box sx={{ borderRadius: 2, boxShadow: 1, overflow: 'hidden', mb: 0 }}>
+            <Box sx={{ display: 'flex' }}>
+              <Box
+                sx={{
+                  width: '50%',
+                  bgcolor: '#2e7d32',
+                  color: 'white',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  py: 3,
+                  px: 2
+                }}
+              >
+                <Typography variant="h4" sx={{ fontWeight: 'bold', textAlign: 'center' }}>
+                  {marketBreadth.up} Advances
+                </Typography>
               </Box>
-            </CardContent>
-          </Card>
+              <Box
+                sx={{
+                  width: '50%',
+                  bgcolor: '#d32f2f',
+                  color: 'white',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  py: 3,
+                  px: 2
+                }}
+              >
+                <Typography variant="h4" sx={{ fontWeight: 'bold', textAlign: 'center' }}>
+                  {marketBreadth.down} Declines
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
         </Box>
 
         <Card>
