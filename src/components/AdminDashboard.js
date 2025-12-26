@@ -183,6 +183,8 @@ const AdminDashboard = () => {
   };
 
   const fetchConfig = async () => {
+    setConfigError('');
+    setConfigSuccess('');
     try {
       const response = await configAPI.getConfig();
       setConfigJson(JSON.stringify(response.data, null, 2));
@@ -214,6 +216,20 @@ const AdminDashboard = () => {
       }
     } finally {
       setConfigLoading(false);
+    }
+  };
+
+  const reloadConfig = async () => {
+    setConfigError('');
+    setConfigSuccess('');
+    try {
+      const response = await configAPI.reloadConfig();
+      if (response.data.success) {
+        setConfigSuccess('Config reloaded successfully!');
+      }
+      else { setConfigError('Error reloading config'); }
+    } catch (error) {
+      setConfigError('Error reloading config');
     }
   };
 
@@ -422,7 +438,7 @@ const AdminDashboard = () => {
                 </Button>
               </Box>
               <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
-                <Button variant="contained" fullWidth onClick={() => {}}>Reload</Button>
+                <Button variant="contained" fullWidth onClick={reloadConfig}>Reload</Button>
                 <Button variant="contained" fullWidth onClick={fetchConfig}>Fetch</Button>
               </Box>
               {(configSuccess || configError) && (
