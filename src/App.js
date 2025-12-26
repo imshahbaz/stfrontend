@@ -70,7 +70,7 @@ function AppContent() {
       <Router>
         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
           <Header toggleTheme={toggleTheme} theme={theme} />
-          <Box sx={{ flexGrow: 1 }}>
+          <Box sx={{ flexGrow: 1, pb: { xs: '4.5rem', md: 0 },}}>
             <Routes>
               {/* --- Public Routes --- */}
               <Route path="/" element={<Home />} />
