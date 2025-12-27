@@ -148,7 +148,7 @@ const HeatmapV2 = () => {
                   px: 2
                 }}
               >
-                <Typography variant="h4" sx={{ fontWeight: 'bold', textAlign: 'center' }}>
+                <Typography variant="h5" sx={{ fontWeight: 'bold', textAlign: 'center' }}>
                   {marketBreadth.up} Advances
                 </Typography>
               </Box>
@@ -164,7 +164,7 @@ const HeatmapV2 = () => {
                   px: 2
                 }}
               >
-                <Typography variant="h4" sx={{ fontWeight: 'bold', textAlign: 'center' }}>
+                <Typography variant="h5" sx={{ fontWeight: 'bold', textAlign: 'center' }}>
                   {marketBreadth.down} Declines
                 </Typography>
               </Box>
