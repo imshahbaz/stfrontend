@@ -50,6 +50,7 @@ export const strategyAPI = {
   }),
   getStrategiesAdmin: () => api.get('/api/strategy/admin'),
   getHeatMap: () => api.get('/api/nse/heatmap'),
+  getAllIndices:()=> api.get('/api/nse/allindices'),
 };
 
 // Margin API methods

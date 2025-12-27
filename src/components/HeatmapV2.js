@@ -1,30 +1,52 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Chart from 'react-apexcharts';
-import { Container, Box, Typography, CircularProgress, Fade, Card, CardContent } from '@mui/material';
+import { Container, Box, Typography, CircularProgress, Fade, Card, CardContent, Button } from '@mui/material';
 import { strategyAPI } from '../api/axios';
 
-const Heatmap = () => {
+const HeatmapV2 = () => {
+  const [rawData, setRawData] = useState([]);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedPeriod, setSelectedPeriod] = useState('D');
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await strategyAPI.getHeatMap();
-        // Sorting: Greens first (descending), then Reds
-        const sorted = response.data.data.sort((a, b) => b.pChange - a.pChange);
-        setData(sorted);
-      } catch (err) {
-        console.error("Error fetching heatmap:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchData();
   }, []);
 
+  const fetchData = async () => {
+    try {
+      const response = await strategyAPI.getAllIndices();
+      setRawData(response.data.data);
+    } catch (err) {
+      console.error("Error fetching heatmap:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getPercentChange = (item, period) => {
+    switch (period) {
+      case 'D': return item.percentChange;
+      case 'W': return item.perChange1w;
+      case 'M': return item.perChange30d;
+      case 'Y': return item.perChange365d;
+      default: return item.percentChange;
+    }
+  };
+
+  useEffect(() => {
+    if (rawData.length > 0) {
+      const transformed = rawData.map(item => ({
+        ...item,
+        percentChange: getPercentChange(item, selectedPeriod)
+      }));
+      const sorted = transformed.sort((a, b) => b.percentChange - a.percentChange);
+      setData(sorted);
+    }
+  }, [rawData, selectedPeriod]);
+
   const marketBreadth = useMemo(() => {
-    const up = data.filter(d => d.pChange > 0).length;
+    const up = data.filter(d => d.percentChange > 0).length;
     return { up, down: data.length - up };
   }, [data]);
 
@@ -42,12 +64,12 @@ const Heatmap = () => {
   const isMobile = window.innerWidth < 600;
   const series = [{
     data: data.map(item => ({
-      x: item.index,
+      x: item.indexSymbol,
       // We use absolute change + 1 to determine the size of the box
-      y: isMobile ? 10 : Math.abs(item.pChange) + 1,
-      pChange: item.pChange,
+      y: isMobile ? 10 : Math.abs(item.percentChange) + 1,
+      pChange: item.percentChange,
       // Explicitly setting colors based on pChange ranges
-      fillColor: getColor(item.pChange),
+      fillColor: getColor(item.percentChange),
     }))
   }];
 
@@ -85,7 +107,12 @@ const Heatmap = () => {
           const item = w.config.series[seriesIndex].data[dataPointIndex];
           return `${item.pChange}%`;
         },
-        title: { formatter: () => 'Change: ' }
+        title: {
+          formatter: (seriesName, { seriesIndex, dataPointIndex, w }) => {
+            const item = w.config.series[seriesIndex].data[dataPointIndex];
+            return `${item.x}: `;
+          }
+        }
       }
     }
   };
@@ -145,6 +172,13 @@ const Heatmap = () => {
           </Box>
         </Box>
 
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+          <Button variant={selectedPeriod === 'D' ? 'contained' : 'outlined'} onClick={() => setSelectedPeriod('D')} sx={{ mx: 1 }}>D</Button>
+          <Button variant={selectedPeriod === 'W' ? 'contained' : 'outlined'} onClick={() => setSelectedPeriod('W')} sx={{ mx: 1 }}>W</Button>
+          <Button variant={selectedPeriod === 'M' ? 'contained' : 'outlined'} onClick={() => setSelectedPeriod('M')} sx={{ mx: 1 }}>M</Button>
+          <Button variant={selectedPeriod === 'Y' ? 'contained' : 'outlined'} onClick={() => setSelectedPeriod('Y')} sx={{ mx: 1 }}>Y</Button>
+        </Box>
+
         <Card>
           <CardContent sx={{ p: 3 }}>
             <Chart
@@ -160,4 +194,4 @@ const Heatmap = () => {
   );
 };
 
-export default Heatmap;
+export default HeatmapV2;
