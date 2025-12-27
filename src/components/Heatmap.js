@@ -28,6 +28,16 @@ const Heatmap = () => {
     return { up, down: data.length - up };
   }, [data]);
 
+  const getColor = (pChange) => {
+    if (pChange <= -1.2) return '#8E161B'; // Strong Bearish
+    if (pChange <= -0.8) return '#D32F2F'; // Bearish
+    if (pChange <= -0.4) return '#E57373'; // Weak Bearish
+    if (pChange < 0.4) return '#424242'; // Neutral
+    if (pChange < 0.8) return '#81C784'; // Weak Bullish
+    if (pChange < 1.2) return '#388E3C'; // Bullish
+    return '#004D20'; // Strong Bullish
+  };
+
   // Transform data for ApexCharts
   const isMobile = window.innerWidth < 600;
   const series = [{
@@ -36,8 +46,8 @@ const Heatmap = () => {
       // We use absolute change + 1 to determine the size of the box
       y: isMobile ? 10 : Math.abs(item.pChange) + 1,
       pChange: item.pChange,
-      // Explicitly setting colors: Success Green or Error Red
-      fillColor: item.pChange >= 0 ? '#2e7d32' : '#d32f2f',
+      // Explicitly setting colors based on pChange ranges
+      fillColor: getColor(item.pChange),
     }))
   }];
 
