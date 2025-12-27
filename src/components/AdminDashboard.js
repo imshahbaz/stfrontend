@@ -155,7 +155,7 @@ const AdminDashboard = () => {
                 <Typography variant="subtitle1" gutterBottom fontWeight="700">
                   {editingId ? 'Edit Strategy' : 'Add New Strategy'}
                 </Typography>
-                <Box component="form" onSubmit={handleStrategySubmit} sx={{ p: 2, border: '1px solid #eee', borderRadius: 2 }}>
+                <Box component="form" onSubmit={handleStrategySubmit} sx={{ p: 2, border: `1px solid`, borderColor: 'divider', borderRadius: 2 }}>
                   <TextField label="Name" name="name" value={strategyForm.name} onChange={handleStrategyFormChange} fullWidth required sx={{ mb: 2 }} disabled={!!editingId} size="small" />
                   <TextField label="Scan Clause" name="scanClause" value={strategyForm.scanClause} onChange={handleStrategyFormChange} fullWidth required multiline rows={4} sx={{ mb: 2 }} size="small" />
                   <FormControlLabel control={<Checkbox checked={strategyForm.active} onChange={handleStrategyFormChange} name="active" />} label="Active" sx={{ mb: 2 }} />
@@ -195,7 +195,7 @@ const AdminDashboard = () => {
                   // Desktop Table View
                   <TableContainer component={Paper} variant="outlined">
                     <Table size="small">
-                      <TableHead sx={{ bgcolor: '#f9fafb' }}>
+                      <TableHead>
                         <TableRow>
                           <TableCell><b>Name</b></TableCell>
                           <TableCell><b>Status</b></TableCell>
