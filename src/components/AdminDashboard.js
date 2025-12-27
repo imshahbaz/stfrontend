@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { strategyAPI, marginAPI, configAPI } from '../api/axios';
 import {
-  Container, Box, Typography, Card, CardContent, Button, Grid, Alert, 
-  CircularProgress, TextField, FormControlLabel, Checkbox, TableContainer, 
-  Table, TableHead, TableBody, TableRow, TableCell, IconButton, Paper, 
+  Container, Box, Typography, Card, CardContent, Button, Grid, Alert,
+  CircularProgress, TextField, FormControlLabel, Checkbox, TableContainer,
+  Table, TableHead, TableBody, TableRow, TableCell, IconButton, Paper,
   useMediaQuery, Chip, Modal, Fade, Tabs, Tab, Divider
 } from '@mui/material';
-import { 
-  CloudUpload, Dashboard, Edit, Delete, Warning, 
-  Settings, ListAlt, Storage 
+import {
+  CloudUpload, Dashboard, Edit, Delete, Warning,
+  Settings, ListAlt, Storage
 } from '@mui/icons-material';
 
 const AdminDashboard = () => {
@@ -30,6 +30,7 @@ const AdminDashboard = () => {
   const [configJson, setConfigJson] = useState('');
   const [configVisible, setConfigVisible] = useState(false);
   const [configLoading, setConfigLoading] = useState(false);
+  const [configFetching, setConfigFetching] = useState(false);
   const [configSuccess, setConfigSuccess] = useState('');
   const [, setConfigError] = useState('');
 
@@ -45,7 +46,6 @@ const AdminDashboard = () => {
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
-    if (newValue === 2 && !configVisible) fetchConfig();
   };
 
   const handleOpenModal = (title, message, onConfirm = null, isConfirm = false) => {
@@ -92,11 +92,17 @@ const AdminDashboard = () => {
   };
 
   const fetchConfig = async () => {
+    setConfigFetching(true);
     try {
       const response = await configAPI.getConfig();
       setConfigJson(JSON.stringify(response.data, null, 2));
       setConfigVisible(true);
-    } catch (error) { setConfigError('Failed to fetch config'); }
+      setConfigSuccess('Config fetched successfully!');
+    } catch (error) {
+      setConfigError('Failed to fetch config');
+    } finally {
+      setConfigFetching(false);
+    }
   };
 
   const handleConfigSubmit = async (e) => {
@@ -125,9 +131,9 @@ const AdminDashboard = () => {
 
       {/* TABS */}
       <Paper sx={{ mb: 4, borderRadius: 2, overflow: 'hidden' }}>
-        <Tabs 
-          value={activeTab} 
-          onChange={handleTabChange} 
+        <Tabs
+          value={activeTab}
+          onChange={handleTabChange}
           variant={isMobile ? "scrollable" : "standard"}
           scrollButtons="auto"
           indicatorColor="primary"
@@ -159,7 +165,7 @@ const AdminDashboard = () => {
                   </Box>
                 </Box>
                 {(strategySuccess || strategyError) && (
-                   <Alert severity={strategySuccess ? "success" : "error"} sx={{ mt: 2 }}>{strategySuccess || strategyError}</Alert>
+                  <Alert severity={strategySuccess ? "success" : "error"} sx={{ mt: 2 }}>{strategySuccess || strategyError}</Alert>
                 )}
               </Grid>
 
@@ -221,14 +227,14 @@ const AdminDashboard = () => {
                 <Typography variant="h6">CSV Data Sync</Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>Refresh margin data from NSE CSV files.</Typography>
                 <Button variant="outlined" component="label" fullWidth sx={{ mb: 2 }}>
-                   {file ? file.name : 'Select File'}
-                   <input type="file" hidden accept=".csv" onChange={(e) => setFile(e.target.files[0])} />
+                  {file ? file.name : 'Select File'}
+                  <input type="file" hidden accept=".csv" onChange={(e) => setFile(e.target.files[0])} />
                 </Button>
                 <Button variant="contained" fullWidth disabled={!file || uploading} onClick={async () => {
-                   const fd = new FormData(); fd.append('file', file);
-                   setUploading(true);
-                   try { await marginAPI.loadFromCsv(fd); setSuccessMessage('Upload Success!'); }
-                   catch(e) { setErrorMessage('Failed'); } finally { setUploading(false); }
+                  const fd = new FormData(); fd.append('file', file);
+                  setUploading(true);
+                  try { await marginAPI.loadFromCsv(fd); setSuccessMessage('Upload Success!'); }
+                  catch (e) { setErrorMessage('Failed'); } finally { setUploading(false); }
                 }}>
                   {uploading ? 'Processing...' : 'Upload & Load'}
                 </Button>
@@ -242,8 +248,11 @@ const AdminDashboard = () => {
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
                 <Typography fontWeight="700">JSON Configuration</Typography>
                 <Button size="small" onClick={() => configAPI.reloadConfig().then(() => setConfigSuccess('Reloaded'))}>Cache Reload</Button>
+                <Button size="small" onClick={async () => { await fetchConfig(); }} disabled={configFetching}>
+                  {configFetching ? <CircularProgress size={16} /> : 'Fetch'}
+                </Button>
               </Box>
-              <TextField fullWidth multiline rows={15} value={configJson} onChange={(e) => setConfigJson(e.target.value)} sx={{ '& .MuiInputBase-root': { fontFamily: 'monospace', fontSize: 13, bgcolor: '#fafafa' }}} />
+              <TextField fullWidth multiline rows={15} value={configJson} onChange={(e) => setConfigJson(e.target.value)} size="small" sx={{ mb: 2, '& .MuiInputBase-root': { fontFamily: 'monospace', fontSize: 13 } }} />
               <Button variant="contained" fullWidth sx={{ mt: 2 }} onClick={handleConfigSubmit} disabled={configLoading}>Save System Config</Button>
               {configSuccess && <Alert severity="success" sx={{ mt: 1 }}>{configSuccess}</Alert>}
             </Box>
