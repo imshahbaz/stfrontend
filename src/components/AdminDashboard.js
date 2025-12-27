@@ -47,6 +47,7 @@ const AdminDashboard = () => {
     setActiveTab(newValue);
     if (newValue !== 2) {
       setConfigJson('')
+      setConfigSuccess('');
     }
   };
 
@@ -251,7 +252,7 @@ const AdminDashboard = () => {
             <Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
                 <Typography fontWeight="700">JSON Configuration</Typography>
-                <Button size="small" onClick={() => configAPI.reloadConfig().then(() => setConfigSuccess('Reloaded'))}>Cache Reload</Button>
+                <Button size="small" onClick={() => configAPI.reloadConfig().then(() => setConfigSuccess('Reloaded'))}>Reload</Button>
                 <Button size="small" onClick={async () => { await fetchConfig(); }} disabled={configFetching}>
                   {configFetching ? <CircularProgress size={16} /> : 'Fetch'}
                 </Button>
