@@ -1,42 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { strategyAPI, marginAPI, configAPI } from '../api/axios';
 import {
-  Container,
-  Box,
-  Typography,
-  Card,
-  CardHeader,
-  CardContent,
-  Button,
-  Grid,
-  Alert,
-  CircularProgress,
-  TextField,
-  FormControlLabel,
-  Checkbox,
-  TableContainer,
-  Table,
-  TableHead,
-  TableBody,
-  TableRow,
-  TableCell,
-  IconButton,
-  Paper,
-  Collapse,
-  useMediaQuery,
-  Chip,
-  Modal,
-  Fade,
-  Backdrop
+  Container, Box, Typography, Card, CardContent, Button, Grid, Alert, 
+  CircularProgress, TextField, FormControlLabel, Checkbox, TableContainer, 
+  Table, TableHead, TableBody, TableRow, TableCell, IconButton, Paper, 
+  useMediaQuery, Chip, Modal, Fade, Backdrop, Tabs, Tab, Divider
 } from '@mui/material';
-import { CloudUpload, Dashboard, Add, Edit, Delete, ExpandMore, ExpandLess, Warning } from '@mui/icons-material';
+import { 
+  CloudUpload, Dashboard, Add, Edit, Delete, Warning, 
+  Settings, ListAlt, Storage 
+} from '@mui/icons-material';
 
 const AdminDashboard = () => {
+  const [activeTab, setActiveTab] = useState(0);
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-  const [showResult, setShowResult] = useState(false);
 
   // Strategy management state
   const [strategies, setStrategies] = useState([]);
@@ -45,11 +25,6 @@ const AdminDashboard = () => {
   const [strategyLoading, setStrategyLoading] = useState(false);
   const [strategySuccess, setStrategySuccess] = useState('');
   const [strategyError, setStrategyError] = useState('');
-  const [tableExpanded, setTableExpanded] = useState(false);
-
-  // Modal State
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalConfig, setModalConfig] = useState({ title: '', message: '', onConfirm: null, isConfirm: false });
 
   // Config management state
   const [configJson, setConfigJson] = useState('');
@@ -58,79 +33,44 @@ const AdminDashboard = () => {
   const [configSuccess, setConfigSuccess] = useState('');
   const [configError, setConfigError] = useState('');
 
-  const isMobile = useMediaQuery('(max-width:600px)');
+  // Modal State
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalConfig, setModalConfig] = useState({ title: '', message: '', onConfirm: null, isConfirm: false });
 
-  const handleOpenModal = (title, message, onConfirm = null, isConfirm = false) => {
-    setModalConfig({ title, message, onConfirm, isConfirm });
-    setModalOpen(true);
-  };
-
-  const handleCloseModal = () => setModalOpen(false);
-
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!file) {
-      handleOpenModal('Selection Required', 'Please select a CSV file first.');
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    setUploading(true);
-    setShowResult(false);
-    setSuccessMessage('');
-    setErrorMessage('');
-
-    try {
-      const response = await marginAPI.loadFromCsv(formData);
-      if (response.status === 200) {
-        setSuccessMessage('CSV data loaded successfully!');
-      }
-    } catch (error) {
-      setErrorMessage(error.response?.data?.message || 'Failed to load CSV data');
-    } finally {
-      setUploading(false);
-      setShowResult(true);
-    }
-  };
-
-  const fetchStrategies = async () => {
-    try {
-      const response = await strategyAPI.getStrategiesAdmin();
-      setStrategies(response.data);
-    } catch (error) {
-      console.error('Error fetching strategies:', error);
-    }
-  };
+  const isMobile = useMediaQuery('(max-width:900px)');
 
   useEffect(() => {
     fetchStrategies();
   }, []);
 
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
+    if (newValue === 2 && !configVisible) fetchConfig();
+  };
+
+  const handleOpenModal = (title, message, onConfirm = null, isConfirm = false) => {
+    setModalConfig({ title, message, onConfirm, isConfirm });
+    setModalOpen(true);
+  };
+  const handleCloseModal = () => setModalOpen(false);
+
+  const fetchStrategies = async () => {
+    try {
+      const response = await strategyAPI.getStrategiesAdmin();
+      setStrategies(response.data);
+    } catch (error) { console.error(error); }
+  };
+
   const handleStrategyFormChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setStrategyForm(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
+    setStrategyForm(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
   const handleStrategySubmit = async (e) => {
     e.preventDefault();
-    if (!strategyForm.name || !strategyForm.scanClause) {
-      setStrategyError('Name and Scan Clause are required.');
-      return;
-    }
-
     setStrategyLoading(true);
     setStrategySuccess('');
     setStrategyError('');
-
     try {
       if (editingId) {
         await strategyAPI.updateStrategy(strategyForm);
@@ -139,42 +79,11 @@ const AdminDashboard = () => {
         await strategyAPI.createStrategy(strategyForm);
         setStrategySuccess('Strategy created successfully!');
       }
-      const response = await strategyAPI.getStrategiesAdmin();
-      setStrategies(response.data);
-      setStrategyForm({ name: '', scanClause: '', active: false });
-      setEditingId(null);
+      fetchStrategies();
+      handleCancel();
     } catch (error) {
       setStrategyError(error.response?.data?.message || 'Failed to save strategy');
-    } finally {
-      setStrategyLoading(false);
-    }
-  };
-
-  const handleEdit = (strategy) => {
-    setStrategyForm({ name: strategy.name, scanClause: strategy.scanClause, active: strategy.active });
-    setEditingId(strategy.name);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleDeleteClick = (id) => {
-    handleOpenModal(
-      'Confirm Deletion',
-      `Are you sure you want to delete the strategy "${id}"? This action cannot be undone.`,
-      () => executeDelete(id),
-      true
-    );
-  };
-
-  const executeDelete = async (id) => {
-    try {
-      await strategyAPI.deleteStrategy(id);
-      setStrategies(prev => prev.filter(s => s.name !== id));
-      setStrategySuccess('Strategy deleted successfully!');
-      handleCloseModal();
-    } catch (error) {
-      setStrategyError(error.response?.data?.message || 'Failed to delete strategy');
-      handleCloseModal();
-    }
+    } finally { setStrategyLoading(false); }
   };
 
   const handleCancel = () => {
@@ -183,215 +92,117 @@ const AdminDashboard = () => {
   };
 
   const fetchConfig = async () => {
-    setConfigError('');
-    setConfigSuccess('');
     try {
       const response = await configAPI.getConfig();
       setConfigJson(JSON.stringify(response.data, null, 2));
       setConfigVisible(true);
-    } catch (error) {
-      console.error('Error fetching config:', error);
-    }
-  };
-
-  const handleConfigJsonChange = (e) => {
-    setConfigJson(e.target.value);
+    } catch (error) { setConfigError('Failed to fetch config'); }
   };
 
   const handleConfigSubmit = async (e) => {
     e.preventDefault();
     setConfigLoading(true);
-    setConfigSuccess('');
-    setConfigError('');
-
     try {
       const parsedConfig = JSON.parse(configJson);
       await configAPI.updateConfig(parsedConfig);
       setConfigSuccess('Config updated successfully!');
     } catch (error) {
-      if (error instanceof SyntaxError) {
-        setConfigError('Invalid JSON format. Please check your syntax.');
-      } else {
-        setConfigError(error.response?.data?.message || 'Failed to update config');
-      }
-    } finally {
-      setConfigLoading(false);
-    }
-  };
-
-  const reloadConfig = async () => {
-    setConfigError('');
-    setConfigSuccess('');
-    try {
-      const response = await configAPI.reloadConfig();
-      if (response.data.success) {
-        setConfigSuccess('Config reloaded successfully!');
-      }
-      else { setConfigError('Error reloading config'); }
-    } catch (error) {
-      setConfigError('Error reloading config');
-    }
+      setConfigError(error instanceof SyntaxError ? 'Invalid JSON' : 'Update failed');
+    } finally { setConfigLoading(false); }
   };
 
   return (
-    <Container maxWidth="lg" sx={{ flexGrow: 1, py: 5 }}>
-      {/* REUSABLE MODAL */}
-      <Modal
-        open={modalOpen}
-        onClose={handleCloseModal}
-        closeAfterTransition
-        BackdropComponent={Backdrop}
-        BackdropProps={{ timeout: 500 }}
-      >
-        <Fade in={modalOpen}>
-          <Box sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: isMobile ? '90%' : 400,
-            bgcolor: 'background.paper',
-            borderRadius: 2,
-            boxShadow: 24,
-            p: 4,
-          }}>
-            <Typography variant="h6" component="h2" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              {modalConfig.isConfirm && <Warning color="warning" />}
-              {modalConfig.title}
-            </Typography>
-            <Typography sx={{ mt: 2, color: 'text.secondary' }}>
-              {modalConfig.message}
-            </Typography>
-            <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-              <Button onClick={handleCloseModal} variant="text" color="inherit">
-                {modalConfig.isConfirm ? 'Cancel' : 'Close'}
-              </Button>
-              {modalConfig.isConfirm && (
-                <Button onClick={modalConfig.onConfirm} variant="contained" color="error">
-                  Delete
-                </Button>
-              )}
-            </Box>
-          </Box>
-        </Fade>
-      </Modal>
-
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" component="h1" color="primary" gutterBottom sx={{ fontWeight: 'bold' }}>
-          <Dashboard sx={{ mr: 1, verticalAlign: 'middle' }} />
-          Admin Dashboard
-        </Typography>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      {/* HEADER */}
+      <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+        <Box>
+          <Typography variant="h4" fontWeight="800" color="primary.main" sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Dashboard fontSize="large" /> Admin Center
+          </Typography>
+          <Typography variant="body2" color="text.secondary">Manage NSE data, strategies, and system configurations.</Typography>
+        </Box>
+        <Chip label="v2.1 Managed" color="primary" variant="filled" size="small" />
       </Box>
 
-      <Grid container spacing={4}>
-        {/* Margin Data Card (Unchanged structure) */}
-        <Grid item xs={12} md={6}>
-          <Card sx={{ boxShadow: 3 }}>
-            <CardHeader
-              title={<Box sx={{ display: 'flex', alignItems: 'center' }}><CloudUpload sx={{ mr: 1 }} />Margin Data Management</Box>}
-              sx={{ backgroundColor: 'primary.main', color: 'primary.contrastText' }}
-            />
-            <CardContent sx={{ p: 3 }}>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                Upload CSV files to load margin data into the system.
-              </Typography>
-              <Box component="form" onSubmit={handleSubmit} encType="multipart/form-data">
-                <Button variant="outlined" component="label" fullWidth sx={{ mb: 2 }}>
-                  <CloudUpload sx={{ mr: 1 }} /> Select CSV File
-                  <input type="file" hidden accept=".csv" onChange={handleFileChange} required />
-                </Button>
-                {file && <Typography variant="body2" sx={{ mb: 2, fontStyle: 'italic' }}>Selected: {file.name}</Typography>}
-                <Button
-                  type="submit"
-                  variant="contained"
-                  fullWidth
-                  disabled={uploading}
-                  startIcon={uploading ? <CircularProgress size={20} color="inherit" /> : <CloudUpload />}
-                >
-                  {uploading ? 'Uploading...' : 'Upload and Load Data'}
-                </Button>
-              </Box>
-              {showResult && (
-                <Box sx={{ mt: 3 }}>
-                  {successMessage && <Alert severity="success">{successMessage}</Alert>}
-                  {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+      {/* TABS */}
+      <Paper sx={{ mb: 4, borderRadius: 2, overflow: 'hidden' }}>
+        <Tabs 
+          value={activeTab} 
+          onChange={handleTabChange} 
+          variant={isMobile ? "scrollable" : "standard"}
+          scrollButtons="auto"
+          indicatorColor="primary"
+          textColor="primary"
+        >
+          <Tab icon={<ListAlt />} label="Strategies" iconPosition="start" />
+          <Tab icon={<Storage />} label="Margin Data" iconPosition="start" />
+          <Tab icon={<Settings />} label="System Config" iconPosition="start" />
+        </Tabs>
+        <Divider />
+
+        <Box sx={{ p: isMobile ? 2 : 4 }}>
+          {/* TAB 0: STRATEGIES */}
+          {activeTab === 0 && (
+            <Grid container spacing={4}>
+              <Grid item xs={12} lg={4}>
+                <Typography variant="subtitle1" gutterBottom fontWeight="700">
+                  {editingId ? 'Edit Strategy' : 'Add New Strategy'}
+                </Typography>
+                <Box component="form" onSubmit={handleStrategySubmit} sx={{ p: 2, border: '1px solid #eee', borderRadius: 2 }}>
+                  <TextField label="Name" name="name" value={strategyForm.name} onChange={handleStrategyFormChange} fullWidth required sx={{ mb: 2 }} disabled={!!editingId} size="small" />
+                  <TextField label="Scan Clause" name="scanClause" value={strategyForm.scanClause} onChange={handleStrategyFormChange} fullWidth required multiline rows={4} sx={{ mb: 2 }} size="small" />
+                  <FormControlLabel control={<Checkbox checked={strategyForm.active} onChange={handleStrategyFormChange} name="active" />} label="Active" sx={{ mb: 2 }} />
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button type="submit" variant="contained" fullWidth disabled={strategyLoading} size="small">
+                      {strategyLoading ? <CircularProgress size={20} /> : editingId ? 'Update' : 'Add'}
+                    </Button>
+                    {editingId && <Button variant="outlined" onClick={handleCancel} size="small">Cancel</Button>}
+                  </Box>
                 </Box>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
+                {(strategySuccess || strategyError) && (
+                   <Alert severity={strategySuccess ? "success" : "error"} sx={{ mt: 2 }}>{strategySuccess || strategyError}</Alert>
+                )}
+              </Grid>
 
-        {/* Strategy Maintenance Card */}
-        <Grid item xs={12} md={6}>
-          <Card sx={{ height: '100%', boxShadow: 3 }}>
-            <CardHeader
-              title={<Box sx={{ display: 'flex', alignItems: 'center' }}><Add sx={{ mr: 1 }} />{editingId ? 'Edit Strategy' : 'New Strategy'}</Box>}
-              sx={{ backgroundColor: 'primary.main', color: 'primary.contrastText' }}
-            />
-            <CardContent sx={{ p: 3 }}>
-              {/* Form and Buttons ... same as before but using handleStrategySubmit */}
-              <Box component="form" onSubmit={handleStrategySubmit} sx={{ mb: 3 }}>
-                <TextField label="Name" name="name" value={strategyForm.name} onChange={handleStrategyFormChange} fullWidth required sx={{ mb: 2 }} />
-                <TextField label="Scan Clause" name="scanClause" value={strategyForm.scanClause} onChange={handleStrategyFormChange} fullWidth required multiline rows={3} sx={{ mb: 2 }} />
-                <FormControlLabel control={<Checkbox checked={strategyForm.active} onChange={handleStrategyFormChange} name="active" />} label="Active" sx={{ mb: 2 }} />
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <Button type="submit" variant="contained" fullWidth={isMobile} disabled={strategyLoading} startIcon={strategyLoading ? <CircularProgress size={20} color="inherit" /> : editingId ? <Edit /> : <Add />}>
-                    {strategyLoading ? 'Saving...' : editingId ? 'Update' : 'Add Strategy'}
-                  </Button>
-                  {editingId && <Button variant="outlined" fullWidth={isMobile} onClick={handleCancel}>Cancel</Button>}
-                </Box>
-              </Box>
-
-              {(strategySuccess || strategyError) && (
-                <Box sx={{ mb: 3 }}>
-                  {strategySuccess && <Alert severity="success">{strategySuccess}</Alert>}
-                  {strategyError && <Alert severity="error">{strategyError}</Alert>}
-                </Box>
-              )}
-
-              <Button onClick={() => setTableExpanded(!tableExpanded)} startIcon={tableExpanded ? <ExpandLess /> : <ExpandMore />} variant="outlined" fullWidth sx={{ mb: 2 }}>
-                {tableExpanded ? 'Hide Strategy List' : 'View Strategy List'}
-              </Button>
-
-              <Collapse in={tableExpanded}>
+              <Grid item xs={12} lg={8}>
+                <Typography variant="subtitle1" gutterBottom fontWeight="700">Existing Strategies</Typography>
                 {isMobile ? (
-                  /* MOBILE LIST: HORIZONTAL SCROLL CARDS */
-                  <Box sx={{ display: 'flex', flexWrap: 'nowrap', overflowX: 'auto', gap: 2, mt: 1, pb: 2, '&::-webkit-scrollbar': { height: '6px' }, '&::-webkit-scrollbar-thumb': { backgroundColor: '#ccc', borderRadius: '10px' } }}>
-                    {strategies.map((strategy) => (
-                      <Box key={strategy.name} sx={{ minWidth: '85vw', display: 'flex' }}>
-                        <Card variant="outlined" sx={{ borderRadius: 2, width: '100%', display: 'flex', flexDirection: 'column' }}>
-                          <CardContent sx={{ pb: '16px !important', flexGrow: 1 }}>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                              <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>{strategy.name}</Typography>
-                              <Chip label={strategy.active ? "Active" : "Inactive"} color={strategy.active ? "success" : "default"} size="small" variant="outlined" />
-                            </Box>
-                            <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
-                              <Button variant="outlined" startIcon={<Edit />} fullWidth size="small" onClick={() => handleEdit(strategy)}>Edit</Button>
-                              <Button variant="outlined" color="error" startIcon={<Delete />} fullWidth size="small" onClick={() => handleDeleteClick(strategy.name)}>Delete</Button>
-                            </Box>
-                          </CardContent>
-                        </Card>
-                      </Box>
+                  // Mobile List View
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {strategies.map((s) => (
+                      <Card key={s.name} variant="outlined">
+                        <CardContent sx={{ py: 1.5 }}>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Typography fontWeight="bold">{s.name}</Typography>
+                            <Chip label={s.active ? "Active" : "Inactive"} size="small" color={s.active ? "success" : "default"} />
+                          </Box>
+                          <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                            <IconButton onClick={() => { setStrategyForm(s); setEditingId(s.name); }} size="small" color="primary"><Edit fontSize="small" /></IconButton>
+                            <IconButton onClick={() => handleOpenModal('Delete', `Delete ${s.name}?`, () => strategyAPI.deleteStrategy(s.name).then(fetchStrategies), true)} size="small" color="error"><Delete fontSize="small" /></IconButton>
+                          </Box>
+                        </CardContent>
+                      </Card>
                     ))}
                   </Box>
                 ) : (
-                  <TableContainer component={Paper} elevation={0} variant="outlined">
+                  // Desktop Table View
+                  <TableContainer component={Paper} variant="outlined">
                     <Table size="small">
-                      <TableHead sx={{ backgroundColor: 'grey.100' }}>
+                      <TableHead sx={{ bgcolor: '#f9fafb' }}>
                         <TableRow>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Active</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold', textAlign: 'right' }}>Actions</TableCell>
+                          <TableCell><b>Name</b></TableCell>
+                          <TableCell><b>Status</b></TableCell>
+                          <TableCell align="right"><b>Actions</b></TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {strategies.map((strategy) => (
-                          <TableRow key={strategy.name} hover>
-                            <TableCell>{strategy.name}</TableCell>
-                            <TableCell>{strategy.active ? 'Yes' : 'No'}</TableCell>
-                            <TableCell sx={{ textAlign: 'right' }}>
-                              <IconButton onClick={() => handleEdit(strategy)} size="small"><Edit fontSize="small" /></IconButton>
-                              <IconButton onClick={() => handleDeleteClick(strategy.name)} size="small" color="error"><Delete fontSize="small" /></IconButton>
+                        {strategies.map((s) => (
+                          <TableRow key={s.name} hover>
+                            <TableCell>{s.name}</TableCell>
+                            <TableCell><Chip label={s.active ? "Active" : "Off"} size="small" color={s.active ? "success" : "default"} /></TableCell>
+                            <TableCell align="right">
+                              <IconButton onClick={() => { setStrategyForm(s); setEditingId(s.name); }}><Edit fontSize="small" /></IconButton>
+                              <IconButton onClick={() => handleOpenModal('Delete', `Delete ${s.name}?`, () => strategyAPI.deleteStrategy(s.name).then(fetchStrategies), true)} color="error"><Delete fontSize="small" /></IconButton>
                             </TableCell>
                           </TableRow>
                         ))}
@@ -399,58 +210,61 @@ const AdminDashboard = () => {
                     </Table>
                   </TableContainer>
                 )}
-              </Collapse>
-            </CardContent>
-          </Card>
-        </Grid>
+              </Grid>
+            </Grid>
+          )}
 
-        {/* Config Management Card */}
-        <Grid item xs={12}>
-          <Card sx={{ boxShadow: 3 }}>
-            <CardHeader
-              title={<Box sx={{ display: 'flex', alignItems: 'center' }}><Edit sx={{ mr: 1 }} />Config Management</Box>}
-              sx={{ backgroundColor: 'primary.main', color: 'primary.contrastText' }}
-            />
-            <CardContent sx={{ p: 3 }}>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                Update application configuration settings.
-              </Typography>
-              <Box component="form" onSubmit={handleConfigSubmit} sx={{ mb: 3, minHeight: '400px' }}>
-                <TextField
-                  label="Config JSON"
-                  value={configJson}
-                  onChange={handleConfigJsonChange}
-                  fullWidth
-                  multiline
-                  rows={15}
-                  sx={{ mb: 2, fontFamily: 'monospace' }}
-                  placeholder={configVisible ? '{"frontendUrl": "", "brevoEmail": "", ...}' : 'Click Fetch to load config'}
-                  disabled={!configVisible}
-                />
-                <Button
-                  type="submit"
-                  variant="contained"
-                  fullWidth
-                  disabled={configLoading || !configVisible}
-                  startIcon={configLoading ? <CircularProgress size={20} color="inherit" /> : <Edit />}
-                >
-                  {configLoading ? 'Updating...' : 'Update Config'}
+          {/* TAB 1: MARGIN DATA */}
+          {activeTab === 1 && (
+            <Box sx={{ maxWidth: 500, mx: 'auto', py: 4 }}>
+              <Paper variant="outlined" sx={{ p: 4, textAlign: 'center', borderStyle: 'dashed' }}>
+                <CloudUpload sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
+                <Typography variant="h6">CSV Data Sync</Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>Refresh margin data from NSE CSV files.</Typography>
+                <Button variant="outlined" component="label" fullWidth sx={{ mb: 2 }}>
+                   {file ? file.name : 'Select File'}
+                   <input type="file" hidden accept=".csv" onChange={(e) => setFile(e.target.files[0])} />
                 </Button>
+                <Button variant="contained" fullWidth disabled={!file || uploading} onClick={async () => {
+                   const fd = new FormData(); fd.append('file', file);
+                   setUploading(true);
+                   try { await marginAPI.loadFromCsv(fd); setSuccessMessage('Upload Success!'); }
+                   catch(e) { setErrorMessage('Failed'); } finally { setUploading(false); }
+                }}>
+                  {uploading ? 'Processing...' : 'Upload & Load'}
+                </Button>
+              </Paper>
+            </Box>
+          )}
+
+          {/* TAB 2: CONFIG */}
+          {activeTab === 2 && (
+            <Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                <Typography fontWeight="700">JSON Configuration</Typography>
+                <Button size="small" onClick={() => configAPI.reloadConfig().then(() => setConfigSuccess('Reloaded'))}>Cache Reload</Button>
               </Box>
-              <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
-                <Button variant="contained" fullWidth onClick={reloadConfig}>Reload</Button>
-                <Button variant="contained" fullWidth onClick={fetchConfig}>Fetch</Button>
-              </Box>
-              {(configSuccess || configError) && (
-                <Box sx={{ mt: 3 }}>
-                  {configSuccess && <Alert severity="success">{configSuccess}</Alert>}
-                  {configError && <Alert severity="error">{configError}</Alert>}
-                </Box>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+              <TextField fullWidth multiline rows={15} value={configJson} onChange={(e) => setConfigJson(e.target.value)} sx={{ '& .MuiInputBase-root': { fontFamily: 'monospace', fontSize: 13, bgcolor: '#fafafa' }}} />
+              <Button variant="contained" fullWidth sx={{ mt: 2 }} onClick={handleConfigSubmit} disabled={configLoading}>Save System Config</Button>
+              {configSuccess && <Alert severity="success" sx={{ mt: 1 }}>{configSuccess}</Alert>}
+            </Box>
+          )}
+        </Box>
+      </Paper>
+
+      {/* DELETE MODAL */}
+      <Modal open={modalOpen} onClose={handleCloseModal} closeAfterTransition>
+        <Fade in={modalOpen}>
+          <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 350, bgcolor: 'background.paper', borderRadius: 2, p: 4, boxShadow: 24 }}>
+            <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Warning color="error" /> {modalConfig.title}</Typography>
+            <Typography sx={{ my: 2 }}>{modalConfig.message}</Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+              <Button onClick={handleCloseModal}>Cancel</Button>
+              <Button variant="contained" color="error" onClick={() => { modalConfig.onConfirm(); handleCloseModal(); }}>Delete</Button>
+            </Box>
+          </Box>
+        </Fade>
+      </Modal>
     </Container>
   );
 };
