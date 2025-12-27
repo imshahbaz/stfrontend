@@ -4,10 +4,10 @@ import {
   Container, Box, Typography, Card, CardContent, Button, Grid, Alert, 
   CircularProgress, TextField, FormControlLabel, Checkbox, TableContainer, 
   Table, TableHead, TableBody, TableRow, TableCell, IconButton, Paper, 
-  useMediaQuery, Chip, Modal, Fade, Backdrop, Tabs, Tab, Divider
+  useMediaQuery, Chip, Modal, Fade, Tabs, Tab, Divider
 } from '@mui/material';
 import { 
-  CloudUpload, Dashboard, Add, Edit, Delete, Warning, 
+  CloudUpload, Dashboard, Edit, Delete, Warning, 
   Settings, ListAlt, Storage 
 } from '@mui/icons-material';
 
@@ -31,7 +31,7 @@ const AdminDashboard = () => {
   const [configVisible, setConfigVisible] = useState(false);
   const [configLoading, setConfigLoading] = useState(false);
   const [configSuccess, setConfigSuccess] = useState('');
-  const [configError, setConfigError] = useState('');
+  const [, setConfigError] = useState('');
 
   // Modal State
   const [modalOpen, setModalOpen] = useState(false);
@@ -167,10 +167,10 @@ const AdminDashboard = () => {
               <Grid item xs={12} lg={8}>
                 <Typography variant="subtitle1" gutterBottom fontWeight="700">Existing Strategies</Typography>
                 {isMobile ? (
-                  // Mobile List View
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  // Mobile List View with Horizontal Scrolling
+                  <Box sx={{ display: 'flex', flexDirection: 'row', overflowX: 'auto', gap: 2, pb: 1 }}>
                     {strategies.map((s) => (
-                      <Card key={s.name} variant="outlined">
+                      <Card key={s.name} variant="outlined" sx={{ minWidth: 250, flexShrink: 0 }}>
                         <CardContent sx={{ py: 1.5 }}>
                           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <Typography fontWeight="bold">{s.name}</Typography>
