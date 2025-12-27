@@ -107,7 +107,12 @@ const HeatmapV2 = () => {
           const item = w.config.series[seriesIndex].data[dataPointIndex];
           return `${item.pChange}%`;
         },
-        title: { formatter: () => 'Change: ' }
+        title: {
+          formatter: (seriesName, { seriesIndex, dataPointIndex, w }) => {
+            const item = w.config.series[seriesIndex].data[dataPointIndex];
+            return `${item.x}: `;
+          }
+        }
       }
     }
   };
