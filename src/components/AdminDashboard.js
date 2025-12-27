@@ -121,7 +121,6 @@ const AdminDashboard = () => {
           </Typography>
           <Typography variant="body2" color="text.secondary">Manage NSE data, strategies, and system configurations.</Typography>
         </Box>
-        <Chip label="v2.1 Managed" color="primary" variant="filled" size="small" />
       </Box>
 
       {/* TABS */}
@@ -176,9 +175,9 @@ const AdminDashboard = () => {
                             <Typography fontWeight="bold">{s.name}</Typography>
                             <Chip label={s.active ? "Active" : "Inactive"} size="small" color={s.active ? "success" : "default"} />
                           </Box>
-                          <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-                            <IconButton onClick={() => { setStrategyForm(s); setEditingId(s.name); }} size="small" color="primary"><Edit fontSize="small" /></IconButton>
-                            <IconButton onClick={() => handleOpenModal('Delete', `Delete ${s.name}?`, () => strategyAPI.deleteStrategy(s.name).then(fetchStrategies), true)} size="small" color="error"><Delete fontSize="small" /></IconButton>
+                          <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
+                            <Button onClick={() => { setStrategyForm(s); setEditingId(s.name); }} size="small" variant="outlined" color="primary" sx={{ flex: 1 }}>Edit</Button>
+                            <Button onClick={() => handleOpenModal('Delete', `Delete ${s.name}?`, () => strategyAPI.deleteStrategy(s.name).then(fetchStrategies), true)} size="small" variant="outlined" color="error" sx={{ flex: 1 }}>Delete</Button>
                           </Box>
                         </CardContent>
                       </Card>
