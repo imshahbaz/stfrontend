@@ -28,7 +28,6 @@ const AdminDashboard = () => {
 
   // Config management state
   const [configJson, setConfigJson] = useState('');
-  const [configVisible, setConfigVisible] = useState(false);
   const [configLoading, setConfigLoading] = useState(false);
   const [configFetching, setConfigFetching] = useState(false);
   const [configSuccess, setConfigSuccess] = useState('');
@@ -46,6 +45,9 @@ const AdminDashboard = () => {
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
+    if (newValue !== 2) {
+      setConfigJson('')
+    }
   };
 
   const handleOpenModal = (title, message, onConfirm = null, isConfirm = false) => {
@@ -96,7 +98,6 @@ const AdminDashboard = () => {
     try {
       const response = await configAPI.getConfig();
       setConfigJson(JSON.stringify(response.data, null, 2));
-      setConfigVisible(true);
       setConfigSuccess('Config fetched successfully!');
     } catch (error) {
       setConfigError('Failed to fetch config');
@@ -238,6 +239,9 @@ const AdminDashboard = () => {
                 }}>
                   {uploading ? 'Processing...' : 'Upload & Load'}
                 </Button>
+                {(successMessage || errorMessage) && (
+                  <Alert severity={successMessage ? "success" : "error"} sx={{ mt: 2 }}>{successMessage || errorMessage}</Alert>
+                )}
               </Paper>
             </Box>
           )}
