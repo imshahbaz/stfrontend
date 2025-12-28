@@ -1,5 +1,5 @@
 import { useReducer, useCallback } from 'react';
-import { strategyAPI } from '../api/axios';
+import { strategyAPI, priceActionAPI } from '../api/axios';
 
 const initialState = {
   strategies: [],
@@ -35,7 +35,8 @@ export const useStrategies = () => {
   const fetchStrategies = useCallback(async () => {
     try {
       const response = await strategyAPI.getStrategies();
-      dispatch({ type: 'SET_STRATEGIES', payload: response.data });
+      const strategiesWithOrderBlock = [...response.data, { name: 'Order Block' }];
+      dispatch({ type: 'SET_STRATEGIES', payload: strategiesWithOrderBlock });
     } catch (error) {
       console.error('Error fetching strategies:', error);
       dispatch({ type: 'SET_ERROR', payload: 'Failed to load strategies' });
@@ -60,9 +61,16 @@ export const useStrategies = () => {
     }
 
     try {
-      const response = await strategyAPI.fetchWithMargin(strategyName);
-      dispatch({ type: 'SET_CACHE', key: strategyName, payload: response.data });
-      dispatch({ type: 'SET_STRATEGY_DATA', payload: response.data });
+      let response;
+      if (strategyName === 'Order Block') {
+        response = await priceActionAPI.checkOrderBlock();
+        dispatch({ type: 'SET_CACHE', key: strategyName, payload: response.data.data });
+        dispatch({ type: 'SET_STRATEGY_DATA', payload: response.data.data });
+      } else {
+        response = await strategyAPI.fetchWithMargin(strategyName);
+        dispatch({ type: 'SET_CACHE', key: strategyName, payload: response.data });
+        dispatch({ type: 'SET_STRATEGY_DATA', payload: response.data });
+      }
     } catch (error) {
       if (retryCount < 2) {
         setTimeout(() => fetchStrategyData(strategyName, retryCount + 1), 1000 * (retryCount + 1));

@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { strategyAPI, marginAPI, configAPI } from '../api/axios';
+import { strategyAPI, marginAPI, configAPI, priceActionAPI } from '../api/axios';
 import {
   Container, Box, Typography, Card, CardContent, Button, Grid, Alert,
   CircularProgress, TextField, FormControlLabel, Checkbox, TableContainer,
   Table, TableHead, TableBody, TableRow, TableCell, IconButton, Paper,
-  useMediaQuery, Chip, Modal, Fade, Tabs, Tab, Divider
+  useMediaQuery, Chip, Modal, Fade, Tabs, Tab, Divider, Autocomplete
 } from '@mui/material';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
 import {
   CloudUpload, Dashboard, Edit, Delete, Warning,
-  Settings, ListAlt, Storage
+  Settings, ListAlt, Storage, TrendingUp
 } from '@mui/icons-material';
 
 const AdminDashboard = () => {
@@ -37,11 +41,31 @@ const AdminDashboard = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalConfig, setModalConfig] = useState({ title: '', message: '', onConfirm: null, isConfirm: false });
 
+  // OB Management state
+  const [margins, setMargins] = useState([]);
+  const [obForm, setObForm] = useState({ symbol: '', date: null, high: '', low: '' });
+  const [obLoading, setObLoading] = useState(false);
+  const [obSuccess, setObSuccess] = useState('');
+  const [obError, setObError] = useState('');
+  const [fetchedOBs, setFetchedOBs] = useState([]);
+  const [fetchLoading, setFetchLoading] = useState(false);
+  const [editingOBId, setEditingOBId] = useState(null);
+  const [currentSymbol, setCurrentSymbol] = useState('');
+  const [refreshLoading, setRefreshLoading] = useState(false);
+  const [refreshSuccess, setRefreshSuccess] = useState('');
+  const [refreshError, setRefreshError] = useState('');
+
   const isMobile = useMediaQuery('(max-width:900px)');
 
   useEffect(() => {
     fetchStrategies();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === 3) {
+      fetchMargins();
+    }
+  }, [activeTab]);
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
@@ -119,8 +143,121 @@ const AdminDashboard = () => {
     } finally { setConfigLoading(false); }
   };
 
+  const fetchMargins = async () => {
+    try {
+      const response = await marginAPI.getAllMargins();
+      setMargins(response.data);
+    } catch (error) {
+      console.error("Error fetching margin data:", error);
+    }
+  };
+
+  const fetchOrderBlocks = async () => {
+    if (!obForm.symbol) {
+      setObError('Please select a symbol to fetch order blocks.');
+      return;
+    }
+    setFetchLoading(true);
+    setObSuccess('');
+    setObError('');
+    try {
+      const response = await priceActionAPI.getOrderBlockBySymbol(obForm.symbol);
+      setFetchedOBs(response.data.data.orderBlocks || []);
+      setCurrentSymbol(obForm.symbol);
+      setObSuccess('Order blocks fetched successfully!');
+    } catch (error) {
+      setObError(error.response?.data?.message || 'Failed to fetch order blocks');
+    } finally {
+      setFetchLoading(false);
+    }
+  };
+
+  const handleObFormChange = (e) => {
+    const { name, value } = e.target;
+    setObForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleObDateChange = (newValue) => {
+    setObForm(prev => ({ ...prev, date: newValue }));
+  };
+
+  const handleObSubmit = async (e) => {
+    e.preventDefault();
+    setObLoading(true);
+    setObSuccess('');
+    setObError('');
+    try {
+      const payload = {
+        symbol: obForm.symbol,
+        date: obForm.date ? obForm.date.format('YYYY-MM-DD') : '',
+        high: parseFloat(obForm.high),
+        low: parseFloat(obForm.low)
+      };
+      if (editingOBId) {
+        await priceActionAPI.updateOrderBlock(payload);
+        setObSuccess('OB updated successfully!');
+      } else {
+        await priceActionAPI.createOrderBlock(payload);
+        setObSuccess('OB created successfully!');
+      }
+      setObForm({ symbol: '', date: null, high: '', low: '' });
+      setEditingOBId(null);
+      if (fetchedOBs.length > 0) {
+        await fetchOrderBlocks();
+      }
+    } catch (error) {
+      setObError(error.response?.data?.message || 'Failed to save OB');
+    } finally { setObLoading(false); }
+  };
+
+  const handleEditOB = (ob,symbol) => {
+    setObForm({
+      symbol: symbol, 
+      date: dayjs(ob.date),
+      high: ob.high.toString(),
+      low: ob.low.toString()
+    });
+    setEditingOBId(ob.date); 
+  };
+
+  const handleDeleteOB = async (ob) => {
+    const payload = {
+      symbol: obForm.symbol,
+      date: ob.date,
+      high: ob.high,
+      low: ob.low
+    };
+    try {
+      await priceActionAPI.deleteOrderBlock(payload);
+      setObSuccess('OB deleted successfully!');
+      await fetchOrderBlocks();
+    } catch (error) {
+      setObError(error.response?.data?.message || 'Failed to delete OB');
+    }
+  };
+
+  const handleCancelOB = () => {
+    setObForm({ symbol: '', date: null, high: '', low: '' });
+    setEditingOBId(null);
+  };
+
+  const handleRefreshMitigationData = async () => {
+    setRefreshLoading(true);
+    setRefreshSuccess('');
+    setRefreshError('');
+    try {
+      await priceActionAPI.refreshMitigationData();
+      setRefreshSuccess('Mitigation data refreshed successfully!');
+    } catch (error) {
+      setRefreshError(error.response?.data?.message || 'Failed to refresh mitigation data');
+    } finally {
+      setRefreshLoading(false);
+    }
+  };
+
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* HEADER */}
       <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
         <Box>
@@ -144,6 +281,7 @@ const AdminDashboard = () => {
           <Tab icon={<ListAlt />} label="Strategies" iconPosition="start" />
           <Tab icon={<Storage />} label="Margin Data" iconPosition="start" />
           <Tab icon={<Settings />} label="System Config" iconPosition="start" />
+          <Tab icon={<TrendingUp />} label="OB Management" iconPosition="start" />
         </Tabs>
         <Divider />
 
@@ -262,6 +400,113 @@ const AdminDashboard = () => {
               {configSuccess && <Alert severity="success" sx={{ mt: 1 }}>{configSuccess}</Alert>}
             </Box>
           )}
+
+          {/* TAB 3: OB MANAGEMENT */}
+          {activeTab === 3 && (
+            <Grid container spacing={4}>
+              <Grid item xs={12} lg={4}>
+                <Typography variant="subtitle1" gutterBottom fontWeight="700">
+                  {editingOBId ? 'Edit Order Block' : 'Add New Order Block'}
+                </Typography>
+                <Box component="form" onSubmit={handleObSubmit} sx={{ p: 2, border: `1px solid`, borderColor: 'divider', borderRadius: 2 }}>
+                  <Autocomplete
+                    fullWidth
+                    size="small"
+                    options={margins}
+                    getOptionLabel={(o) => `${o.symbol} (${o.margin}x)`}
+                    value={margins.find(m => m.symbol === obForm.symbol) || null}
+                    onChange={(e, v) => setObForm(prev => ({ ...prev, symbol: v?.symbol || '' }))}
+                    disabled={!!editingOBId}
+                    renderInput={(params) => (
+                      <TextField {...params} label="Select Stock" variant="outlined" required sx={{ mb: 2 }} />
+                    )}
+                  />
+                  <DatePicker
+                    label="Date"
+                    value={obForm.date}
+                    onChange={handleObDateChange}
+                    disabled={!!editingOBId}
+                    slotProps={{ textField: { fullWidth: true, size: 'small', sx: { mb: 2 }, required: true } }}
+                  />
+                  <TextField label="High" name="high" type="number" value={obForm.high} onChange={handleObFormChange} fullWidth required sx={{ mb: 2 }} size="small" />
+                  <TextField label="Low" name="low" type="number" value={obForm.low} onChange={handleObFormChange} fullWidth required sx={{ mb: 2 }} size="small" />
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button type="submit" variant="contained" fullWidth disabled={obLoading} size="small">
+                      {obLoading ? <CircularProgress size={20} /> : 'Save OB'}
+                    </Button>
+                    {editingOBId && <Button variant="outlined" onClick={handleCancelOB} size="small">Cancel</Button>}
+                  </Box>
+                </Box>
+                {(obSuccess || obError) && (
+                  <Alert severity={obSuccess ? "success" : "error"} sx={{ mt: 2 }}>{obSuccess || obError}</Alert>
+                )}
+              </Grid>
+
+              <Grid item xs={12} lg={8}>
+                <Typography variant="subtitle1" gutterBottom fontWeight="700">Existing Order Blocks</Typography>
+                <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
+                  <Button variant="outlined" onClick={fetchOrderBlocks} disabled={fetchLoading || !obForm.symbol} size="small">
+                    {fetchLoading ? <CircularProgress size={16} /> : 'Fetch OBs'}
+                  </Button>
+                  <Button variant="contained" onClick={handleRefreshMitigationData} disabled={refreshLoading} size="small">
+                    {refreshLoading ? <CircularProgress size={16} /> : 'Refresh Data'}
+                  </Button>
+                </Box>
+                {(refreshSuccess || refreshError) && (
+                  <Alert severity={refreshSuccess ? "success" : "error"} sx={{ mb: 2 }}>{refreshSuccess || refreshError}</Alert>
+                )}
+                {isMobile ? (
+                  // Mobile List View with Horizontal Scrolling
+                  <Box sx={{ display: 'flex', flexDirection: 'row', overflowX: 'auto', gap: 2, pb: 1 }}>
+                    {fetchedOBs.map((ob) => (
+                      <Card key={ob.date} variant="outlined" sx={{ minWidth: 250, flexShrink: 0 }}>
+                        <CardContent sx={{ py: 1.5 }}>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Typography fontWeight="bold">{ob.date}</Typography>
+                            <Chip label={currentSymbol} size="small" color="primary" />
+                          </Box>
+                          <Typography variant="body2">High: {ob.high}, Low: {ob.low}</Typography>
+                          <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
+                            <Button onClick={() => handleEditOB(ob)} size="small" variant="outlined" color="primary" sx={{ flex: 1 }}>Edit</Button>
+                            <Button onClick={() => handleOpenModal('Delete OB', `Delete OB for ${ob.date}?`, () => handleDeleteOB(ob), true)} size="small" variant="outlined" color="error" sx={{ flex: 1 }}>Delete</Button>
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </Box>
+                ) : (
+                  // Desktop Table View
+                  <TableContainer component={Paper} variant="outlined">
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell><b>Symbol</b></TableCell>
+                          <TableCell><b>Date</b></TableCell>
+                          <TableCell><b>High</b></TableCell>
+                          <TableCell><b>Low</b></TableCell>
+                          <TableCell align="right"><b>Actions</b></TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {fetchedOBs.map((ob) => (
+                          <TableRow key={ob.date} hover>
+                            <TableCell>{currentSymbol}</TableCell>
+                            <TableCell>{ob.date}</TableCell>
+                            <TableCell>{ob.high}</TableCell>
+                            <TableCell>{ob.low}</TableCell>
+                            <TableCell align="right">
+                              <IconButton onClick={() => handleEditOB(ob,currentSymbol)}><Edit fontSize="small" /></IconButton>
+                              <IconButton onClick={() => handleOpenModal('Delete OB', `Delete OB for ${ob.date}?`, () => handleDeleteOB(ob), true)} color="error"><Delete fontSize="small" /></IconButton>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
+              </Grid>
+            </Grid>
+          )}
         </Box>
       </Paper>
 
@@ -279,6 +524,7 @@ const AdminDashboard = () => {
         </Fade>
       </Modal>
     </Container>
+    </LocalizationProvider>
   );
 };
 
