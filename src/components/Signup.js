@@ -49,7 +49,7 @@ const Signup = () => {
     setError('');
     setMessage('');
     try {
-      const response = await userAPI.signup(email, password,confirmPassword);
+      const response = await userAPI.signup(email, password, confirmPassword);
       setOtpSent(response.data.otpSent);
       setMessage(response.data.message || 'OTP sent to your email');
     } catch (error) {
@@ -63,7 +63,12 @@ const Signup = () => {
     setMessage('');
     try {
       const response = await userAPI.verifyOtp(email, otp);
-      navigate('/login');
+      if (response.status === 201) {
+        navigate('/login');
+      }
+      else {
+        setError(response.data.message || 'OTP verification failed');
+      }
     } catch (error) {
       setError(error.response?.data?.message || 'OTP verification failed');
     }
