@@ -71,8 +71,10 @@ export const configAPI = {
 };
 
 export const priceActionAPI = {
-  modifyOrderBlock:(obReq)=> api.post('/api/price-action/ob', obReq),
+  createOrderBlock:(obReq)=> api.post('/api/price-action/ob', obReq),
   deleteOrderBlock:(obReq)=> api.delete('/api/price-action/ob',{data: obReq}),
+  getOrderBlockBySymbol:(symbol)=> api.get(`/api/price-action/ob/${encodeURIComponent(symbol)}`),
+  updateOrderBlock:(obReq)=> api.patch('/api/price-action/ob', obReq),
 }
 
 export default api;
