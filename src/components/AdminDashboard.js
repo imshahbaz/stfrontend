@@ -51,6 +51,9 @@ const AdminDashboard = () => {
   const [fetchLoading, setFetchLoading] = useState(false);
   const [editingOBId, setEditingOBId] = useState(null);
   const [currentSymbol, setCurrentSymbol] = useState('');
+  const [refreshLoading, setRefreshLoading] = useState(false);
+  const [refreshSuccess, setRefreshSuccess] = useState('');
+  const [refreshError, setRefreshError] = useState('');
 
   const isMobile = useMediaQuery('(max-width:900px)');
 
@@ -236,6 +239,20 @@ const AdminDashboard = () => {
   const handleCancelOB = () => {
     setObForm({ symbol: '', date: null, high: '', low: '' });
     setEditingOBId(null);
+  };
+
+  const handleRefreshMitigationData = async () => {
+    setRefreshLoading(true);
+    setRefreshSuccess('');
+    setRefreshError('');
+    try {
+      await priceActionAPI.refreshMitigationData();
+      setRefreshSuccess('Mitigation data refreshed successfully!');
+    } catch (error) {
+      setRefreshError(error.response?.data?.message || 'Failed to refresh mitigation data');
+    } finally {
+      setRefreshLoading(false);
+    }
   };
 
   return (
@@ -427,11 +444,17 @@ const AdminDashboard = () => {
 
               <Grid item xs={12} lg={8}>
                 <Typography variant="subtitle1" gutterBottom fontWeight="700">Existing Order Blocks</Typography>
-                <Box sx={{ mb: 2 }}>
+                <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
                   <Button variant="outlined" onClick={fetchOrderBlocks} disabled={fetchLoading || !obForm.symbol} size="small">
                     {fetchLoading ? <CircularProgress size={16} /> : 'Fetch OBs'}
                   </Button>
+                  <Button variant="contained" onClick={handleRefreshMitigationData} disabled={refreshLoading} size="small">
+                    {refreshLoading ? <CircularProgress size={16} /> : 'Refresh Data'}
+                  </Button>
                 </Box>
+                {(refreshSuccess || refreshError) && (
+                  <Alert severity={refreshSuccess ? "success" : "error"} sx={{ mb: 2 }}>{refreshSuccess || refreshError}</Alert>
+                )}
                 {isMobile ? (
                   // Mobile List View with Horizontal Scrolling
                   <Box sx={{ display: 'flex', flexDirection: 'row', overflowX: 'auto', gap: 2, pb: 1 }}>
