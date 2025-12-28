@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { strategyAPI, marginAPI, configAPI } from '../api/axios';
+import { strategyAPI, marginAPI, configAPI, priceActionAPI } from '../api/axios';
 import {
   Container, Box, Typography, Card, CardContent, Button, Grid, Alert,
   CircularProgress, TextField, FormControlLabel, Checkbox, TableContainer,
   Table, TableHead, TableBody, TableRow, TableCell, IconButton, Paper,
-  useMediaQuery, Chip, Modal, Fade, Tabs, Tab, Divider
+  useMediaQuery, Chip, Modal, Fade, Tabs, Tab, Divider, Autocomplete
 } from '@mui/material';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import {
   CloudUpload, Dashboard, Edit, Delete, Warning,
-  Settings, ListAlt, Storage
+  Settings, ListAlt, Storage, TrendingUp
 } from '@mui/icons-material';
 
 const AdminDashboard = () => {
@@ -37,11 +40,25 @@ const AdminDashboard = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalConfig, setModalConfig] = useState({ title: '', message: '', onConfirm: null, isConfirm: false });
 
+  // OB Management state
+  const [margins, setMargins] = useState([]);
+  const [obForm, setObForm] = useState({ symbol: '', date: null, high: '', low: '' });
+  const [obLoading, setObLoading] = useState(false);
+  const [obSuccess, setObSuccess] = useState('');
+  const [obError, setObError] = useState('');
+  const [isDeleteMode, setIsDeleteMode] = useState(false);
+
   const isMobile = useMediaQuery('(max-width:900px)');
 
   useEffect(() => {
     fetchStrategies();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === 3) {
+      fetchMargins();
+    }
+  }, [activeTab]);
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
@@ -119,8 +136,54 @@ const AdminDashboard = () => {
     } finally { setConfigLoading(false); }
   };
 
+  const fetchMargins = async () => {
+    try {
+      const response = await marginAPI.getAllMargins();
+      setMargins(response.data);
+    } catch (error) {
+      console.error("Error fetching margin data:", error);
+    }
+  };
+
+  const handleObFormChange = (e) => {
+    const { name, value } = e.target;
+    setObForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleObDateChange = (newValue) => {
+    setObForm(prev => ({ ...prev, date: newValue }));
+  };
+
+  const handleObSubmit = async (e) => {
+    e.preventDefault();
+    setObLoading(true);
+    setObSuccess('');
+    setObError('');
+    try {
+      const payload = {
+        symbol: obForm.symbol,
+        date: obForm.date ? obForm.date.format('YYYY-MM-DD') : '',
+        high: parseFloat(obForm.high),
+        low: parseFloat(obForm.low)
+      };
+      if (isDeleteMode) {
+       const resp=await priceActionAPI.deleteOrderBlock(payload);
+        console.log("Delete OB response:", resp);
+        setObSuccess('OB deleted successfully!');
+      } else {
+        await priceActionAPI.modifyOrderBlock(payload);
+        setObSuccess('OB saved/updated successfully!');
+      }
+      setObForm({ symbol: '', date: null, high: '', low: '' });
+      setIsDeleteMode(false);
+    } catch (error) {
+      setObError(error.response?.data?.message || (isDeleteMode ? 'Failed to delete OB' : 'Failed to save OB'));
+    } finally { setObLoading(false); }
+  };
+
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* HEADER */}
       <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
         <Box>
@@ -144,6 +207,7 @@ const AdminDashboard = () => {
           <Tab icon={<ListAlt />} label="Strategies" iconPosition="start" />
           <Tab icon={<Storage />} label="Margin Data" iconPosition="start" />
           <Tab icon={<Settings />} label="System Config" iconPosition="start" />
+          <Tab icon={<TrendingUp />} label="OB Management" iconPosition="start" />
         </Tabs>
         <Divider />
 
@@ -262,6 +326,55 @@ const AdminDashboard = () => {
               {configSuccess && <Alert severity="success" sx={{ mt: 1 }}>{configSuccess}</Alert>}
             </Box>
           )}
+
+          {/* TAB 3: OB MANAGEMENT */}
+          {activeTab === 3 && (
+            <Grid container spacing={4}>
+              <Grid item xs={12} lg={6}>
+                <Typography variant="subtitle1" gutterBottom fontWeight="700">
+                  Add/Edit Order Block
+                </Typography>
+                <Box component="form" onSubmit={handleObSubmit} sx={{ p: 2, border: `1px solid`, borderColor: 'divider', borderRadius: 2 }}>
+                  <Autocomplete
+                    fullWidth
+                    options={margins}
+                    getOptionLabel={(o) => `${o.symbol} (${o.margin}x)`}
+                    value={margins.find(m => m.symbol === obForm.symbol) || null}
+                    onChange={(e, v) => setObForm(prev => ({ ...prev, symbol: v?.symbol || '' }))}
+                    renderInput={(params) => (
+                      <TextField {...params} label="Select Stock" variant="outlined" required size="small" sx={{ mb: 2 }} />
+                    )}
+                  />
+                  <DatePicker
+                    label="Date"
+                    value={obForm.date}
+                    onChange={handleObDateChange}
+                    slotProps={{ textField: { fullWidth: true, size: 'small', sx: { mb: 2 }, required: true } }}
+                  />
+                  <TextField label="High" name="high" type="number" value={obForm.high} onChange={handleObFormChange} fullWidth required={!isDeleteMode} sx={{ mb: 2 }} size="small" />
+                  <TextField label="Low" name="low" type="number" value={obForm.low} onChange={handleObFormChange} fullWidth required={!isDeleteMode} sx={{ mb: 2 }} size="small" />
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button type="submit" variant="contained" fullWidth disabled={obLoading} size="small">
+                      {obLoading ? <CircularProgress size={20} /> : isDeleteMode ? 'Delete OB' : 'Save OB'}
+                    </Button>
+                    {!isDeleteMode && (
+                      <Button type="button" variant="outlined" color="error" onClick={() => setIsDeleteMode(true)} size="small">
+                        Delete Mode
+                      </Button>
+                    )}
+                    {isDeleteMode && (
+                      <Button type="button" variant="outlined" onClick={() => setIsDeleteMode(false)} size="small">
+                        Cancel Delete
+                      </Button>
+                    )}
+                  </Box>
+                </Box>
+                {(obSuccess || obError) && (
+                  <Alert severity={obSuccess ? "success" : "error"} sx={{ mt: 2 }}>{obSuccess || obError}</Alert>
+                )}
+              </Grid>
+            </Grid>
+          )}
         </Box>
       </Paper>
 
@@ -279,6 +392,7 @@ const AdminDashboard = () => {
         </Fade>
       </Modal>
     </Container>
+    </LocalizationProvider>
   );
 };
 

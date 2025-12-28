@@ -70,4 +70,9 @@ export const configAPI = {
   reloadConfig: () => api.post('/api/config'),
 };
 
+export const priceActionAPI = {
+  modifyOrderBlock:(obReq)=> api.post('/api/price-action/ob', obReq),
+  deleteOrderBlock:(obReq)=> api.delete('/api/price-action/ob',{data: obReq}),
+}
+
 export default api;
