@@ -151,6 +151,12 @@ const Strategies = memo(() => {
                         <Typography variant="caption" color="text.secondary" display="block">Margin</Typography>
                         <Typography variant="h6" sx={{ fontWeight: 'medium' }}>{stock.margin}x</Typography>
                       </Box>
+                      {stock.date && (
+                        <Box>
+                          <Typography variant="caption" color="text.secondary" display="block">Date</Typography>
+                          <Typography variant="h6" sx={{ fontWeight: 'medium' }}>{stock.date}</Typography>
+                        </Box>
+                      )}
                     </Box>
 
                     <Button
