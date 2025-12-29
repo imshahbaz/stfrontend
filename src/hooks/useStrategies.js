@@ -35,7 +35,7 @@ export const useStrategies = () => {
   const fetchStrategies = useCallback(async () => {
     try {
       const response = await strategyAPI.getStrategies();
-      const strategiesWithOrderBlock = [...response.data, { name: 'Order Block' }];
+      const strategiesWithOrderBlock = [...response.data, { name: 'Order Block' }, { name: 'Fair Value Gap' }];
       dispatch({ type: 'SET_STRATEGIES', payload: strategiesWithOrderBlock });
     } catch (error) {
       console.error('Error fetching strategies:', error);
@@ -64,6 +64,10 @@ export const useStrategies = () => {
       let response;
       if (strategyName === 'Order Block') {
         response = await priceActionAPI.checkOrderBlock();
+        dispatch({ type: 'SET_CACHE', key: strategyName, payload: response.data.data });
+        dispatch({ type: 'SET_STRATEGY_DATA', payload: response.data.data });
+      } else if (strategyName === 'Fair Value Gap') {
+        response = await priceActionAPI.checkFVGMitigation();
         dispatch({ type: 'SET_CACHE', key: strategyName, payload: response.data.data });
         dispatch({ type: 'SET_STRATEGY_DATA', payload: response.data.data });
       } else {
