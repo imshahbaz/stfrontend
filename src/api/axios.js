@@ -65,9 +65,9 @@ export const marginAPI = {
 
 // Config API methods
 export const configAPI = {
-  getConfig: () => api.get('/api/config'),
-  updateConfig: (configData) => api.patch('/api/config', configData),
-  reloadConfig: () => api.post('/api/config'),
+  getConfig: () => api.get('/api/config/active'),
+  updateConfig: (configData) => api.patch('/api/config/update', configData),
+  reloadConfig: () => api.post('/api/config/reload'),
 };
 
 export const priceActionAPI = {
