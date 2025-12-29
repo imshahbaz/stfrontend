@@ -101,7 +101,7 @@ function AppContent() {
           </Box>
 
           {/* ADSTERRA BANNER PLACEMENT */}
-          {process.env.NODE_ENV === 'production' &&
+          {process.env.NODE_ENV === 'production' && !isMobile &&
             <Box sx={{
               width: '100%',
               display: 'flex',

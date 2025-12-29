@@ -22,6 +22,7 @@ import {
   Login,
   TrendingUp
 } from '@mui/icons-material';
+import AdsterraBanner from './AdsterraBanner';
 
 const Header = ({ toggleTheme, theme }) => {
   const { user, logout } = useAuth();
@@ -94,53 +95,67 @@ const Header = ({ toggleTheme, theme }) => {
 
       {/* MOBILE BOTTOM NAVIGATION */}
       {isMobile && (
-        <Paper
-          sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1000, borderTop: `1px solid ${muiTheme.palette.divider}` }}
-          elevation={3}
-        >
-          <BottomNavigation
-            showLabels
-            value={currentTab}
-            onChange={(event, newValue) => navigate(newValue)}
+        <>
+          {process.env.NODE_ENV === 'production' &&
+            <Box sx={{
+              position: 'fixed',
+              bottom: 56,
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+              py: 2,
+              bgcolor: 'background.default'
+            }}>
+              <AdsterraBanner isMobile={isMobile} />
+            </Box>}
+          <Paper
+            sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1000, borderTop: `1px solid ${muiTheme.palette.divider}` }}
+            elevation={3}
           >
-            <BottomNavigationAction
-              label="Markets"
-              value="/"
-              icon={<TrendingUp />}
-            />
-
-            {user ? (
-              [
-                user.role === 'ADMIN' && (
-                  <BottomNavigationAction
-                    key="admin"
-                    label="Admin"
-                    value="/admin/dashboard"
-                    icon={<Dashboard />}
-                  />
-                ),
-                <BottomNavigationAction
-                  key="settings"
-                  label="Settings"
-                  value="/settings"
-                  icon={<Settings />}
-                />,
-                <BottomNavigationAction
-                  key="logout"
-                  label="Logout"
-                  onClick={handleLogout}
-                  icon={<Logout color="error" />}
-                />
-              ]
-            ) : (
+            <BottomNavigation
+              showLabels
+              value={currentTab}
+              onChange={(event, newValue) => navigate(newValue)}
+            >
               <BottomNavigationAction
-                label="Login"
-                value="/login"
-                icon={<Login />}
+                label="Markets"
+                value="/"
+                icon={<TrendingUp />}
               />
-            )}
-          </BottomNavigation>
-        </Paper>
+
+              {user ? (
+                [
+                  user.role === 'ADMIN' && (
+                    <BottomNavigationAction
+                      key="admin"
+                      label="Admin"
+                      value="/admin/dashboard"
+                      icon={<Dashboard />}
+                    />
+                  ),
+                  <BottomNavigationAction
+                    key="settings"
+                    label="Settings"
+                    value="/settings"
+                    icon={<Settings />}
+                  />,
+                  <BottomNavigationAction
+                    key="logout"
+                    label="Logout"
+                    onClick={handleLogout}
+                    icon={<Logout color="error" />}
+                  />
+                ]
+              ) : (
+                <BottomNavigationAction
+                  label="Login"
+                  value="/login"
+                  icon={<Login />}
+                />
+              )}
+            </BottomNavigation>
+          </Paper>
+        </>
       )}
     </>
   );
