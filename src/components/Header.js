@@ -96,18 +96,24 @@ const Header = ({ toggleTheme, theme }) => {
       {/* MOBILE BOTTOM NAVIGATION */}
       {isMobile && (
         <>
-          {process.env.NODE_ENV === 'production' &&
+
+          {process.env.NODE_ENV === 'production' && (
             <Box sx={{
               position: 'fixed',
               bottom: 56,
               width: '100%',
               display: 'flex',
               justifyContent: 'center',
-              py: 2,
-              bgcolor: 'background.default'
+              alignItems: 'center',
+              bgcolor: 'background.default',
+              borderTop: `1px solid ${muiTheme.palette.divider}`,
+              height: '50px',
+              zIndex: 999,
             }}>
               <AdsterraBanner isMobile={isMobile} />
-            </Box>}
+            </Box>
+          )}
+
           <Paper
             sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1000, borderTop: `1px solid ${muiTheme.palette.divider}` }}
             elevation={3}
