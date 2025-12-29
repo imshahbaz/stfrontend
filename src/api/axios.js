@@ -65,15 +65,15 @@ export const marginAPI = {
 
 // Config API methods
 export const configAPI = {
-  getConfig: () => api.get('/api/config'),
-  updateConfig: (configData) => api.patch('/api/config', configData),
-  reloadConfig: () => api.post('/api/config'),
+  getConfig: () => api.get('/api/config/active'),
+  updateConfig: (configData) => api.patch('/api/config/update', configData),
+  reloadConfig: () => api.post('/api/config/reload'),
 };
 
 export const priceActionAPI = {
   createOrderBlock:(obReq)=> api.post('/api/price-action/ob', obReq),
   deleteOrderBlock:(obReq)=> api.delete('/api/price-action/ob',{data: obReq}),
-  getOrderBlockBySymbol:(symbol)=> api.get(`/api/price-action/ob/${encodeURIComponent(symbol)}`),
+  getPriceActionBySymbol:(symbol)=> api.get(`/api/price-action/${encodeURIComponent(symbol)}`),
   updateOrderBlock:(obReq)=> api.patch('/api/price-action/ob', obReq),
   checkOrderBlock:()=>api.get('/api/price-action/ob/mitigation'),
   refreshMitigationData:()=>api.post('/api/price-action/ob/check'),

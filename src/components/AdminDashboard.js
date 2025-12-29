@@ -161,7 +161,7 @@ const AdminDashboard = () => {
     setObSuccess('');
     setObError('');
     try {
-      const response = await priceActionAPI.getOrderBlockBySymbol(obForm.symbol);
+      const response = await priceActionAPI.getPriceActionBySymbol(obForm.symbol);
       setFetchedOBs(response.data.data.orderBlocks || []);
       setCurrentSymbol(obForm.symbol);
       setObSuccess('Order blocks fetched successfully!');
