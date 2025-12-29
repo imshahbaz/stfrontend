@@ -50,7 +50,7 @@ export const strategyAPI = {
   }),
   getStrategiesAdmin: () => api.get('/api/strategy/admin'),
   getHeatMap: () => api.get('/api/nse/heatmap'),
-  getAllIndices:()=> api.get('/api/nse/allindices'),
+  getAllIndices: () => api.get('/api/nse/allindices'),
 };
 
 // Margin API methods
@@ -71,12 +71,19 @@ export const configAPI = {
 };
 
 export const priceActionAPI = {
-  createOrderBlock:(obReq)=> api.post('/api/price-action/ob', obReq),
-  deleteOrderBlock:(obReq)=> api.delete('/api/price-action/ob',{data: obReq}),
-  getPriceActionBySymbol:(symbol)=> api.get(`/api/price-action/${encodeURIComponent(symbol)}`),
-  updateOrderBlock:(obReq)=> api.patch('/api/price-action/ob', obReq),
-  checkOrderBlock:()=>api.get('/api/price-action/ob/mitigation'),
-  refreshMitigationData:()=>api.post('/api/price-action/ob/check'),
+  createOrderBlock: (obReq) => api.post('/api/price-action/ob', obReq),
+  deleteOrderBlock: (obReq) => api.delete('/api/price-action/ob', { data: obReq }),
+  getPriceActionBySymbol: (symbol) => api.get(`/api/price-action/${encodeURIComponent(symbol)}`),
+  updateOrderBlock: (obReq) => api.patch('/api/price-action/ob', obReq),
+  checkOrderBlock: () => api.get('/api/price-action/ob/mitigation'),
+  refreshMitigationData: () => api.post('/api/price-action/ob/check'),
+
+  //fvg
+  createFVG: (fvgReq) => api.post('/api/price-action/fvg', fvgReq),
+  deleteFVG: (fvgReq) => api.delete('/api/price-action/fvg', { data: fvgReq }),
+  updateFVG: (fvgReq) => api.patch('/api/price-action/fvg', fvgReq),
+  checkFVGMitigation: () => api.get('/api/price-action/fvg/mitigation'),
+  refreshFvgMitigationData: () => api.post('/api/price-action/fvg/check'),
 }
 
 export default api;
