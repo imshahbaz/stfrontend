@@ -21,6 +21,7 @@ import AdminDashboard from './components/AdminDashboard';
 import Unauthorized from './components/Unauthorized';
 import ChartPage from './components/ChartPage';
 import HeatmapV2 from './components/HeatmapV2';
+import AdsterraBanner from './components/AdsterraBanner';
 import { userPreferenceAPI } from "../src/api/axios";
 
 function App() {
@@ -71,7 +72,7 @@ function AppContent() {
       <Router>
         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
           <Header toggleTheme={toggleTheme} theme={theme} />
-          <Box sx={{ flexGrow: 1, pb: { xs: '4.5rem', md: 0 },}}>
+          <Box sx={{ flexGrow: 1, pb: { xs: '4.5rem', md: 0 }, }}>
             <Routes>
               {/* --- Public Routes --- */}
               <Route path="/" element={<Home />} />
@@ -98,6 +99,19 @@ function AppContent() {
               <Route path="/unauthorized" element={<Unauthorized showLogin={!user} />} />
             </Routes>
           </Box>
+
+          {/* ADSTERRA BANNER PLACEMENT */}
+          {process.env.NODE_ENV === 'production' &&
+            <Box sx={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+              py: 2,
+              bgcolor: 'background.default'
+            }}>
+              <AdsterraBanner isMobile={isMobile} />
+            </Box>}
+
           {!isMobile && <Footer />}
         </Box>
       </Router>
