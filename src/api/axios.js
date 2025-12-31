@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const APP_KEY = process.env.APP_KEY;
+const APP_KEY = process.env.REACT_APP_TRUECALLER_APP_KEY;
 const APP_NAME = "Shahbaz Trades";
 
 const api = axios.create({
