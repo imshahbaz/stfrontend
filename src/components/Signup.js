@@ -18,7 +18,7 @@ import TruecallerLogin from './TruecallerLogin';
 
 const Signup = () => {
   const navigate = useNavigate();
-  const { user, loading,login } = useAuth();
+  const { user, loading, login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -87,6 +87,7 @@ const Signup = () => {
               Join Shahbaz Trades today
             </Typography>
           </Box>
+          <TruecallerLogin login={login} user={user} loading={loading} isLogin={false} />
 
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
@@ -189,10 +190,9 @@ const Signup = () => {
 
           {!otpSent && (
             <Box sx={{ textAlign: 'center', mt: 4 }}>
-              <TruecallerLogin login={login} user={user} loading={loading} />
               <Typography variant="body2">
                 Already have an account?{' '}
-                <Link href="/login" variant="body2" color="primary">
+                <Link href="/login" style={{ color: 'primary.main', textDecoration: 'none' }}>
                   Sign in
                 </Link>
               </Typography>

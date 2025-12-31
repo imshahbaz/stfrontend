@@ -31,7 +31,7 @@ export const authAPI = {
 };
 
 export const userPreferenceAPI = {
-  updateUsername: (email, username) => api.patch('/api/user/username', { email, username }),
+  updateUsername: (userId, username) => api.patch('/api/user/username', { userId, username }),
   updateTheme: (theme) => api.patch('/api/user/theme', { theme }),
 }
 
