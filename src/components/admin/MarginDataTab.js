@@ -16,6 +16,7 @@ const MarginDataTab = () => {
         try {
             await marginAPI.loadFromCsv(fd);
             setSuccessMessage('Upload Success!');
+            setFile(null);
         } catch (e) {
             setErrorMessage('Failed');
         } finally {

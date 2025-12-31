@@ -65,7 +65,7 @@ const Login = () => {
     try {
       const response = await authAPI.login(email, password);
       if (response.status === 200) {
-        login(response.data);
+        login(response.data.data);
         navigate('/');
       } else {
         setError('Login failed. Please check your credentials.');

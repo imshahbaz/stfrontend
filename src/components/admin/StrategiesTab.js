@@ -29,7 +29,7 @@ const StrategiesTab = () => {
     const fetchStrategies = async () => {
         try {
             const response = await strategyAPI.getStrategiesAdmin();
-            setStrategies(response.data);
+            setStrategies(response.data.data);
         } catch (error) { console.error(error); }
     };
 

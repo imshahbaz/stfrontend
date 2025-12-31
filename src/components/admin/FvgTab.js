@@ -37,7 +37,7 @@ const FvgTab = () => {
     const fetchMargins = async () => {
         try {
             const response = await marginAPI.getAllMargins();
-            setMargins(response.data);
+            setMargins(response.data.data);
         } catch (error) {
             console.error("Error fetching margin data:", error);
         }

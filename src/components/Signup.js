@@ -51,10 +51,18 @@ const Signup = () => {
     setMessage('');
     try {
       const response = await userAPI.signup(email, password, confirmPassword);
-      setOtpSent(response.data.otpSent);
-      setMessage(response.data.message || 'OTP sent to your email');
+      if (response.status === 200) {
+        setOtpSent(response.data.data.otpSent);
+        setMessage(response.data.message || 'OTP sent to your email');
+      }
     } catch (error) {
-      setError(error.response?.data?.message || 'Failed to send OTP');
+      if (error.response?.status === 409) {
+        setOtpSent(true);
+        setMessage('OTP sent to ' + email);
+      }
+      else {
+        setError(error.response?.data?.message || 'Failed to send OTP');
+      }
     }
   };
 
@@ -64,7 +72,7 @@ const Signup = () => {
     setMessage('');
     try {
       const response = await userAPI.verifyOtp(email, otp);
-      if (response.status === 201) {
+      if (response.status === 201 || response.status === 200) {
         navigate('/login');
       }
       else {
