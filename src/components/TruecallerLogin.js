@@ -19,7 +19,7 @@ const TruecallerLogin = ({ login, user, loading, isLoading: externalIsLoading = 
     (data) => {
       setStatus('Login Successful!');
       setInternalIsLoading(false);
-      login(data);
+      login(data.data);
     },
     (error) => {
       console.error('Truecaller polling error:', error);
