@@ -15,6 +15,7 @@ const SystemConfigTab = () => {
             const response = await configAPI.getConfig();
             setConfigJson(JSON.stringify(response.data, null, 2));
             setConfigSuccess('Config fetched successfully!');
+            setConfigError('');
         } catch (error) {
             setConfigError('Failed to fetch config');
         } finally {
@@ -29,6 +30,7 @@ const SystemConfigTab = () => {
             const parsedConfig = JSON.parse(configJson);
             await configAPI.updateConfig(parsedConfig);
             setConfigSuccess('Config updated successfully!');
+            setConfigError('');
         } catch (error) {
             setConfigError(error instanceof SyntaxError ? 'Invalid JSON' : 'Update failed');
         } finally { setConfigLoading(false); }

@@ -37,7 +37,7 @@ const OrderBlockTab = () => {
     const fetchMargins = async () => {
         try {
             const response = await marginAPI.getAllMargins();
-            setMargins(response.data);
+            setMargins(response.data.data);
         } catch (error) {
             console.error("Error fetching margin data:", error);
         }
@@ -56,10 +56,14 @@ const OrderBlockTab = () => {
             setFetchedOBs(response.data.data.orderBlocks || []);
             setCurrentSymbol(obForm.symbol);
             setObSuccess('Order blocks fetched successfully!');
+            setObError('');
         } catch (error) {
             setObError(error.response?.data?.message || 'Failed to fetch order blocks');
+            setObSuccess('');
         } finally {
             setFetchLoading(false);
+            setRefreshSuccess('');
+            setRefreshError('');
         }
     };
 
@@ -87,9 +91,11 @@ const OrderBlockTab = () => {
             if (editingOBId) {
                 await priceActionAPI.updateOrderBlock(payload);
                 setObSuccess('OB updated successfully!');
+                setObError('')
             } else {
                 await priceActionAPI.createOrderBlock(payload);
                 setObSuccess('OB created successfully!');
+                setObError('')
             }
             setObForm({ symbol: '', date: null, high: '', low: '' });
             setEditingOBId(null);
@@ -98,7 +104,12 @@ const OrderBlockTab = () => {
             }
         } catch (error) {
             setObError(error.response?.data?.message || 'Failed to save OB');
-        } finally { setObLoading(false); }
+            setObSuccess('');
+        } finally {
+            setObLoading(false);
+            setRefreshSuccess('');
+            setRefreshError('');
+        }
     };
 
     const handleEditOB = (ob, symbol) => {
@@ -143,6 +154,8 @@ const OrderBlockTab = () => {
             setRefreshError(error.response?.data?.message || 'Failed to refresh mitigation data');
         } finally {
             setRefreshLoading(false);
+            setObSuccess('');
+            setObError('');
         }
     };
 
