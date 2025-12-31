@@ -4,17 +4,12 @@ import { truecallerAPI } from '../api/axios';
 const useTruecallerPolling = (onSuccess, onError) => {
   const [status, setStatus] = useState('');
   const [isPolling, setIsPolling] = useState(false);
-  const pollingInterval = useRef(null);
-  const retryCount = useRef(0);
-  const maxRetries = 3;
-  const initialInterval = 2500;
-  const maxInterval = 10000;
-  const backoffFactor = 1.5;
+  const pollingTimeout = useRef(null);
 
   const clearPolling = useCallback(() => {
-    if (pollingInterval.current) {
-      clearInterval(pollingInterval.current);
-      pollingInterval.current = null;
+    if (pollingTimeout.current) {
+      clearTimeout(pollingTimeout.current);
+      pollingTimeout.current = null;
     }
     setIsPolling(false);
   }, []);
@@ -23,10 +18,12 @@ const useTruecallerPolling = (onSuccess, onError) => {
     if (isPolling) return;
     setIsPolling(true);
     setStatus('Verifying via Truecaller...');
-    retryCount.current = 0;
-    let currentInterval = initialInterval;
+    let attempts = 0;
+    const maxAttempts = 5;
+    const interval = 3000; // 3 seconds
 
     const poll = async () => {
+      attempts += 1;
       try {
         const res = await truecallerAPI.getTruecallerStatus(requestId);
 
@@ -34,33 +31,26 @@ const useTruecallerPolling = (onSuccess, onError) => {
           setStatus('Login Successful!');
           onSuccess(res.data.data);
           clearPolling();
+          return;
         } else {
-          setStatus('Still verifying...');
+          setStatus(`Still verifying... (${attempts}/${maxAttempts})`);
         }
       } catch (e) {
-        retryCount.current += 1;
-        if (retryCount.current >= maxRetries) {
-          setStatus('Verification failed. Please try again.');
-          onError && onError(e);
-          clearPolling();
-        } else {
-          setStatus(`Retrying verification... (${retryCount.current}/${maxRetries})`);
-          // Exponential backoff
-          currentInterval = Math.min(currentInterval * backoffFactor, maxInterval);
-        }
+        setStatus(`Verification failed on attempt ${attempts}. Please try again.`);
+        onError && onError(e);
+        clearPolling();
+        return;
+      }
+
+      if (attempts < maxAttempts) {
+        pollingTimeout.current = setTimeout(poll, interval);
+      } else {
+        setStatus('Verification failed after 5 attempts. Please try again.');
+        clearPolling();
       }
     };
 
     poll(); // Initial poll
-    pollingInterval.current = setInterval(poll, currentInterval);
-
-    // Stop polling after 2 minutes
-    setTimeout(() => {
-      if (isPolling) {
-        setStatus('Verification timed out. Please try again.');
-        clearPolling();
-      }
-    }, 120000);
   }, [isPolling, onSuccess, onError, clearPolling]);
 
   useEffect(() => {
