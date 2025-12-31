@@ -20,12 +20,14 @@ const Settings = () => {
   const { user, login } = useAuth();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
+  const [userId, setUserId] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     if (user) {
       setUsername(user.username);
+      setUserId(user.userId);
       setEmail(user.email);
     }
   }, [user]);
@@ -35,7 +37,7 @@ const Settings = () => {
     setSuccessMessage('');
     setErrorMessage('');
     try {
-      const response = await userPreferenceAPI.updateUsername(email, username);
+      const response = await userPreferenceAPI.updateUsername(userId, username);
       if (response.status === 200 && response.data.success) {
         login({ ...user, username });
         setSuccessMessage(response.data.message || 'Settings updated successfully');

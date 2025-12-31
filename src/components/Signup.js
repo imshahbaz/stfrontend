@@ -18,7 +18,7 @@ import TruecallerLogin from './TruecallerLogin';
 
 const Signup = () => {
   const navigate = useNavigate();
-  const { user, loading,login } = useAuth();
+  const { user, loading, login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -86,6 +86,14 @@ const Signup = () => {
             <Typography variant="body1" color="text.secondary">
               Join Shahbaz Trades today
             </Typography>
+          </Box>
+          <TruecallerLogin login={login} user={user} loading={loading} isLogin={false} />
+          <Box sx={{ display: 'flex', alignItems: 'center', my: 2 }}>
+            <Box sx={{ flexGrow: 1, height: '1px', bgcolor: 'divider' }} />
+            <Typography variant="caption" sx={{ px: 2, color: 'text.secondary', fontWeight: 'bold' }}>
+              OR
+            </Typography>
+            <Box sx={{ flexGrow: 1, height: '1px', bgcolor: 'divider' }} />
           </Box>
 
           {error && (
@@ -189,10 +197,9 @@ const Signup = () => {
 
           {!otpSent && (
             <Box sx={{ textAlign: 'center', mt: 4 }}>
-              <TruecallerLogin login={login} user={user} loading={loading} />
               <Typography variant="body2">
                 Already have an account?{' '}
-                <Link href="/login" variant="body2" color="primary">
+                <Link to="/login" style={{ color: 'primary.main', textDecoration: 'none' }}>
                   Sign in
                 </Link>
               </Typography>

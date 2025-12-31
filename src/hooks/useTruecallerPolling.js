@@ -13,7 +13,7 @@ const useTruecallerPolling = (onSuccess, onError) => {
 
   const clearPolling = useCallback(() => {
     if (pollingInterval.current) {
-      clearInterval(pollingInterval.current);
+      clearTimeout(pollingInterval.current);
       pollingInterval.current = null;
     }
     setIsPolling(false);
@@ -27,8 +27,11 @@ const useTruecallerPolling = (onSuccess, onError) => {
     let currentInterval = initialInterval;
 
     const poll = async () => {
+      if (!pollingInterval.current) return;
+
       try {
         const res = await truecallerAPI.getTruecallerStatus(requestId);
+        if (!pollingInterval.current) return;
 
         if (res.status === 200 || res.status === 201) {
           setStatus('Login Successful!');
@@ -36,8 +39,11 @@ const useTruecallerPolling = (onSuccess, onError) => {
           clearPolling();
         } else {
           setStatus('Still verifying...');
+          pollingInterval.current = setTimeout(poll, currentInterval);
         }
       } catch (e) {
+        if (!pollingInterval.current) return;
+
         retryCount.current += 1;
         if (retryCount.current >= maxRetries) {
           setStatus('Verification failed. Please try again.');
@@ -47,12 +53,12 @@ const useTruecallerPolling = (onSuccess, onError) => {
           setStatus(`Retrying verification... (${retryCount.current}/${maxRetries})`);
           // Exponential backoff
           currentInterval = Math.min(currentInterval * backoffFactor, maxInterval);
+          pollingInterval.current = setTimeout(poll, currentInterval);
         }
       }
     };
 
-    poll(); // Initial poll
-    pollingInterval.current = setInterval(poll, currentInterval);
+    pollingInterval.current = setTimeout(poll, 0);
 
     // Stop polling after 2 minutes
     setTimeout(() => {

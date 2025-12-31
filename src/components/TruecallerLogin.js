@@ -10,7 +10,7 @@ import {
 } from '@mui/material';
 import { PhoneAndroid } from '@mui/icons-material';
 
-const TruecallerLogin = ({ login, user, loading, isLoading: externalIsLoading = false }) => {
+const TruecallerLogin = ({ login, user, loading, isLoading: externalIsLoading = false, isLogin }) => {
   const navigate = useNavigate();
   const [status, setStatus] = useState('');
   const [internalIsLoading, setInternalIsLoading] = useState(false);
@@ -88,7 +88,7 @@ const TruecallerLogin = ({ login, user, loading, isLoading: externalIsLoading = 
           mb: 1,
         }}
       >
-        {isLoading ? 'Verifying...' : '1-Tap Login with Truecaller'}
+        {isLoading ? 'Verifying...' : isLogin ? 'Login with Truecaller' : 'Sign up with Truecaller'}
       </Button>
       {status && !isLoading && (
         <Typography variant="body2" color="text.secondary">
