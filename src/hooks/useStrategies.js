@@ -35,7 +35,7 @@ export const useStrategies = () => {
   const fetchStrategies = useCallback(async () => {
     try {
       const response = await strategyAPI.getStrategies();
-      const strategiesWithOrderBlock = [...response.data, { name: 'Order Block' }, { name: 'Fair Value Gap' }];
+      const strategiesWithOrderBlock = [...response.data.data, { name: 'Order Block' }, { name: 'Fair Value Gap' }];
       dispatch({ type: 'SET_STRATEGIES', payload: strategiesWithOrderBlock });
     } catch (error) {
       console.error('Error fetching strategies:', error);
@@ -72,8 +72,8 @@ export const useStrategies = () => {
         dispatch({ type: 'SET_STRATEGY_DATA', payload: response.data.data });
       } else {
         response = await strategyAPI.fetchWithMargin(strategyName);
-        dispatch({ type: 'SET_CACHE', key: strategyName, payload: response.data });
-        dispatch({ type: 'SET_STRATEGY_DATA', payload: response.data });
+        dispatch({ type: 'SET_CACHE', key: strategyName, payload: response.data.data });
+        dispatch({ type: 'SET_STRATEGY_DATA', payload: response.data.data });
       }
     } catch (error) {
       if (retryCount < 2) {

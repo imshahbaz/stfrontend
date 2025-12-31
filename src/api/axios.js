@@ -59,11 +59,7 @@ export const strategyAPI = {
 // Margin API methods
 export const marginAPI = {
   getAllMargins: () => api.get('/api/margin/all'),
-  loadFromCsv: (formData) => api.post('/api/margin/load-from-csv', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  }),
+  loadFromCsv: (formData) =>  api.post('/api/margin/load-from-csv', formData),
 };
 
 // Config API methods
