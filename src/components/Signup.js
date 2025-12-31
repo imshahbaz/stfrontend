@@ -88,6 +88,13 @@ const Signup = () => {
             </Typography>
           </Box>
           <TruecallerLogin login={login} user={user} loading={loading} isLogin={false} />
+          <Box sx={{ display: 'flex', alignItems: 'center', my: 2 }}>
+            <Box sx={{ flexGrow: 1, height: '1px', bgcolor: 'divider' }} />
+            <Typography variant="caption" sx={{ px: 2, color: 'text.secondary', fontWeight: 'bold' }}>
+              OR
+            </Typography>
+            <Box sx={{ flexGrow: 1, height: '1px', bgcolor: 'divider' }} />
+          </Box>
 
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
@@ -192,7 +199,7 @@ const Signup = () => {
             <Box sx={{ textAlign: 'center', mt: 4 }}>
               <Typography variant="body2">
                 Already have an account?{' '}
-                <Link href="/login" style={{ color: 'primary.main', textDecoration: 'none' }}>
+                <Link to="/login" style={{ color: 'primary.main', textDecoration: 'none' }}>
                   Sign in
                 </Link>
               </Typography>

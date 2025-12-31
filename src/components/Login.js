@@ -89,6 +89,13 @@ const Login = () => {
             </Typography>
           </Box>
           <TruecallerLogin login={login} user={user} loading={loading} isLogin={true} />
+          <Box sx={{ display: 'flex', alignItems: 'center', my: 2 }}>
+            <Box sx={{ flexGrow: 1, height: '1px', bgcolor: 'divider' }} />
+            <Typography variant="caption" sx={{ px: 2, color: 'text.secondary', fontWeight: 'bold' }}>
+              OR
+            </Typography>
+            <Box sx={{ flexGrow: 1, height: '1px', bgcolor: 'divider' }} />
+          </Box>
 
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
