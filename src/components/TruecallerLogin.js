@@ -38,7 +38,7 @@ const TruecallerLogin = ({ login, user, loading, isLoading: externalIsLoading = 
     setStatus(pollingStatus);
   }, [pollingStatus]);
 
-  const generateNonce = () => Math.random().toString(36).substring(2, 15) + Date.now();
+  const generateNonce = () => crypto.randomUUID();
 
   const handleLogin = () => {
     const requestId = generateNonce();
