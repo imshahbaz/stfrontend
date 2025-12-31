@@ -1,5 +1,8 @@
 import axios from 'axios';
 
+const APP_KEY = process.env.APP_KEY;
+const APP_NAME = "Shahbaz Trades";
+
 const api = axios.create({
   baseURL: process.env.REACT_APP_BACKEND_URL,
   withCredentials: true,
@@ -84,6 +87,11 @@ export const priceActionAPI = {
   updateFVG: (fvgReq) => api.patch('/api/price-action/fvg', fvgReq),
   checkFVGMitigation: () => api.get('/api/price-action/fvg/mitigation'),
   refreshFvgMitigationData: () => api.post('/api/price-action/fvg/check'),
+}
+
+export const truecallerAPI = {
+  getTruecallerStatus: (requestId) => api.get(`/api/auth/truecaller/status/${requestId}`),
+  truecallerLogin: (requestId) => `truecallersdk://truesdk/web_verify?requestNonce=${requestId}&partnerKey=${APP_KEY}&partnerName=${APP_NAME}&lang=en&title=logIn&skipOption=useanothernum`,
 }
 
 export default api;

@@ -14,6 +14,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { Email, Lock, Login as LoginIcon } from '@mui/icons-material';
+import TruecallerLogin from './TruecallerLogin';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -143,7 +144,8 @@ const Login = () => {
             </Button>
           </Box>
 
-          <Box sx={{ textAlign: 'center', mt: 4 }}>
+          <Box sx={{ textAlign: 'center', mt: 2 }}>
+            <TruecallerLogin login={login} user={user} loading={loading} />
             <Typography variant="body2">
               Don't have an account?{' '}
               <Link to="/signup" style={{ color: 'primary.main', textDecoration: 'none' }}>
