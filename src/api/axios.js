@@ -91,7 +91,7 @@ export const priceActionAPI = {
 
 export const truecallerAPI = {
   getTruecallerStatus: (requestId) => api.get(`/api/auth/truecaller/status/${requestId}`),
-  truecallerLogin: (requestId) => `truecallersdk://truesdk/web_verify?requestNonce=${requestId}&partnerKey=${APP_KEY}&partnerName=${APP_NAME}&lang=en&title=logIn&skipOption=useanothernum`,
+  truecallerLogin: (requestId) => `truecallersdk://truesdk/web_verify?type=btmsheet&requestNonce=${requestId}&partnerKey=${APP_KEY}&partnerName=${APP_NAME}&lang=en&title=logIn&skipOption=useanothernum`,
 }
 
 export default api;
