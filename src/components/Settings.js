@@ -209,7 +209,8 @@ const Settings = () => {
                   margin="normal"
                   required
                   fullWidth
-                  label="Email"
+                  label="Email Address"
+                  type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   InputProps={{
@@ -222,7 +223,7 @@ const Settings = () => {
                   margin="normal"
                   required
                   fullWidth
-                  label="Password"
+                  label="New Password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -236,7 +237,7 @@ const Settings = () => {
                   margin="normal"
                   required
                   fullWidth
-                  label="Confirm Password"
+                  label="Confirm New Password"
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -250,7 +251,6 @@ const Settings = () => {
                   type="submit"
                   fullWidth
                   variant="contained"
-                  color="secondary"
                   sx={{ mt: 3 }}
                   startIcon={<PersonAdd />}
                   disabled={loading}
@@ -280,7 +280,7 @@ const Settings = () => {
                   type="submit"
                   fullWidth
                   variant="contained"
-                  color="success"
+                  color="primary"
                   sx={{ mt: 3 }}
                   startIcon={<Check />}
                   disabled={loading}
