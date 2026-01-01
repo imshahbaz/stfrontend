@@ -60,6 +60,7 @@ const Header = ({ toggleTheme, theme }) => {
               variant="h6"
               component={Link}
               to="/"
+              href="/"
               sx={{ fontWeight: 800, textDecoration: 'none', color: 'inherit', fontSize: { xs: '1.1rem', md: '1.25rem' } }}
             >
               SHAHBAZ<span style={{ color: muiTheme.palette.primary.main }}>TRADES</span>
@@ -74,16 +75,16 @@ const Header = ({ toggleTheme, theme }) => {
             {!isMobile && (
               user ? (
                 <>
-                  <Button component={Link} to="/settings" color="inherit" startIcon={<Settings />}>Settings</Button>
+                  <Button component={Link} to="/settings" href="/settings" color="inherit" startIcon={<Settings />}>Settings</Button>
                   {user.role === 'ADMIN' && (
-                    <Button component={Link} to="/admin/dashboard" color="inherit" startIcon={<Dashboard />}>Admin</Button>
+                    <Button component={Link} to="/admin/dashboard" href="/admin/dashboard" color="inherit" startIcon={<Dashboard />}>Admin</Button>
                   )}
                   <Button onClick={handleLogout} color="error" startIcon={<Logout />}>Logout</Button>
                 </>
               ) : (
                 /* Hide Login button if we are already on the /login page on desktop */
                 location.pathname !== '/login' && (
-                  <Button variant="contained" component={Link} to="/login" startIcon={<Login />}>
+                  <Button variant="contained" component={Link} to="/login" href="/login" startIcon={<Login />}>
                     Login
                   </Button>
                 )
