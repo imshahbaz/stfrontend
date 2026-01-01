@@ -1,8 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import {
-    Grid, Box, TextField, Button, CircularProgress, IconButton, Autocomplete, Chip, Typography
+    Grid, Box, TextField, Button, CircularProgress, IconButton, Autocomplete, Chip, Typography,
+    useTheme, Stack, InputAdornment, useMediaQuery
 } from '@mui/material';
-import { Edit, Delete } from '@mui/icons-material';
+import {
+    EditRounded,
+    DeleteRounded,
+    SearchRounded,
+    RefreshRounded,
+    CalendarMonthRounded,
+    TrendingUpRounded,
+    TrendingDownRounded,
+    SaveRounded,
+    CloseRounded,
+    StoreRounded
+} from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
 import { priceActionAPI, marginAPI } from '../../api/axios';
@@ -11,6 +23,7 @@ import AdminFormContainer from '../shared/AdminFormContainer';
 import AdminListContainer from '../shared/AdminListContainer';
 import AdminTable from '../shared/AdminTable';
 import StatusAlert from '../shared/StatusAlert';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const GenericPriceActionTab = ({
     type, // 'fvg' or 'ob'
@@ -19,6 +32,8 @@ const GenericPriceActionTab = ({
     apiMethods,
     refreshApiMethod
 }) => {
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const [margins, setMargins] = useState([]);
     const [form, setForm] = useState({ symbol: '', date: null, high: '', low: '' });
     const [loading, setLoading] = useState(false);
@@ -101,10 +116,10 @@ const GenericPriceActionTab = ({
             };
             if (editingId) {
                 await apiMethods.update(payload);
-                setSuccess(`${title} updated successfully!`);
+                setSuccess(`${title} updated!`);
             } else {
                 await apiMethods.create(payload);
-                setSuccess(`${title} created successfully!`);
+                setSuccess(`${title} added!`);
             }
             setForm({ ...form, date: null, high: '', low: '' });
             setEditingId(null);
@@ -137,7 +152,7 @@ const GenericPriceActionTab = ({
         };
         try {
             await apiMethods.delete(payload);
-            setSuccess(`${title} deleted successfully!`);
+            setSuccess(`${title} removed!`);
             await fetchItems();
         } catch (err) {
             setError(err.response?.data?.message || `Failed to delete ${title}`);
@@ -145,7 +160,7 @@ const GenericPriceActionTab = ({
     };
 
     const handleCancel = () => {
-        setForm({ symbol: '', date: null, high: '', low: '' });
+        setForm({ ...form, date: null, high: '', low: '' });
         setEditingId(null);
     };
 
@@ -155,7 +170,7 @@ const GenericPriceActionTab = ({
         setRefreshError('');
         try {
             await refreshApiMethod();
-            setRefreshSuccess('Data refreshed successfully!');
+            setRefreshSuccess('Market mitigation refreshed');
         } catch (err) {
             setRefreshError(err.response?.data?.message || 'Failed to refresh data');
         } finally {
@@ -168,94 +183,240 @@ const GenericPriceActionTab = ({
         setModalOpen(true);
     };
 
+    const fieldStyle = {
+        '& .MuiOutlinedInput-root': {
+            borderRadius: '16px',
+            bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.01)',
+        }
+    };
+
     const columns = [
-        { field: 'symbol', label: 'Symbol', render: () => currentSymbol },
-        { field: 'date', label: 'Date' },
-        { field: 'high', label: 'High' },
-        { field: 'low', label: 'Low' },
+        { field: 'symbol', label: 'Ticker', render: () => <Typography fontWeight="800" variant="body2">{currentSymbol}</Typography> },
+        { field: 'date', label: 'Date', render: (item) => <Chip label={item.date} size="small" variant="soft" sx={{ fontWeight: 700 }} /> },
+        { field: 'high', label: 'High', render: (item) => <Typography variant="body2" color="success.main" fontWeight="800">{item.high}</Typography> },
+        { field: 'low', label: 'Low', render: (item) => <Typography variant="body2" color="error.main" fontWeight="800">{item.low}</Typography> },
         {
             field: 'actions',
             label: 'Actions',
             align: 'right',
             render: (item) => (
-                <>
-                    <IconButton onClick={() => handleEdit(item)}><Edit fontSize="small" /></IconButton>
-                    <IconButton onClick={() => handleOpenModal(`Delete ${title}`, `Delete ${title} for ${item.date}?`, () => handleDelete(item))} color="error">
-                        <Delete fontSize="small" />
+                <Stack direction="row" spacing={0.5} justifyContent="flex-end">
+                    <IconButton size="small" onClick={() => handleEdit(item)} color="primary">
+                        <EditRounded fontSize="small" />
                     </IconButton>
-                </>
+                    <IconButton size="small" onClick={() => handleOpenModal(`Delete ${title}`, `Remove ${title} entry for ${item.date}?`, () => handleDelete(item))} color="error">
+                        <DeleteRounded fontSize="small" />
+                    </IconButton>
+                </Stack>
             )
         }
     ];
 
     const renderMobileCard = (item) => (
-        <>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography fontWeight="bold">{item.date}</Typography>
-                <Chip label={currentSymbol} size="small" color="primary" />
+        <Box sx={{ py: 0.5 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography variant="body1" fontWeight="800">{item.date}</Typography>
+                <Chip label={currentSymbol} size="small" color="primary" sx={{ fontWeight: 800, borderRadius: '8px' }} />
             </Box>
-            <Typography variant="body2">High: {item.high}, Low: {item.low}</Typography>
-            <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
-                <Button onClick={() => handleEdit(item)} size="small" variant="outlined" color="primary" sx={{ flex: 1 }}>Edit</Button>
-                <Button onClick={() => handleOpenModal(`Delete ${title}`, `Delete ${title} for ${item.date}?`, () => handleDelete(item))} size="small" variant="outlined" color="error" sx={{ flex: 1 }}>Delete</Button>
-            </Box>
-        </>
+            <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+                <Box sx={{ flex: 1, p: 1, borderRadius: '12px', bgcolor: 'success.main', color: 'white', textAlign: 'center' }}>
+                    <Typography variant="caption" sx={{ display: 'block', opacity: 0.8 }}>HIGH</Typography>
+                    <Typography variant="body2" fontWeight="900">{item.high}</Typography>
+                </Box>
+                <Box sx={{ flex: 1, p: 1, borderRadius: '12px', bgcolor: 'error.main', color: 'white', textAlign: 'center' }}>
+                    <Typography variant="caption" sx={{ display: 'block', opacity: 0.8 }}>LOW</Typography>
+                    <Typography variant="body2" fontWeight="900">{item.low}</Typography>
+                </Box>
+            </Stack>
+            <Stack direction="row" spacing={1.5}>
+                <Button fullWidth size="small" variant="soft" startIcon={<EditRounded />} onClick={() => handleEdit(item)}>Edit</Button>
+                <Button fullWidth size="small" variant="soft" color="error" startIcon={<DeleteRounded />} onClick={() => handleOpenModal(`Delete ${title}`, `Remove entry for ${item.date}?`, () => handleDelete(item))}>Delete</Button>
+            </Stack>
+        </Box>
     );
 
     return (
-        <>
-            <Grid container spacing={4}>
-                <Grid item xs={12} md={4}>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+            <Grid container spacing={isMobile ? 0 : 3}>
+                <Grid item xs={12} md={6} sx={{ mb: isMobile ? 3 : 0, px: isMobile ? 2 : 0 }}>
                     <AdminFormContainer
-                        title={editingId ? `Edit ${title}` : `Add New ${title}`}
+                        title={editingId ? `Update ${title}` : `Insert ${title}`}
                         onSubmit={handleSubmit}
                     >
-                        <Autocomplete
-                            fullWidth
-                            size="small"
-                            options={margins}
-                            getOptionLabel={(o) => `${o.symbol} (${o.margin}x)`}
-                            value={margins.find(m => m.symbol === form.symbol) || null}
-                            onChange={(e, v) => setForm(prev => ({ ...prev, symbol: v?.symbol || '' }))}
-                            disabled={!!editingId}
-                            renderInput={(params) => (
-                                <TextField {...params} label="Select Stock" variant="outlined" required sx={{ mb: 2 }} />
-                            )}
-                        />
-                        <DatePicker
-                            label="Date"
-                            value={form.date}
-                            onChange={handleDateChange}
-                            disabled={!!editingId}
-                            slotProps={{ textField: { fullWidth: true, size: 'small', sx: { mb: 2 }, required: true } }}
-                        />
-                        <TextField label="High" name="high" type="number" value={form.high} onChange={handleFormChange} fullWidth required sx={{ mb: 2 }} size="small" />
-                        <TextField label="Low" name="low" type="number" value={form.low} onChange={handleFormChange} fullWidth required sx={{ mb: 2 }} size="small" />
-                        <Box sx={{ display: 'flex', gap: 1 }}>
-                            <Button type="submit" variant="contained" fullWidth disabled={loading} size="small">
-                                {loading ? <CircularProgress size={20} /> : `Save ${type.toUpperCase()}`}
-                            </Button>
-                            {editingId && <Button variant="outlined" onClick={handleCancel} size="small">Cancel</Button>}
-                        </Box>
+                        <StatusAlert success={success} error={error} sx={{ mb: 3 }} />
+
+                        <Stack spacing={2.5}>
+                            <Autocomplete
+                                fullWidth
+                                options={margins}
+                                getOptionLabel={(o) => `${o.symbol} (${o.margin}x)`}
+                                value={margins.find(m => m.symbol === form.symbol) || null}
+                                onChange={(e, v) => setForm(prev => ({ ...prev, symbol: v?.symbol || '' }))}
+                                disabled={!!editingId}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        label="Select Trading Pair"
+                                        variant="outlined"
+                                        required
+                                        sx={fieldStyle}
+                                        InputProps={{
+                                            ...params.InputProps,
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <StoreRounded />
+                                                </InputAdornment>
+                                            ),
+                                        }}
+                                    />
+                                )}
+                            />
+
+                            <DatePicker
+                                label="Execution Date"
+                                value={form.date}
+                                onChange={handleDateChange}
+                                disabled={!!editingId}
+                                enableAccessibleFieldDOMStructure={false}
+                                slots={{
+                                    textField: (params) => (
+                                        <TextField
+                                            {...params}
+                                            fullWidth
+                                            required
+                                            sx={fieldStyle}
+                                            InputProps={{
+                                                ...params.InputProps,
+                                                startAdornment: (
+                                                    <InputAdornment position="start">
+                                                        <CalendarMonthRounded />
+                                                    </InputAdornment>
+                                                ),
+                                            }}
+                                        />
+                                    )
+                                }}
+                            />
+
+                            <Stack direction="row" spacing={2}>
+                                <TextField
+                                    label="Price High"
+                                    name="high"
+                                    type="number"
+                                    value={form.high}
+                                    onChange={handleFormChange}
+                                    fullWidth
+                                    required
+                                    sx={fieldStyle}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <TrendingUpRounded color="success" />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                />
+                                <TextField
+                                    label="Price Low"
+                                    name="low"
+                                    type="number"
+                                    value={form.low}
+                                    onChange={handleFormChange}
+                                    fullWidth
+                                    required
+                                    sx={fieldStyle}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <TrendingDownRounded color="error" />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                />
+                            </Stack>
+
+                            <Stack direction="row" spacing={2} sx={{ mt: 1 }}>
+                                <Button
+                                    type="submit"
+                                    variant="contained"
+                                    fullWidth
+                                    disabled={loading}
+                                    startIcon={loading ? <CircularProgress size={20} /> : <SaveRounded />}
+                                    sx={{
+                                        py: 1.5,
+                                        borderRadius: '16px',
+                                        fontWeight: 800,
+                                        boxShadow: `0 8px 16px ${theme.palette.primary.main}30`
+                                    }}
+                                >
+                                    {editingId ? 'Update Entry' : 'Add Entry'}
+                                </Button>
+                                {editingId && (
+                                    <Button
+                                        variant="outlined"
+                                        onClick={handleCancel}
+                                        startIcon={<CloseRounded />}
+                                        sx={{ borderRadius: '16px', px: 3, fontWeight: 700 }}
+                                    >
+                                        Cancel
+                                    </Button>
+                                )}
+                            </Stack>
+                        </Stack>
                     </AdminFormContainer>
-                    <StatusAlert success={success} error={error} />
                 </Grid>
 
-                <Grid item xs={12} md={8}>
+                <Grid item xs={12} md={6} sx={{ px: isMobile ? 2 : 0 }}>
                     <AdminListContainer
-                        title={`Existing ${title}s`}
+                        title={`${title} Database`}
                         actions={
-                            <>
-                                <Button variant="outlined" onClick={fetchItems} disabled={fetchLoading || !form.symbol} size="small">
-                                    {fetchLoading ? <CircularProgress size={16} /> : `Fetch ${type.toUpperCase()}s`}
+                            <Stack direction="row" spacing={1.5}>
+                                <Button
+                                    onClick={fetchItems}
+                                    disabled={fetchLoading || !form.symbol}
+                                    startIcon={fetchLoading ? <CircularProgress size={16} /> : <SearchRounded />}
+                                    sx={{
+                                        fontWeight: 800,
+                                        borderRadius: '12px',
+                                        bgcolor: theme.palette.mode === 'dark' ? 'rgba(124, 58, 237, 0.12)' : 'rgba(124, 58, 237, 0.05)',
+                                        color: 'primary.main',
+                                        px: 2,
+                                        border: `1px solid ${theme.palette.primary.main}30`,
+                                        '&:hover': {
+                                            bgcolor: theme.palette.mode === 'dark' ? 'rgba(124, 58, 237, 0.2)' : 'rgba(124, 58, 237, 0.1)',
+                                            border: `1px solid ${theme.palette.primary.main}60`,
+                                        },
+                                        textTransform: 'none',
+                                        fontSize: '0.85rem'
+                                    }}
+                                >
+                                    Query
                                 </Button>
-                                <Button variant="contained" onClick={handleRefreshData} disabled={refreshLoading} size="small">
-                                    {refreshLoading ? <CircularProgress size={16} /> : 'Refresh Data'}
+                                <Button
+                                    variant="contained"
+                                    onClick={handleRefreshData}
+                                    disabled={refreshLoading}
+                                    startIcon={refreshLoading ? <CircularProgress size={16} color="inherit" /> : <RefreshRounded />}
+                                    sx={{
+                                        fontWeight: 800,
+                                        borderRadius: '12px',
+                                        boxShadow: `0 4px 12px ${theme.palette.primary.main}30`,
+                                        px: 2,
+                                        fontSize: '0.85rem'
+                                    }}
+                                >
+                                    Sync
                                 </Button>
-                            </>
+                            </Stack>
                         }
                     >
-                        <StatusAlert success={refreshSuccess} error={refreshError} sx={{ mb: 2, mt: 0 }} />
+                        <AnimatePresence>
+                            {(refreshSuccess || refreshError) && (
+                                <Box sx={{ mb: 2 }}>
+                                    <StatusAlert success={refreshSuccess} error={refreshError} />
+                                </Box>
+                            )}
+                        </AnimatePresence>
                         <AdminTable
                             columns={columns}
                             data={items}
@@ -273,7 +434,7 @@ const GenericPriceActionTab = ({
                 message={modalConfig.message}
                 onConfirm={modalConfig.onConfirm}
             />
-        </>
+        </motion.div>
     );
 };
 

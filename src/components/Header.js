@@ -9,7 +9,6 @@ import {
   Box,
   useTheme,
   useMediaQuery,
-  IconButton,
   BottomNavigation,
   BottomNavigationAction,
   Paper,

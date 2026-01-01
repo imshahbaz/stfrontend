@@ -12,8 +12,7 @@ import {
   ToggleButtonGroup,
   useTheme,
   useMediaQuery,
-  Stack,
-  Divider
+  Stack
 } from '@mui/material';
 import { strategyAPI } from '../api/axios';
 import { GridView, TrendingUp, TrendingDown } from '@mui/icons-material';

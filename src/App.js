@@ -96,7 +96,7 @@ function AppContent() {
 
           <Box sx={{
             flexGrow: 1,
-            pb: isMobile ? '100px' : 0, // Padding for floating bottom nav
+            pb: isMobile ? '100px' : 0,
             display: 'flex',
             flexDirection: 'column'
           }}>
@@ -128,7 +128,6 @@ function AnimatedRoutes() {
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        {/* --- Public Routes --- */}
         <Route path="/" element={<PageWrapper><Home /></PageWrapper>} />
         <Route path="/login" element={<PageWrapper><Login /></PageWrapper>} />
         <Route path="/signup" element={<PageWrapper><Signup /></PageWrapper>} />
