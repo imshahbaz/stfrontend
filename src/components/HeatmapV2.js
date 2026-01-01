@@ -229,7 +229,7 @@ const HeatmapV2 = () => {
           </ToggleButtonGroup>
         </Box>
 
-        <Card sx={{ borderRadius: 6, overflow: 'hidden', border: `1px solid ${theme.palette.divider}`, bgcolor: 'background.paper' }}>
+        <Card sx={{ borderRadius: 2, overflow: 'hidden', border: `1px solid ${theme.palette.divider}`, bgcolor: 'background.paper' }}>
           <CardContent sx={{ p: isMobile ? 1 : 3 }}>
             <Chart
               options={options}
