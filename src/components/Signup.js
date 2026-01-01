@@ -18,6 +18,14 @@ const Signup = () => {
 
   const handleSendOtp = async (e) => {
     e.preventDefault();
+
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -25,11 +33,11 @@ const Signup = () => {
     setError('');
     setMessage('');
     try {
-      const response = await userAPI.signup(email, password, confirmPassword);
-      if (response.status === 200) {
-        setOtpSent(response.data.data.otpSent);
-        setMessage(response.data.message || 'OTP sent to your email');
-      }
+      // const response = await userAPI.signup(email, password, confirmPassword);
+      // if (response.status === 200) {
+      //   setOtpSent(response.data.data.otpSent);
+      //   setMessage(response.data.message || 'OTP sent to your email');
+      // }
     } catch (error) {
       if (error.response?.status === 409) {
         setOtpSent(true);
