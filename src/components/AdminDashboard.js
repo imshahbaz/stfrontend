@@ -8,9 +8,9 @@ import {
   Tab,
   useTheme,
   useMediaQuery,
-  Stack,
-  Fade
+  Stack
 } from '@mui/material';
+import { motion, AnimatePresence } from 'framer-motion';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import {
@@ -137,11 +137,17 @@ const AdminDashboard = () => {
 
           {/* TAB CONTENT */}
           <Box sx={{ px: { xs: 0, sm: 0 } }}>
-            <Fade in key={activeTab} timeout={400}>
-              <Box>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+              >
                 {tabs[activeTab].component}
-              </Box>
-            </Fade>
+              </motion.div>
+            </AnimatePresence>
           </Box>
 
         </Container>

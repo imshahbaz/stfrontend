@@ -20,7 +20,6 @@ import AdminFormContainer from '../shared/AdminFormContainer';
 import AdminListContainer from '../shared/AdminListContainer';
 import AdminTable from '../shared/AdminTable';
 import StatusAlert from '../shared/StatusAlert';
-import { motion } from 'framer-motion';
 
 const StrategiesTab = () => {
     const theme = useTheme();
@@ -201,7 +200,7 @@ const StrategiesTab = () => {
     );
 
     return (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+        <>
             <Grid container spacing={isMobile ? 0 : 3}>
                 <Grid item xs={12} md={6} sx={{ mb: isMobile ? 3 : 0, px: isMobile ? 2 : 0 }}>
                     <AdminFormContainer
@@ -334,7 +333,7 @@ const StrategiesTab = () => {
                 message={modalConfig.message}
                 onConfirm={modalConfig.onConfirm}
             />
-        </motion.div>
+        </>
     );
 };
 

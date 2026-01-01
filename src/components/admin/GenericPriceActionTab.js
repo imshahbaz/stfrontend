@@ -17,13 +17,13 @@ import {
 } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
-import { priceActionAPI, marginAPI } from '../../api/axios';
+import { marginAPI } from '../../api/axios';
 import ConfirmationModal from './ConfirmationModal';
 import AdminFormContainer from '../shared/AdminFormContainer';
 import AdminListContainer from '../shared/AdminListContainer';
 import AdminTable from '../shared/AdminTable';
 import StatusAlert from '../shared/StatusAlert';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 
 const GenericPriceActionTab = ({
     type, // 'fvg' or 'ob'
@@ -35,14 +35,15 @@ const GenericPriceActionTab = ({
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const [margins, setMargins] = useState([]);
+    const [items, setItems] = useState([]);
     const [form, setForm] = useState({ symbol: '', date: null, high: '', low: '' });
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState('');
     const [error, setError] = useState('');
-    const [items, setItems] = useState([]);
-    const [fetchLoading, setFetchLoading] = useState(false);
     const [editingId, setEditingId] = useState(null);
-    const [currentSymbol, setCurrentSymbol] = useState('');
+
+    // List fetching & refreshing states
+    const [fetchLoading, setFetchLoading] = useState(false);
     const [refreshLoading, setRefreshLoading] = useState(false);
     const [refreshSuccess, setRefreshSuccess] = useState('');
     const [refreshError, setRefreshError] = useState('');
@@ -57,40 +58,27 @@ const GenericPriceActionTab = ({
 
     const fetchMargins = async () => {
         try {
-            const response = await marginAPI.getAllMargins();
-            setMargins(response.data.data);
-        } catch (err) {
-            console.error("Error fetching margin data:", err);
-        }
+            const res = await marginAPI.getMargins();
+            setMargins(res.data.data.map(m => m.symbol));
+        } catch (err) { console.error(err); }
     };
 
     const fetchItems = async () => {
-        if (!form.symbol) {
-            setError(`Please select a symbol to fetch ${title}s.`);
-            return;
-        }
+        if (!form.symbol) return;
         setFetchLoading(true);
-        setSuccess('');
-        setError('');
         try {
-            const response = await priceActionAPI.getPriceActionBySymbol(form.symbol);
-            setItems(response.data.data[fetchKey] || []);
-            setCurrentSymbol(form.symbol);
-            setSuccess(`${title}s fetched successfully!`);
-        } catch (err) {
-            setError(err.response?.data?.message || `Failed to fetch ${title}s`);
-        } finally {
-            setFetchLoading(false);
-        }
+            const res = await apiMethods.get(form.symbol);
+            setItems(res.data.data || []);
+        } catch (err) { console.error(err); }
+        finally { setFetchLoading(false); }
     };
 
     const handleFormChange = (e) => {
-        const { name, value } = e.target;
-        setForm(prev => ({ ...prev, [name]: value }));
+        setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
-    const handleDateChange = (newValue) => {
-        setForm(prev => ({ ...prev, date: newValue }));
+    const handleDateChange = (newDate) => {
+        setForm(prev => ({ ...prev, date: newDate }));
     };
 
     const handleSubmit = async (e) => {
@@ -98,70 +86,40 @@ const GenericPriceActionTab = ({
         setLoading(true);
         setSuccess('');
         setError('');
-        const h = parseFloat(form.high);
-        const l = parseFloat(form.low);
-
-        if (h <= l) {
-            setError('High price must be greater than Low price.');
-            setLoading(false);
-            return;
-        }
-
         try {
             const payload = {
-                symbol: form.symbol,
-                date: form.date ? form.date.format('YYYY-MM-DD') : '',
-                high: h,
-                low: l
+                ...form,
+                date: form.date ? form.date.format('YYYY-MM-DD') : null
             };
             if (editingId) {
                 await apiMethods.update(payload);
-                setSuccess(`${title} updated!`);
+                setSuccess(`${title} entry updated!`);
             } else {
                 await apiMethods.create(payload);
-                setSuccess(`${title} added!`);
+                setSuccess(`${title} entry created!`);
             }
-            setForm({ ...form, date: null, high: '', low: '' });
-            setEditingId(null);
-            if (form.symbol) {
-                await fetchItems();
-            }
+            fetchItems();
+            handleCancel();
         } catch (err) {
             setError(err.response?.data?.message || `Failed to save ${title}`);
-        } finally {
-            setLoading(false);
-        }
+        } finally { setLoading(false); }
     };
 
     const handleEdit = (item) => {
         setForm({
-            symbol: currentSymbol,
+            symbol: item.symbol,
             date: dayjs(item.date),
-            high: item.high.toString(),
-            low: item.low.toString()
+            high: item.high,
+            low: item.low
         });
         setEditingId(item.date);
     };
 
     const handleDelete = async (item) => {
-        const payload = {
-            symbol: currentSymbol,
-            date: item.date,
-            high: item.high,
-            low: item.low
-        };
         try {
-            await apiMethods.delete(payload);
-            setSuccess(`${title} removed!`);
-            await fetchItems();
-        } catch (err) {
-            setError(err.response?.data?.message || `Failed to delete ${title}`);
-        }
-    };
-
-    const handleCancel = () => {
-        setForm({ ...form, date: null, high: '', low: '' });
-        setEditingId(null);
+            await apiMethods.delete(item.symbol, item.date);
+            fetchItems();
+        } catch (err) { console.error(err); }
     };
 
     const handleRefreshData = async () => {
@@ -170,12 +128,16 @@ const GenericPriceActionTab = ({
         setRefreshError('');
         try {
             await refreshApiMethod();
-            setRefreshSuccess('Market mitigation refreshed');
+            setRefreshSuccess('Sync operation completed successfully');
+            if (form.symbol) fetchItems();
         } catch (err) {
-            setRefreshError(err.response?.data?.message || 'Failed to refresh data');
-        } finally {
-            setRefreshLoading(false);
-        }
+            setRefreshError('Sync failed: Market data provider unavailable');
+        } finally { setRefreshLoading(false); }
+    };
+
+    const handleCancel = () => {
+        setForm({ ...form, date: null, high: '', low: '' });
+        setEditingId(null);
     };
 
     const handleOpenModal = (title, message, onConfirm) => {
@@ -187,12 +149,15 @@ const GenericPriceActionTab = ({
         '& .MuiOutlinedInput-root': {
             borderRadius: '16px',
             bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.01)',
+            transition: 'all 0.2s ease-in-out',
+            '&:hover': {
+                bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
+            }
         }
     };
 
     const columns = [
-        { field: 'symbol', label: 'Ticker', render: () => <Typography fontWeight="800" variant="body2">{currentSymbol}</Typography> },
-        { field: 'date', label: 'Date', render: (item) => <Chip label={item.date} size="small" variant="soft" sx={{ fontWeight: 700 }} /> },
+        { field: 'date', label: 'Detection Date', render: (item) => <Typography variant="body2" fontWeight="700">{item.date}</Typography> },
         { field: 'high', label: 'High', render: (item) => <Typography variant="body2" color="success.main" fontWeight="800">{item.high}</Typography> },
         { field: 'low', label: 'Low', render: (item) => <Typography variant="body2" color="error.main" fontWeight="800">{item.low}</Typography> },
         {
@@ -215,10 +180,15 @@ const GenericPriceActionTab = ({
     const renderMobileCard = (item) => (
         <Box sx={{ py: 0.5 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="body1" fontWeight="800">{item.date}</Typography>
-                <Chip label={currentSymbol} size="small" color="primary" sx={{ fontWeight: 800, borderRadius: '8px' }} />
+                <Typography variant="body1" fontWeight="800" color="primary">{item.symbol}</Typography>
+                <Chip
+                    label={item.date}
+                    variant="soft"
+                    size="small"
+                    sx={{ fontWeight: 800, borderRadius: '8px' }}
+                />
             </Box>
-            <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+            <Stack direction="row" spacing={1.5} sx={{ mb: 2 }}>
                 <Box sx={{ flex: 1, p: 1, borderRadius: '12px', bgcolor: 'success.main', color: 'white', textAlign: 'center' }}>
                     <Typography variant="caption" sx={{ display: 'block', opacity: 0.8 }}>HIGH</Typography>
                     <Typography variant="body2" fontWeight="900">{item.high}</Typography>
@@ -236,7 +206,7 @@ const GenericPriceActionTab = ({
     );
 
     return (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+        <>
             <Grid container spacing={isMobile ? 0 : 3}>
                 <Grid item xs={12} md={6} sx={{ mb: isMobile ? 3 : 0, px: isMobile ? 2 : 0 }}>
                     <AdminFormContainer
@@ -249,23 +219,23 @@ const GenericPriceActionTab = ({
                             <Autocomplete
                                 fullWidth
                                 options={margins}
-                                getOptionLabel={(o) => `${o.symbol} (${o.margin}x)`}
-                                value={margins.find(m => m.symbol === form.symbol) || null}
-                                onChange={(e, v) => setForm(prev => ({ ...prev, symbol: v?.symbol || '' }))}
-                                disabled={!!editingId}
+                                value={form.symbol}
+                                onChange={(e, val) => setForm(prev => ({ ...prev, symbol: val || '' }))}
                                 renderInput={(params) => (
                                     <TextField
                                         {...params}
-                                        label="Select Trading Pair"
-                                        variant="outlined"
+                                        label="Market Symbol"
                                         required
                                         sx={fieldStyle}
                                         InputProps={{
                                             ...params.InputProps,
                                             startAdornment: (
-                                                <InputAdornment position="start">
-                                                    <StoreRounded />
-                                                </InputAdornment>
+                                                <>
+                                                    <InputAdornment position="start">
+                                                        <StoreRounded />
+                                                    </InputAdornment>
+                                                    {params.InputProps.startAdornment}
+                                                </>
                                             ),
                                         }}
                                     />
@@ -276,26 +246,12 @@ const GenericPriceActionTab = ({
                                 label="Execution Date"
                                 value={form.date}
                                 onChange={handleDateChange}
-                                disabled={!!editingId}
-                                enableAccessibleFieldDOMStructure={false}
                                 slots={{
                                     textField: (params) => (
-                                        <TextField
-                                            {...params}
-                                            fullWidth
-                                            required
-                                            sx={fieldStyle}
-                                            InputProps={{
-                                                ...params.InputProps,
-                                                startAdornment: (
-                                                    <InputAdornment position="start">
-                                                        <CalendarMonthRounded />
-                                                    </InputAdornment>
-                                                ),
-                                            }}
-                                        />
+                                        <TextField {...params} variant="outlined" fullWidth required sx={fieldStyle} InputProps={{ ...params.InputProps, startAdornment: (<InputAdornment position="start"><CalendarMonthRounded /></InputAdornment>), }} />
                                     )
                                 }}
+                                enableAccessibleFieldDOMStructure={false}
                             />
 
                             <Stack direction="row" spacing={2}>
@@ -434,7 +390,7 @@ const GenericPriceActionTab = ({
                 message={modalConfig.message}
                 onConfirm={modalConfig.onConfirm}
             />
-        </motion.div>
+        </>
     );
 };
 
