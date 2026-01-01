@@ -8,13 +8,13 @@ import {
   CardContent,
   Button,
   CircularProgress,
-  Alert,
   Collapse,
   Skeleton,
   Grid,
 } from '@mui/material';
 import { TrendingUp } from '@mui/icons-material';
 import { useStrategies } from '../hooks/useStrategies';
+import StatusAlert from './shared/StatusAlert';
 
 const Strategies = memo(() => {
   const navigate = useNavigate();
@@ -96,7 +96,7 @@ const Strategies = memo(() => {
             </Box>
           )}
 
-          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+          <StatusAlert error={error} sx={{ mb: 2, mt: 0 }} />
 
           {/* STOCK DATA - Horizontal scroll on mobile ONLY */}
           <Box
