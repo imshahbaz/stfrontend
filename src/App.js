@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Box, Backdrop, CircularProgress, useMediaQuery } from '@mui/material';
 import createAppTheme from './theme';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // 1. Import Auth Context and Protected Route
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -24,10 +25,24 @@ import HeatmapV2 from './components/HeatmapV2';
 import AdsterraBanner from './components/AdsterraBanner';
 import { userPreferenceAPI } from "../src/api/axios";
 
+const PageWrapper = ({ children }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -10 }}
+    transition={{ duration: 0.3, ease: 'easeOut' }}
+    style={{ width: '100%', height: '100%' }}
+  >
+    {children}
+  </motion.div>
+);
+
 function App() {
-  return (<AuthProvider>
-    <AppContent />
-  </AuthProvider>)
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
 }
 
 function AppContent() {
@@ -37,7 +52,7 @@ function AppContent() {
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') || 'dark';
     if (user?.theme) {
-      const userTheme = user.theme === 'DARK' ? 'dark' : 'light'
+      const userTheme = user.theme === 'DARK' ? 'dark' : 'light';
       setTheme(userTheme);
       localStorage.setItem('theme', userTheme);
     } else if (savedTheme) {
@@ -70,38 +85,25 @@ function AppContent() {
     <ThemeProvider theme={muiTheme}>
       <CssBaseline />
       <Router>
-        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <Box sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: '100vh',
+          bgcolor: 'background.default',
+          position: 'relative'
+        }}>
           <Header toggleTheme={toggleTheme} theme={theme} />
-          <Box sx={{ flexGrow: 1, pb: { xs: '6rem', md: 0 }, }}>
-            <Routes>
-              {/* --- Public Routes --- */}
-              <Route path="/" element={<Home />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/strategies" element={<Strategies />} />
-              <Route path="/calculator" element={<Calculator />} />
-              <Route path="/heatmap" element={<HeatmapV2 />} />
-              <Route path="/chart/:symbol" element={<ChartPage />} />
 
-              {/* --- User Protected Routes --- */}
-              {/* These require the user to be logged in (any role) */}
-              <Route element={<ProtectedRoute />}>
-                <Route path="/settings" element={<Settings />} />
-              </Route>
-
-              {/* --- Admin Only Routes --- */}
-              {/* This requires the role in the DTO to be 'admin' */}
-              <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
-                <Route path="/admin/dashboard" element={<AdminDashboard />} />
-              </Route>
-
-              {/* Unauthorized page for non-admins */}
-              <Route path="/unauthorized" element={<Unauthorized showLogin={!user} />} />
-            </Routes>
+          <Box sx={{
+            flexGrow: 1,
+            pb: isMobile ? '100px' : 0, // Padding for floating bottom nav
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            <AnimatedRoutes />
           </Box>
 
-          {/* ADSTERRA BANNER PLACEMENT */}
-          {process.env.NODE_ENV === 'production' && !isMobile &&
+          {process.env.NODE_ENV === 'production' && !isMobile && (
             <Box sx={{
               width: '100%',
               display: 'flex',
@@ -110,12 +112,45 @@ function AppContent() {
               bgcolor: 'background.default'
             }}>
               <AdsterraBanner isMobile={isMobile} />
-            </Box>}
+            </Box>
+          )}
 
           {!isMobile && <Footer />}
         </Box>
       </Router>
     </ThemeProvider>
+  );
+}
+
+function AnimatedRoutes() {
+  const location = useLocation();
+
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        {/* --- Public Routes --- */}
+        <Route path="/" element={<PageWrapper><Home /></PageWrapper>} />
+        <Route path="/login" element={<PageWrapper><Login /></PageWrapper>} />
+        <Route path="/signup" element={<PageWrapper><Signup /></PageWrapper>} />
+        <Route path="/strategies" element={<PageWrapper><Strategies /></PageWrapper>} />
+        <Route path="/calculator" element={<PageWrapper><Calculator /></PageWrapper>} />
+        <Route path="/heatmap" element={<PageWrapper><HeatmapV2 /></PageWrapper>} />
+        <Route path="/chart/:symbol" element={<PageWrapper><ChartPage /></PageWrapper>} />
+
+        {/* --- User Protected Routes --- */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/settings" element={<PageWrapper><Settings /></PageWrapper>} />
+        </Route>
+
+        {/* --- Admin Only Routes --- */}
+        <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
+          <Route path="/admin/dashboard" element={<PageWrapper><AdminDashboard /></PageWrapper>} />
+        </Route>
+
+        {/* Unauthorized page for non-admins */}
+        <Route path="/unauthorized" element={<PageWrapper><Unauthorized showLogin={true} /></PageWrapper>} />
+      </Routes>
+    </AnimatePresence>
   );
 }
 
