@@ -35,6 +35,7 @@ const AdminDashboard = () => {
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
+    window.scrollTo({ top: 0, behavior: 'auto' });
   };
 
   const tabs = [

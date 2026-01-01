@@ -210,7 +210,6 @@ const Header = ({ toggleTheme, theme }) => {
               }}
             >
               <motion.div
-                layout
                 initial={false}
                 animate={{ x: theme === 'dark' ? 24 : 0 }}
                 transition={{ type: "spring", stiffness: 500, damping: 30 }}

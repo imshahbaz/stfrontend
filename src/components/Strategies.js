@@ -38,6 +38,13 @@ const Strategies = memo(() => {
     fetchStrategies();
   }, [fetchStrategies]);
 
+  // Scroll to top when strategy changes
+  useEffect(() => {
+    if (selectedStrategy) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [selectedStrategy]);
+
   const handleViewChart = (stock) => {
     navigate(`/chart/${stock.symbol}`);
   };

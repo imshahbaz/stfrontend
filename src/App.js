@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -24,6 +24,7 @@ import ChartPage from './components/ChartPage';
 import HeatmapV2 from './components/HeatmapV2';
 import AdsterraBanner from './components/AdsterraBanner';
 import { userPreferenceAPI } from "../src/api/axios";
+import ScrollToTop from './components/shared/ScrollToTop';
 
 const PageWrapper = ({ children }) => (
   <motion.div
@@ -47,18 +48,19 @@ function App() {
 
 function AppContent() {
   const { user, loading, login } = useAuth();
-  const [theme, setTheme] = useState('dark');
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('theme') || 'dark';
+  });
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') || 'dark';
     if (user?.theme) {
       const userTheme = user.theme === 'DARK' ? 'dark' : 'light';
-      setTheme(userTheme);
-      localStorage.setItem('theme', userTheme);
-    } else if (savedTheme) {
-      setTheme(savedTheme);
+      if (theme !== userTheme) {
+        setTheme(userTheme);
+        localStorage.setItem('theme', userTheme);
+      }
     }
-  }, [user]);
+  }, [user, theme]);
 
   const toggleTheme = () => {
     const newTheme = theme === 'dark' ? 'light' : 'dark';
@@ -70,7 +72,7 @@ function AppContent() {
     }
   };
 
-  const muiTheme = createAppTheme(theme);
+  const muiTheme = useMemo(() => createAppTheme(theme), [theme]);
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
 
   if (loading) {
@@ -85,6 +87,7 @@ function AppContent() {
     <ThemeProvider theme={muiTheme}>
       <CssBaseline />
       <Router>
+        <ScrollToTop />
         <Box sx={{
           display: 'flex',
           flexDirection: 'column',
