@@ -127,7 +127,8 @@ const Calculator = () => {
       roi: ((netProfit / marginUsed) * 100).toFixed(2),
       isProfit: netProfit >= 0,
       shares: shares,
-      symbol: selectedSymbolRaw
+      symbol: selectedSymbolRaw,
+      sellPrice: ((sellType === 'exact') ? -1 : sp).toFixed(2)
     });
 
     setView('results');
@@ -269,6 +270,8 @@ const Calculator = () => {
               <DetailRow label="Total Value (Leveraged)" value={`₹ ${results.totalValue}`} />
               <DetailRow label="Capital Required" value={`₹ ${results.margin}`} bold />
               <DetailRow label="Shares Bought" value={results.shares} />
+              {results.sellPrice > 0 &&
+                <DetailRow label="Target Price" value={results.sellPrice} />}
             </Stack>
           </Paper>
 
