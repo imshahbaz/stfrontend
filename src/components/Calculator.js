@@ -5,21 +5,22 @@ import {
   RadioGroup, FormControlLabel, Radio, FormControl, FormLabel,
   Autocomplete, Divider, Stack, Paper
 } from '@mui/material';
-import { 
-  Calculate, 
-  ArrowForward, 
-  ArrowBack, 
-  ReceiptLong, 
-  AccountBalanceWallet, 
+import {
+  Calculate,
+  ArrowForward,
+  ArrowBack,
+  ReceiptLong,
+  AccountBalanceWallet,
   Edit,
-  RestartAlt 
+  RestartAlt
 } from '@mui/icons-material';
+import DetailRow from './shared/DetailRow';
 
 const Calculator = () => {
   // View States
-  const [view, setView] = useState('form'); 
+  const [view, setView] = useState('form');
   const [activeStep, setActiveStep] = useState(1);
-  
+
   // Data States
   const [margins, setMargins] = useState([]);
   const [selectedLeverage, setSelectedLeverage] = useState('');
@@ -30,7 +31,7 @@ const Calculator = () => {
   const [daysHeld, setDaysHeld] = useState(0);
   const [quantity, setQuantity] = useState('');
   const [quantityType, setQuantityType] = useState('quantity');
-  
+
   // Calculation & UI States
   const [results, setResults] = useState(null);
   const [errors, setErrors] = useState({});
@@ -39,7 +40,7 @@ const Calculator = () => {
     const fetchMargins = async () => {
       try {
         const response = await marginAPI.getAllMargins();
-        setMargins(response.data);
+        setMargins(response.data.data);
       } catch (error) {
         console.error("Error fetching margin data:", error);
       }
@@ -51,15 +52,15 @@ const Calculator = () => {
     const newErrors = {};
     if (step === 1) {
       if (!selectedSymbolRaw) newErrors.selectedLeverage = 'Stock selection is required';
-      if (!buyPrice || isNaN(parseFloat(buyPrice)) || parseFloat(buyPrice) <= 0) 
+      if (!buyPrice || isNaN(parseFloat(buyPrice)) || parseFloat(buyPrice) <= 0)
         newErrors.buyPrice = 'Enter a valid buy price';
-      if (!sellPrice || isNaN(parseFloat(sellPrice)) || parseFloat(sellPrice) <= 0) 
+      if (!sellPrice || isNaN(parseFloat(sellPrice)) || parseFloat(sellPrice) <= 0)
         newErrors.sellPrice = 'Enter a valid sell target';
     }
     if (step === 2) {
-      if (daysHeld === '' || isNaN(parseInt(daysHeld)) || parseInt(daysHeld) < 0) 
+      if (daysHeld === '' || isNaN(parseInt(daysHeld)) || parseInt(daysHeld) < 0)
         newErrors.daysHeld = 'Enter valid holding days (min 0)';
-      if (!quantity || isNaN(parseFloat(quantity)) || parseFloat(quantity) <= 0) 
+      if (!quantity || isNaN(parseFloat(quantity)) || parseFloat(quantity) <= 0)
         newErrors.quantity = quantityType === 'quantity' ? 'Enter quantity' : 'Enter capital amount';
     }
     setErrors(newErrors);
@@ -110,9 +111,9 @@ const Calculator = () => {
     const mtfInterest = (fundedAmt * 0.15 * days) / 365;
     const netProfit = grossProfit - mtfInterest - totalCharges;
 
-    const f = (n) => new Intl.NumberFormat('en-IN', { 
-        minimumFractionDigits: 2, 
-        maximumFractionDigits: 2 
+    const f = (n) => new Intl.NumberFormat('en-IN', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     }).format(n);
 
     setResults({
@@ -126,9 +127,10 @@ const Calculator = () => {
       roi: ((netProfit / marginUsed) * 100).toFixed(2),
       isProfit: netProfit >= 0,
       shares: shares,
-      symbol: selectedSymbolRaw
+      symbol: selectedSymbolRaw,
+      sellPrice: ((sellType === 'exact') ? -1 : sp).toFixed(2)
     });
-    
+
     setView('results');
   };
 
@@ -139,7 +141,7 @@ const Calculator = () => {
           <Box sx={{ p: 3, textAlign: 'center', bgcolor: 'primary.main', color: 'white' }}>
             <Typography variant="h5" fontWeight="800">Trade Calculator</Typography>
             <Typography variant="caption" sx={{ opacity: 0.9 }}>
-                Step {activeStep} of 2: {activeStep === 1 ? 'Asset Details' : 'Position Sizing'}
+              Step {activeStep} of 2: {activeStep === 1 ? 'Asset Details' : 'Position Sizing'}
             </Typography>
           </Box>
 
@@ -151,45 +153,44 @@ const Calculator = () => {
                   options={margins}
                   getOptionLabel={(o) => `${o.symbol} (${o.margin}x)`}
                   value={margins.find(m => m.symbol === selectedSymbolRaw) || null}
-                  onChange={(e, v) => { 
-                    setSelectedLeverage(v?.margin || ''); 
-                    setSelectedSymbolRaw(v?.symbol || ''); 
-                    setErrors(prev => ({ ...prev, selectedLeverage: '' })); 
+                  onChange={(e, v) => {
+                    setSelectedLeverage(v?.margin || '');
+                    setSelectedSymbolRaw(v?.symbol || '');
+                    setErrors(prev => ({ ...prev, selectedLeverage: '' }));
                   }}
                   renderInput={(params) => (
-                    <TextField {...params} label="Select Stock" variant="outlined" required 
-                      error={!!errors.selectedLeverage} helperText={errors.selectedLeverage} 
+                    <TextField {...params} label="Select Stock" variant="outlined" required
+                      error={!!errors.selectedLeverage} helperText={errors.selectedLeverage}
                     />
                   )}
                 />
-                
-                {/* Updated Part 1 inputs to match Part 2 (Full width stacked) */}
-                <TextField 
-                  fullWidth 
-                  label="Buy Price" 
-                  type="number" 
-                  value={buyPrice} 
-                  onChange={e => { setBuyPrice(e.target.value); setErrors(prev => ({ ...prev, buyPrice: '' })); }} 
-                  required 
-                  error={!!errors.buyPrice} 
-                  helperText={errors.buyPrice} 
+
+                <TextField
+                  fullWidth
+                  label="Buy Price"
+                  type="number"
+                  value={buyPrice}
+                  onChange={e => { setBuyPrice(e.target.value); setErrors(prev => ({ ...prev, buyPrice: '' })); }}
+                  required
+                  error={!!errors.buyPrice}
+                  helperText={errors.buyPrice}
                 />
 
-                <TextField 
-                  fullWidth 
-                  label={sellType === 'exact' ? "Sell Price" : "Profit %"} 
-                  type="number" 
-                  value={sellPrice} 
-                  onChange={e => { setSellPrice(e.target.value); setErrors(prev => ({ ...prev, sellPrice: '' })); }} 
-                  required 
-                  error={!!errors.sellPrice} 
-                  helperText={errors.sellPrice} 
+                <TextField
+                  fullWidth
+                  label={sellType === 'exact' ? "Sell Price" : "Profit %"}
+                  type="number"
+                  value={sellPrice}
+                  onChange={e => { setSellPrice(e.target.value); setErrors(prev => ({ ...prev, sellPrice: '' })); }}
+                  required
+                  error={!!errors.sellPrice}
+                  helperText={errors.sellPrice}
                 />
 
                 <FormControl component="fieldset">
                   <FormLabel sx={{ fontWeight: 700, mb: 1, fontSize: '0.75rem', color: 'text.secondary' }}>SELL CALCULATION BY</FormLabel>
                   <RadioGroup row value={sellType} onChange={e => setSellType(e.target.value)}>
-                    <FormControlLabel value="exact" control={<Radio size="small"/>} label="Price" />
+                    <FormControlLabel value="exact" control={<Radio size="small" />} label="Price" />
                     <FormControlLabel value="percent" control={<Radio size="small" />} label="Percent" />
                   </RadioGroup>
                 </FormControl>
@@ -200,11 +201,11 @@ const Calculator = () => {
               </Stack>
             ) : (
               <Stack spacing={4}>
-                <TextField fullWidth label="Holding Duration (Days)" type="number" value={daysHeld} 
-                  onChange={e => { setDaysHeld(e.target.value); setErrors(prev => ({ ...prev, daysHeld: '' })); }} 
-                  required error={!!errors.daysHeld} helperText={errors.daysHeld} 
+                <TextField fullWidth label="Holding Duration (Days)" type="number" value={daysHeld}
+                  onChange={e => { setDaysHeld(e.target.value); setErrors(prev => ({ ...prev, daysHeld: '' })); }}
+                  required error={!!errors.daysHeld} helperText={errors.daysHeld}
                 />
-                
+
                 <TextField
                   fullWidth
                   label={quantityType === 'quantity' ? "Number of Shares" : "Investment Capital"}
@@ -240,22 +241,22 @@ const Calculator = () => {
             <Typography variant="h6" sx={{ opacity: 0.9 }}>{results.roi}% Return on Margin</Typography>
 
             <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
-                <Button 
-                    onClick={() => { setView('form'); setActiveStep(1); }} 
-                    fullWidth 
-                    variant="contained" 
-                    sx={{ borderRadius: 2 }} 
-                    startIcon={<Edit />}
-                >
-                    Edit Trade
-                </Button>
-                <Button 
-                    onClick={() => { resetForm(); setView('form'); }} 
-                    variant="contained" 
-                    sx={{ borderRadius: 2 }} 
-                >
-                    <RestartAlt />
-                </Button>
+              <Button
+                onClick={() => { setView('form'); setActiveStep(1); }}
+                fullWidth
+                variant="contained"
+                sx={{ borderRadius: 2 }}
+                startIcon={<Edit />}
+              >
+                Edit Trade
+              </Button>
+              <Button
+                onClick={() => { resetForm(); setView('form'); }}
+                variant="contained"
+                sx={{ borderRadius: 2 }}
+              >
+                <RestartAlt />
+              </Button>
             </Stack>
           </Card>
 
@@ -269,6 +270,8 @@ const Calculator = () => {
               <DetailRow label="Total Value (Leveraged)" value={`₹ ${results.totalValue}`} />
               <DetailRow label="Capital Required" value={`₹ ${results.margin}`} bold />
               <DetailRow label="Shares Bought" value={results.shares} />
+              {results.sellPrice > 0 &&
+                <DetailRow label="Target Price" value={results.sellPrice} />}
             </Stack>
           </Paper>
 
@@ -288,12 +291,5 @@ const Calculator = () => {
     </Container>
   );
 };
-
-const DetailRow = ({ label, value, bold }) => (
-  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-    <Typography variant="body2" color="text.secondary">{label}</Typography>
-    <Typography variant="body2" fontWeight={bold ? 900 : 600}>{value}</Typography>
-  </Box>
-);
 
 export default Calculator;

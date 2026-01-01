@@ -13,7 +13,7 @@ export const AuthProvider = ({ children }) => {
     const refreshUserData = async () => {
         try {
             const res = await authAPI.getMe();
-            setUser(res.data);
+            setUser(res.data.data);
         } catch (err) {
             // Only clear user if the error is an Auth error (401/403)
             if (err.response?.status === 401 || err.response?.status === 403) {

@@ -31,7 +31,7 @@ export const authAPI = {
 };
 
 export const userPreferenceAPI = {
-  updateUsername: (userId, username) => api.patch('/api/user/username', { userId, username }),
+  updateUsername: (userId, username, password) => api.patch('/api/user/username', { userId, username, password }),
   updateTheme: (theme) => api.patch('/api/user/theme', { theme }),
 }
 
@@ -39,6 +39,8 @@ export const userPreferenceAPI = {
 export const userAPI = {
   signup: (email, password, confirmPassword) => api.post('/api/auth/signup', { email, password, confirmPassword }),
   verifyOtp: (email, otp) => api.post('/api/auth/verify-otp', { email, otp }),
+  linkEmail: (userId, email, password, confirmPassword) => api.post('/api/user/send-update-otp', { userId, email, password, confirmPassword }),
+  verifyUpdateOtp: (email, otp) => api.post('/api/user/verify-update-otp', { email, otp }),
 };
 
 // Strategy API methods
@@ -59,11 +61,7 @@ export const strategyAPI = {
 // Margin API methods
 export const marginAPI = {
   getAllMargins: () => api.get('/api/margin/all'),
-  loadFromCsv: (formData) => api.post('/api/margin/load-from-csv', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  }),
+  loadFromCsv: (formData) => api.post('/api/margin/load-from-csv', formData),
 };
 
 // Config API methods

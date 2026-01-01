@@ -13,7 +13,7 @@ export const useChartData = () => {
 
     try {
       const response = await strategyAPI.fetchChartData(symbol);
-      setChartData(response.data);
+      setChartData(response.data.data);
     } catch (error) {
       if (retryCount < 2) {
         setTimeout(() => fetchChartData(symbol, retryCount + 1), 1000 * (retryCount + 1));

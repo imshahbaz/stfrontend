@@ -1,104 +1,55 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Container,
-  Box,
-  Typography,
-  Card,
-  CardContent,
-  Grid,
-  Fade,
-} from '@mui/material';
-import { TrendingUp, Calculate,Map as MapIcon } from '@mui/icons-material';
+import { Container, Box, Typography, Grid, Fade } from '@mui/material';
+import { TrendingUp, Calculate, Map as MapIcon } from '@mui/icons-material';
+import ActionCard from './shared/ActionCard';
 
 const Home = () => {
   const navigate = useNavigate();
 
+  const actions = [
+    {
+      title: 'Screener',
+      description: 'Scan and analyze the market with our advanced strategy tools.',
+      icon: TrendingUp,
+      path: '/strategies'
+    },
+    {
+      title: 'Calculator',
+      description: 'Calculate returns and analyze trades with our advanced calculator.',
+      icon: Calculate,
+      path: '/calculator'
+    },
+    {
+      title: 'Market Heat Map',
+      description: 'Visualize real-time performance of Nifty indices.',
+      icon: MapIcon,
+      path: '/heatmap'
+    }
+  ];
+
   return (
     <Fade in={true} timeout={1000}>
-      <Container maxWidth="lg" sx={{ flexGrow: 1, py: 5 }}>
-        <Box sx={{ textAlign: 'center', mb: 5 }}>
-          <Typography variant="h2" component="h1" color="primary" gutterBottom>
-            Welcome to Shahbaz Trades Application
+      <Container maxWidth="lg" sx={{ flexGrow: 1, py: 8 }}>
+        <Box sx={{ textAlign: 'center', mb: 8 }}>
+          <Typography variant="h2" component="h1" color="primary" gutterBottom fontWeight="900" sx={{ fontSize: { xs: '2.5rem', md: '3.75rem' } }}>
+            Shahbaz Trades
           </Typography>
-          <Typography variant="h5" color="text.secondary">
-            Your premier destination for seamless trading experiences.
+          <Typography variant="h5" color="text.secondary" sx={{ maxWidth: '700px', mx: 'auto', fontWeight: 500 }}>
+            Your premier destination for seamless trading experiences and advanced market analysis.
           </Typography>
         </Box>
 
         <Grid container spacing={4} justifyContent="center">
-          <Grid item xs={12} md={6} lg={4}>
-            <Card
-              sx={{
-                height: '100%',
-                cursor: 'pointer',
-                transition: 'transform 0.2s',
-                '&:hover': {
-                  transform: 'scale(1.05)',
-                  boxShadow: 6,
-                },
-              }}
-              onClick={() => navigate('/strategies')}
-            >
-              <CardContent sx={{ textAlign: 'center', p: 3 }}>
-                <TrendingUp sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
-                <Typography variant="h5" component="h3" color="primary" gutterBottom>
-                  Screener
-                </Typography>
-                <Typography variant="body1" color="text.secondary">
-                  Scan and analyze the market with our advanced strategy tools.
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={6} lg={4}>
-            <Card
-              sx={{
-                height: '100%',
-                cursor: 'pointer',
-                transition: 'transform 0.2s',
-                '&:hover': {
-                  transform: 'scale(1.05)',
-                  boxShadow: 6,
-                },
-              }}
-              onClick={() => navigate('/calculator')}
-            >
-              <CardContent sx={{ textAlign: 'center', p: 3 }}>
-                <Calculate sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
-                <Typography variant="h5" component="h3" color="primary" gutterBottom>
-                  Calculator
-                </Typography>
-                <Typography variant="body1" color="text.secondary">
-                  Calculate returns and analyze trades with our advanced calculator.
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-           <Grid item xs={12} md={6} lg={4}>
-            <Card
-              sx={{
-                height: '100%',
-                cursor: 'pointer',
-                transition: 'transform 0.2s',
-                '&:hover': {
-                  transform: 'scale(1.05)',
-                  boxShadow: 6,
-                },
-              }}
-              onClick={() => navigate('/heatmap')}
-            >
-              <CardContent sx={{ textAlign: 'center', p: 3 }}>
-                <MapIcon sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
-                <Typography variant="h5" component="h3" color="primary" gutterBottom>
-                  Market Heat Map
-                </Typography>
-                <Typography variant="body1" color="text.secondary">
-                  Visualize real-time performance of Nifty indices.
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
+          {actions.map((action, idx) => (
+            <ActionCard
+              key={idx}
+              title={action.title}
+              description={action.description}
+              icon={action.icon}
+              onClick={() => navigate(action.path)}
+            />
+          ))}
         </Grid>
       </Container>
     </Fade>
