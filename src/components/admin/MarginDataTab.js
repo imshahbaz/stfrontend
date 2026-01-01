@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Box, Paper, Typography, Button, Alert } from '@mui/material';
+import { Box, Paper, Typography, Button } from '@mui/material';
 import { CloudUpload } from '@mui/icons-material';
 import { marginAPI } from '../../api/axios';
+import StatusAlert from '../shared/StatusAlert';
 
 const MarginDataTab = () => {
     const [file, setFile] = useState(null);
@@ -13,12 +14,14 @@ const MarginDataTab = () => {
         const fd = new FormData();
         fd.append('file', file);
         setUploading(true);
+        setSuccessMessage('');
+        setErrorMessage('');
         try {
             await marginAPI.loadFromCsv(fd);
             setSuccessMessage('Upload Success!');
             setFile(null);
         } catch (e) {
-            setErrorMessage('Failed');
+            setErrorMessage('Failed to upload data');
         } finally {
             setUploading(false);
         }
@@ -37,9 +40,7 @@ const MarginDataTab = () => {
                 <Button variant="contained" fullWidth disabled={!file || uploading} onClick={handleUpload}>
                     {uploading ? 'Processing...' : 'Upload & Load'}
                 </Button>
-                {(successMessage || errorMessage) && (
-                    <Alert severity={successMessage ? "success" : "error"} sx={{ mt: 2 }}>{successMessage || errorMessage}</Alert>
-                )}
+                <StatusAlert success={successMessage} error={errorMessage} />
             </Paper>
         </Box>
     );

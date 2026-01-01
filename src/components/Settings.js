@@ -9,12 +9,10 @@ import {
   CardHeader,
   TextField,
   Button,
-  Alert,
-  IconButton,
-  Collapse,
   Grid,
 } from '@mui/material';
-import { Email, Person, Save, Close, Settings as SettingsIcon } from '@mui/icons-material';
+import { Email, Person, Save, Settings as SettingsIcon } from '@mui/icons-material';
+import StatusAlert from './shared/StatusAlert';
 
 const Settings = () => {
   const { user, login } = useAuth();
@@ -65,43 +63,7 @@ const Settings = () => {
               sx={{ backgroundColor: 'primary.main', color: 'primary.contrastText' }}
             />
             <CardContent sx={{ p: 3 }}>
-              <Collapse in={!!successMessage}>
-                <Alert
-                  severity="success"
-                  action={
-                    <IconButton
-                      aria-label="close"
-                      color="inherit"
-                      size="small"
-                      onClick={() => setSuccessMessage('')}
-                    >
-                      <Close fontSize="inherit" />
-                    </IconButton>
-                  }
-                  sx={{ mb: 2 }}
-                >
-                  {successMessage}
-                </Alert>
-              </Collapse>
-
-              <Collapse in={!!errorMessage}>
-                <Alert
-                  severity="error"
-                  action={
-                    <IconButton
-                      aria-label="close"
-                      color="inherit"
-                      size="small"
-                      onClick={() => setErrorMessage('')}
-                    >
-                      <Close fontSize="inherit" />
-                    </IconButton>
-                  }
-                  sx={{ mb: 2 }}
-                >
-                  {errorMessage}
-                </Alert>
-              </Collapse>
+              <StatusAlert success={successMessage} error={errorMessage} sx={{ mb: 2, mt: 0 }} />
 
               <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
                 <TextField
