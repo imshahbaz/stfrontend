@@ -3,27 +3,24 @@ import { useNavigate } from 'react-router-dom';
 import { truecallerAPI } from '../api/axios';
 import useTruecallerPolling from '../hooks/useTruecallerPolling';
 import {
-  Box,
   Button,
-  Typography,
   CircularProgress,
+  useTheme,
 } from '@mui/material';
 import { PhoneAndroid } from '@mui/icons-material';
 
 const TruecallerLogin = ({ login, user, loading, isLoading: externalIsLoading = false, isLogin }) => {
   const navigate = useNavigate();
-  const [status, setStatus] = useState('');
+  const theme = useTheme();
   const [internalIsLoading, setInternalIsLoading] = useState(false);
   const isLoading = externalIsLoading || internalIsLoading;
-  const { status: pollingStatus, startPolling, clearPolling } = useTruecallerPolling(
+  const { startPolling, clearPolling } = useTruecallerPolling(
     (data) => {
-      setStatus('Login Successful!');
       setInternalIsLoading(false);
       login(data);
     },
     (error) => {
       console.error('Truecaller polling error:', error);
-      setStatus('Verification failed. Please try again.');
       setInternalIsLoading(false);
     }
   );
@@ -34,22 +31,16 @@ const TruecallerLogin = ({ login, user, loading, isLoading: externalIsLoading = 
     }
   }, [user, loading, navigate]);
 
-  useEffect(() => {
-    setStatus(pollingStatus);
-  }, [pollingStatus]);
-
   const generateNonce = () => crypto.randomUUID();
 
   const handleLogin = () => {
     const requestId = generateNonce();
 
-    setStatus('Opening Truecaller...');
     setInternalIsLoading(true);
     window.location.href = truecallerAPI.truecallerLogin(requestId);
 
     setTimeout(() => {
       if (document.hasFocus()) {
-        setStatus('Truecaller app not found. Please try another method.');
         setInternalIsLoading(false);
         clearPolling();
       } else {
@@ -59,43 +50,38 @@ const TruecallerLogin = ({ login, user, loading, isLoading: externalIsLoading = 
   };
 
   return (
-    <Box sx={{ textAlign: 'center', mt: 2 }}>
-      <Button
-        fullWidth
-        onClick={handleLogin}
-        disabled={isLoading}
-        startIcon={
-          isLoading ? (
-            <CircularProgress size={20} sx={{ color: 'white' }} />
-          ) : (
-            <PhoneAndroid sx={{ color: 'white' }} />
-          )
-        }
-        sx={{
-          backgroundColor: '#0087FF',
-          color: 'white',
-          fontWeight: 'medium',
-          fontFamily: 'Roboto, Inter, sans-serif',
-          boxShadow: 2,
-          transition: 'all 0.2s',
-          '&:hover': {
-            backgroundColor: '#0073DB',
-          },
-          '&:active': {
-            transform: 'scale(0.95)',
-          },
-          opacity: isLoading ? 0.7 : 1,
-          mb: 1,
-        }}
-      >
-        {isLoading ? 'Verifying...' : isLogin ? 'Login with Truecaller' : 'Sign up with Truecaller'}
-      </Button>
-      {status && !isLoading && (
-        <Typography variant="body2" color="text.secondary">
-          {status}
-        </Typography>
-      )}
-    </Box>
+    <Button
+      fullWidth
+      variant="outlined"
+      startIcon={
+        isLoading ? (
+          <CircularProgress size={20} />
+        ) : (
+          <PhoneAndroid />
+        )
+      }
+      onClick={handleLogin}
+      disabled={isLoading}
+      sx={{
+        py: 1.8,
+        borderRadius: '16px',
+        fontSize: '1rem',
+        fontWeight: '700',
+        textTransform: 'none',
+        borderColor: theme.palette.divider,
+        color: theme.palette.text.primary,
+        '&:hover': {
+          borderColor: theme.palette.primary.main,
+          bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
+        },
+        '& .MuiButton-startIcon': {
+          color: '#0087FF',
+        },
+        opacity: isLoading ? 0.7 : 1,
+      }}
+    >
+      {isLoading ? 'Verifying...' : 'Continue with Truecaller'}
+    </Button>
   );
 };
 
