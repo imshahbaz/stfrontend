@@ -25,6 +25,9 @@ import HeatmapV2 from './components/HeatmapV2';
 import AdsterraBanner from './components/AdsterraBanner';
 import { userPreferenceAPI } from "../src/api/axios";
 import ScrollToTop from './components/shared/ScrollToTop';
+import { GoogleOAuthProvider } from '@react-oauth/google';
+
+const googleClientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
 
 const PageWrapper = ({ children }) => (
   <motion.div
@@ -48,9 +51,11 @@ const PageWrapper = ({ children }) => (
 
 function App() {
   return (
+    <GoogleOAuthProvider clientId={googleClientId}>
     <AuthProvider>
       <AppContent />
     </AuthProvider>
+    </GoogleOAuthProvider>
   );
 }
 

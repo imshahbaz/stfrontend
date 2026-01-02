@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import TruecallerLogin from '../TruecallerLogin';
+import GoogleLogin from '../GoogleLogin';
 
 const AuthWrapper = ({ title, subtitle, children, isLogin }) => {
     const navigate = useNavigate();
@@ -129,6 +130,10 @@ const AuthWrapper = ({ title, subtitle, children, isLogin }) => {
 
                         <Box sx={{ mb: 4 }}>
                             <TruecallerLogin login={login} user={user} loading={loading} isLogin={isLogin} />
+                        </Box>
+
+                        <Box sx={{ mb: 4 }}>
+                            <GoogleLogin />
                         </Box>
 
                         <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
