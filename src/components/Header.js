@@ -72,6 +72,7 @@ const Header = ({ toggleTheme, theme }) => {
     >
       <Box sx={{ p: 4, pt: 6, textAlign: 'center' }}>
         <Avatar
+          src={user?.profile}
           sx={{
             width: 80,
             height: 80,
@@ -282,8 +283,12 @@ const Header = ({ toggleTheme, theme }) => {
           sx: {
             borderTopLeftRadius: 24,
             borderBottomLeftRadius: 24,
-            boxShadow: '-10px 0 30px rgba(0,0,0,0.1)'
+            boxShadow: '-10px 0 30px rgba(0,0,0,0.1)',
+            zIndex: muiTheme.zIndex.drawer + 2
           }
+        }}
+        sx={{
+          zIndex: muiTheme.zIndex.drawer + 2
         }}
       >
         {drawerContent}
