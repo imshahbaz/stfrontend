@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   Container,
   Box,
@@ -17,16 +17,11 @@ import {
   DashboardRounded,
   SettingsRounded,
   ListAltRounded,
-  StorageRounded,
-  TrendingUpRounded,
-  AutoGraphRounded
-} from '@mui/icons-material';
+  StorageRounded} from '@mui/icons-material';
 
 import StrategiesTab from './admin/StrategiesTab';
 import MarginDataTab from './admin/MarginDataTab';
 import SystemConfigTab from './admin/SystemConfigTab';
-import OrderBlockTab from './admin/OrderBlockTab';
-import FvgTab from './admin/FvgTab';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -42,8 +37,8 @@ const AdminDashboard = () => {
     { label: 'Strategies', icon: <ListAltRounded />, component: <StrategiesTab /> },
     { label: 'Margin Data', icon: <StorageRounded />, component: <MarginDataTab /> },
     { label: 'System Config', icon: <SettingsRounded />, component: <SystemConfigTab /> },
-    { label: 'OB (Order Block)', icon: <TrendingUpRounded />, component: <OrderBlockTab /> },
-    { label: 'FVG (Fair Value Gap)', icon: <AutoGraphRounded />, component: <FvgTab /> },
+    //{ label: 'OB (Order Block)', icon: <TrendingUpRounded />, component: <OrderBlockTab /> },
+    //{ label: 'FVG (Fair Value Gap)', icon: <AutoGraphRounded />, component: <FvgTab /> },
   ];
 
   return (

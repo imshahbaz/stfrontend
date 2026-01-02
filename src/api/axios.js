@@ -93,7 +93,7 @@ export const truecallerAPI = {
 }
 
 export const googleAPI = {
-  googleCallback: (code,random) => api.get("/api/auth/google/callback", {
+  googleCallback: (code, random) => api.get("/api/auth/google/callback", {
     params: {
       code: code,
       state: random
