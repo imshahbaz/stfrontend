@@ -282,8 +282,12 @@ const Header = ({ toggleTheme, theme }) => {
           sx: {
             borderTopLeftRadius: 24,
             borderBottomLeftRadius: 24,
-            boxShadow: '-10px 0 30px rgba(0,0,0,0.1)'
+            boxShadow: '-10px 0 30px rgba(0,0,0,0.1)',
+            zIndex: muiTheme.zIndex.drawer + 2
           }
+        }}
+        sx={{
+          zIndex: muiTheme.zIndex.drawer + 2
         }}
       >
         {drawerContent}
