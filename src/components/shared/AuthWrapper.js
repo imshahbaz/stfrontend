@@ -23,11 +23,11 @@ const AuthWrapper = ({ title, subtitle, children, isLogin }) => {
 
     useEffect(() => {
         if (!loading && user) {
-            navigate('/');
+            navigate('/', { replace: true });
         }
     }, [user, loading, navigate]);
 
-    if (loading) {
+    if (loading || user) {
         return (
             <Container maxWidth="sm" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
                 <CircularProgress size={60} thickness={4} />
