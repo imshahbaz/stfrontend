@@ -30,7 +30,8 @@ import StatusAlert from './shared/StatusAlert';
 import { motion } from 'framer-motion';
 
 const Settings = () => {
-  const { user, login, refreshUserData } = useAuth();
+  const { user, login, refreshUserData, appConfig } = useAuth();
+  const { auth } = appConfig
   const theme = useTheme();
 
   // Profile Form States
@@ -228,20 +229,21 @@ const Settings = () => {
               <Box component="form" onSubmit={handleUpdateUsername}>
                 <StatusAlert success={profileSuccess} error={profileError} sx={{ mb: 3 }} />
 
-                <TextField
-                  fullWidth
-                  label="Email Address"
-                  value={user?.email || 'Not Provided'}
-                  disabled
-                  sx={{ ...fieldStyle, mb: 3 }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <EmailRounded color="disabled" />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
+                {auth.email &&
+                  <TextField
+                    fullWidth
+                    label="Email Address"
+                    value={user?.email || 'Not Provided'}
+                    disabled
+                    sx={{ ...fieldStyle, mb: 3 }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <EmailRounded color="disabled" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />}
 
                 <TextField
                   fullWidth
@@ -280,7 +282,7 @@ const Settings = () => {
             </Paper>
 
             {/* SECURITY SECTION */}
-            {!isEmailPresent && (
+            {auth.email && !isEmailPresent && (
               <Paper elevation={0} sx={{
                 p: 3,
                 borderRadius: '24px',

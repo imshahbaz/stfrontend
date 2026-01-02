@@ -18,7 +18,8 @@ const AuthWrapper = ({ title, subtitle, children, isLogin }) => {
     const navigate = useNavigate();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-    const { user, loading, login } = useAuth();
+    const { user, loading, login, appConfig } = useAuth();
+    const { auth } = appConfig;
 
     useEffect(() => {
         if (!loading && user) {
@@ -128,23 +129,26 @@ const AuthWrapper = ({ title, subtitle, children, isLogin }) => {
                             </Typography>
                         </Box>
 
-                        <Box sx={{ mb: 4 }}>
-                            <TruecallerLogin login={login} user={user} loading={loading} isLogin={isLogin} />
-                        </Box>
+                        {auth.truecaller &&
+                            <Box sx={{ mb: 4 }}>
+                                <TruecallerLogin login={login} user={user} loading={loading} isLogin={isLogin} />
+                            </Box>}
 
-                        <Box sx={{ mb: 4 }}>
-                            <GoogleLogin />
-                        </Box>
+                        {auth.google &&
+                            <Box sx={{ mb: 4 }}>
+                                <GoogleLogin />
+                            </Box>}
 
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
-                            <Box sx={{ flexGrow: 1, height: '1px', bgcolor: theme.palette.divider }} />
-                            <Typography variant="caption" sx={{ px: 2, color: 'text.secondary', fontWeight: '800', letterSpacing: '1px' }}>
-                                OR CONTINUE WITH EMAIL
-                            </Typography>
-                            <Box sx={{ flexGrow: 1, height: '1px', bgcolor: theme.palette.divider }} />
-                        </Box>
-
-                        {children}
+                        {auth.email &&
+                            <><Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
+                                <Box sx={{ flexGrow: 1, height: '1px', bgcolor: theme.palette.divider }} />
+                                <Typography variant="caption" sx={{ px: 2, color: 'text.secondary', fontWeight: '800', letterSpacing: '1px' }}>
+                                    OR CONTINUE WITH EMAIL
+                                </Typography>
+                                <Box sx={{ flexGrow: 1, height: '1px', bgcolor: theme.palette.divider }} />
+                            </Box>
+                                {children}
+                            </>}
                     </Paper>
                 </motion.div>
             </Container>
