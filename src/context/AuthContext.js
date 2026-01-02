@@ -88,10 +88,12 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = async () => {
+        setLoading(true);
         try {
             await authAPI.logout();
         } finally {
             setUser(null);
+            setLoading(false);
         }
     };
 
