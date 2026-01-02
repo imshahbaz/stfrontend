@@ -23,6 +23,7 @@ import Unauthorized from './components/Unauthorized';
 import ChartPage from './components/ChartPage';
 import HeatmapV2 from './components/HeatmapV2';
 import AdsterraBanner from './components/AdsterraBanner';
+import PageNotFound from './components/PageNotFound';
 import { userPreferenceAPI } from "../src/api/axios";
 import ScrollToTop from './components/shared/ScrollToTop';
 import { GoogleOAuthProvider } from '@react-oauth/google';
@@ -52,15 +53,15 @@ const PageWrapper = ({ children }) => (
 function App() {
   return (
     <GoogleOAuthProvider clientId={googleClientId}>
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </GoogleOAuthProvider>
   );
 }
 
 function AppContent() {
-  const { user, loading, login } = useAuth();
+  const { user, loading, login, configLoading, appConfig } = useAuth();
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('theme') || 'dark';
   });
@@ -88,14 +89,14 @@ function AppContent() {
   const muiTheme = useMemo(() => createAppTheme(theme), [theme]);
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
 
-  if (loading) {
+  if (loading || configLoading) {
     return (
       <Backdrop open={true} sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}>
         <CircularProgress color="inherit" />
       </Backdrop>
     );
   }
-
+  const { auth } = appConfig;
   return (
     <ThemeProvider theme={muiTheme}>
       <CssBaseline />
@@ -116,7 +117,7 @@ function AppContent() {
             display: 'flex',
             flexDirection: 'column'
           }}>
-            <AnimatedRoutes />
+            <AnimatedRoutes auth={auth} />
           </Box>
 
           {process.env.NODE_ENV === 'production' && !isMobile && (
@@ -138,7 +139,7 @@ function AppContent() {
   );
 }
 
-function AnimatedRoutes() {
+function AnimatedRoutes(props) {
   const location = useLocation();
 
   return (
@@ -146,7 +147,8 @@ function AnimatedRoutes() {
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<PageWrapper><Home /></PageWrapper>} />
         <Route path="/login" element={<PageWrapper><Login /></PageWrapper>} />
-        <Route path="/signup" element={<PageWrapper><Signup /></PageWrapper>} />
+        {props.auth.email &&
+          (<Route path="/signup" element={<PageWrapper><Signup /></PageWrapper>} />)}
         <Route path="/strategies" element={<PageWrapper><Strategies /></PageWrapper>} />
         <Route path="/calculator" element={<PageWrapper><Calculator /></PageWrapper>} />
         <Route path="/heatmap" element={<PageWrapper><HeatmapV2 /></PageWrapper>} />
@@ -164,6 +166,7 @@ function AnimatedRoutes() {
 
         {/* Unauthorized page for non-admins */}
         <Route path="/unauthorized" element={<PageWrapper><Unauthorized showLogin={true} /></PageWrapper>} />
+        <Route path="*" element={<PageWrapper><PageNotFound /></PageWrapper>} />
       </Routes>
     </AnimatePresence>
   );

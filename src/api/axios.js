@@ -28,6 +28,7 @@ export const authAPI = {
   login: (email, password) => api.post('/api/auth/login', { email, password }),
   logout: () => api.post('/api/auth/logout'),
   getMe: () => api.get('/api/auth/me'),
+  clientConfig:()=> api.get('/api/config/client/active')
 };
 
 export const userPreferenceAPI = {
@@ -93,7 +94,7 @@ export const truecallerAPI = {
 }
 
 export const googleAPI = {
-  googleCallback: (code,random) => api.get("/api/auth/google/callback", {
+  googleCallback: (code, random) => api.get("/api/auth/google/callback", {
     params: {
       code: code,
       state: random
