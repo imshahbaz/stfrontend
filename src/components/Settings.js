@@ -52,12 +52,23 @@ const Settings = () => {
   const [securityError, setSecurityError] = useState('');
 
   const [loading, setLoading] = useState(false);
+  const [profileImageLoaded, setProfileImageLoaded] = useState(false);
+  const [profileImageError, setProfileImageError] = useState(false);
 
   useEffect(() => {
     if (user) {
       setUsername(user.username || '');
       setUserId(user.userId || '');
       setEmail(user.email || '');
+      if (user?.profile) {
+        const img = new Image();
+        img.onload = () => setProfileImageLoaded(true);
+        img.onerror = () => setProfileImageError(true);
+        img.src = user.profile;
+      } else {
+        setProfileImageLoaded(false);
+        setProfileImageError(false);
+      }
     }
   }, [user]);
 
@@ -177,6 +188,7 @@ const Settings = () => {
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 6, textAlign: 'center' }}>
             <Box sx={{ position: 'relative', mb: 2 }}>
               <Avatar
+              src={profileImageLoaded && !profileImageError ? user?.profile : undefined}
                 sx={{
                   width: 100,
                   height: 100,
