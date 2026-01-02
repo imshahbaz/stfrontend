@@ -58,8 +58,8 @@ const GenericPriceActionTab = ({
 
     const fetchMargins = async () => {
         try {
-            const res = await marginAPI.getMargins();
-            setMargins(res.data.data.map(m => m.symbol));
+            const res = await marginAPI.getAllMargins();
+            setMargins(res.data.data);
         } catch (err) { console.error(err); }
     };
 
@@ -68,7 +68,8 @@ const GenericPriceActionTab = ({
         setFetchLoading(true);
         try {
             const res = await apiMethods.get(form.symbol);
-            setItems(res.data.data || []);
+            const data = res.data.data[fetchKey] || [];
+            setItems(Array.isArray(data) ? data : []);
         } catch (err) { console.error(err); }
         finally { setFetchLoading(false); }
     };
@@ -219,12 +220,13 @@ const GenericPriceActionTab = ({
                             <Autocomplete
                                 fullWidth
                                 options={margins}
-                                value={form.symbol}
-                                onChange={(e, val) => setForm(prev => ({ ...prev, symbol: val || '' }))}
+                                getOptionLabel={(option) => `${option.symbol} (${option.margin}x)`}
+                                value={margins.find(m => m.symbol === form.symbol) || null}
+                                onChange={(e, val) => setForm(prev => ({ ...prev, symbol: val?.symbol || '' }))}
                                 renderInput={(params) => (
                                     <TextField
                                         {...params}
-                                        label="Market Symbol"
+                                        label="Search Market Symbol"
                                         required
                                         sx={fieldStyle}
                                         InputProps={{
