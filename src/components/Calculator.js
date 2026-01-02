@@ -324,6 +324,7 @@ const Calculator = () => {
                   <DetailRow label="Total Position" value={`₹${results.totalValue}`} />
                   <DetailRow label="Your Capital" value={`₹${results.margin}`} bold />
                   <DetailRow label="Quantity" value={results.shares} />
+                  {results.sellPrice >0 && <DetailRow label="Target Price" value={results.sellPrice} />}
                 </Stack>
               </Paper>
 

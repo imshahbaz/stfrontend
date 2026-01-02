@@ -92,4 +92,13 @@ export const truecallerAPI = {
   truecallerLogin: (requestId) => `truecallersdk://truesdk/web_verify?type=btmsheet&requestNonce=${requestId}&partnerKey=${APP_KEY}&partnerName=${APP_NAME}&lang=en&title=logIn&skipOption=useanothernum`,
 }
 
+export const googleAPI = {
+  googleCallback: (code,random) => api.get("/api/auth/google/callback", {
+    params: {
+      code: code,
+      state: random
+    }
+  })
+}
+
 export default api;
