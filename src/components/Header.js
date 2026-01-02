@@ -72,6 +72,7 @@ const Header = ({ toggleTheme, theme }) => {
     >
       <Box sx={{ p: 4, pt: 6, textAlign: 'center' }}>
         <Avatar
+          src={user?.profile}
           sx={{
             width: 80,
             height: 80,
