@@ -7,18 +7,22 @@ import { useCallback, useState } from 'react';
 import { googleAPI } from '../api/axios';
 import StatusAlert from './shared/StatusAlert';
 
+const BACKEND_CALLBACK_URL = process.env.REACT_APP_BACKEND_URL + "/api/auth/google/callback";
+
 const GoogleLogin = () => {
   const { login, refreshUserData } = useAuth();
   const navigate = useNavigate();
   const theme = useTheme();
   const [error, setError] = useState('');
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const currentUrl = window.location.origin;
 
   const onSuccess = useCallback(async (codeResponse) => {
     setError('');
     try {
       const response = await googleAPI.googleCallback(
         codeResponse.code,
-        codeResponse.state
+        "standard"
       );
 
       const { user } = response.data.data;
@@ -33,7 +37,9 @@ const GoogleLogin = () => {
 
   const triggerLogin = useGoogleLogin({
     flow: 'auth-code',
-    redirect_uri: 'postmessage',
+    ux_mode: isIOS ? 'redirect' : 'popup',
+    redirect_uri: isIOS ? BACKEND_CALLBACK_URL : 'postmessage',
+    state: isIOS ? `redirect|${currentUrl}` : 'standard',
     onSuccess,
     onError: (error) => {
       setError('Google login failed. Please try again.');
@@ -42,11 +48,7 @@ const GoogleLogin = () => {
 
   const handleLoginClick = () => {
     setError('');
-    const state = window.crypto.randomUUID();
-
-    document.cookie = `oauth_state=${state}; path=/; SameSite=Lax; max-age=300`;
-
-    triggerLogin({ state: state });
+    triggerLogin();
   };
 
   return (
