@@ -7,7 +7,7 @@ import { useCallback } from 'react';
 import { googleAPI } from '../api/axios';
 
 const GoogleLogin = () => {
-  const { login } = useAuth();
+  const { login, refreshUserData } = useAuth();
   const navigate = useNavigate();
   const theme = useTheme();
 
@@ -21,15 +21,15 @@ const GoogleLogin = () => {
       const { user } = response.data.data;
 
       login(user);
+      await refreshUserData();
       navigate('/');
     } catch (error) {
       console.error("Login failed:", error);
     }
-  }, [login, navigate]);
+  }, [login, refreshUserData, navigate]);
 
   const triggerLogin = useGoogleLogin({
     flow: 'auth-code',
-    //redirect_uri: 'http://localhost:8080/api/auth/google/callback',
     redirect_uri: 'postmessage',
     onSuccess,
     onError: (error) => console.log('Google Login Failed:', error),
