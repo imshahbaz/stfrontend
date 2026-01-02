@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -42,6 +42,21 @@ const Header = ({ toggleTheme, theme }) => {
   const muiTheme = useTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [profileImageLoaded, setProfileImageLoaded] = useState(false);
+  const [profileImageError, setProfileImageError] = useState(false);
+
+  // Async load profile image
+  useEffect(() => {
+    if (user?.profile) {
+      const img = new Image();
+      img.onload = () => setProfileImageLoaded(true);
+      img.onerror = () => setProfileImageError(true);
+      img.src = user.profile;
+    } else {
+      setProfileImageLoaded(false);
+      setProfileImageError(false);
+    }
+  }, [user?.profile]);
 
   const handleLogout = () => {
     logout();
@@ -72,7 +87,7 @@ const Header = ({ toggleTheme, theme }) => {
     >
       <Box sx={{ p: 4, pt: 6, textAlign: 'center' }}>
         <Avatar
-          src={user?.profile}
+          src={profileImageLoaded && !profileImageError ? user?.profile : undefined}
           sx={{
             width: 80,
             height: 80,
@@ -349,7 +364,7 @@ const Header = ({ toggleTheme, theme }) => {
             }}
           >
             <BottomNavigationAction label="Home" value="/" icon={<TrendingUp />} />
-            <BottomNavigationAction label="Scanner" value="/strategies" icon={<GridView />} />
+            <BottomNavigationAction label="Screener" value="/strategies" icon={<GridView />} />
             <BottomNavigationAction label="Calc" value="/calculator" icon={<Calculate />} />
             <BottomNavigationAction label="Heatmap" value="/heatmap" icon={<GridView />} />
             <BottomNavigationAction label="More" value="more" icon={<MoreHoriz />} />
