@@ -8,7 +8,8 @@ import {
     Typography,
     CircularProgress,
     useTheme,
-    useMediaQuery
+    useMediaQuery,
+    Backdrop
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import TruecallerLogin from '../TruecallerLogin';
@@ -18,7 +19,7 @@ const AuthWrapper = ({ title, subtitle, children, isLogin }) => {
     const navigate = useNavigate();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-    const { user, loading, login, appConfig } = useAuth();
+    const { user, loading, login, appConfig, refreshUserData } = useAuth();
     const { auth } = appConfig;
 
     useEffect(() => {
@@ -29,9 +30,9 @@ const AuthWrapper = ({ title, subtitle, children, isLogin }) => {
 
     if (loading || user) {
         return (
-            <Container maxWidth="sm" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-                <CircularProgress size={60} thickness={4} />
-            </Container>
+            <Backdrop open={true} sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+                <CircularProgress color="inherit" />
+            </Backdrop>
         );
     }
 
@@ -131,7 +132,7 @@ const AuthWrapper = ({ title, subtitle, children, isLogin }) => {
 
                         {auth.truecaller &&
                             <Box sx={{ mb: 4 }}>
-                                <TruecallerLogin login={login} user={user} loading={loading} isLogin={isLogin} />
+                                <TruecallerLogin login={login} user={user} loading={loading} isLogin={isLogin} refreshUserData={refreshUserData} />
                             </Box>}
 
                         {auth.google &&
