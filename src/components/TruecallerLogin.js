@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import { PhoneAndroid } from '@mui/icons-material';
 
-const TruecallerLogin = ({ login, user, loading, isLoading: externalIsLoading = false, isLogin }) => {
+const TruecallerLogin = ({ login, user, loading, isLoading: externalIsLoading = false }) => {
   const navigate = useNavigate();
   const theme = useTheme();
   const [internalIsLoading, setInternalIsLoading] = useState(false);
