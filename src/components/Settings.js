@@ -30,7 +30,7 @@ import StatusAlert from './shared/StatusAlert';
 import { motion } from 'framer-motion';
 
 const Settings = () => {
-  const { user, login, refreshUserData, appConfig } = useAuth();
+  const { user, refreshUserData, appConfig } = useAuth();
   const { auth } = appConfig
   const theme = useTheme();
 
@@ -89,7 +89,7 @@ const Settings = () => {
     try {
       const response = await userPreferenceAPI.updateUsername(userId, username);
       if (response.status === 200 && response.data.success) {
-        login({ ...user, username });
+        await refreshUserData();
         setProfileSuccess('Username updated successfully');
       } else {
         setProfileError(response.data.error || 'Failed to update settings');
