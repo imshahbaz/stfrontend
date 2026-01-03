@@ -1,5 +1,5 @@
 import { useGoogleLogin } from '@react-oauth/google';
-import { Button, useTheme } from '@mui/material';
+import { Button, useTheme, CircularProgress } from '@mui/material';
 import GoogleIcon from '@mui/icons-material/Google';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -16,8 +16,10 @@ const GoogleLogin = () => {
   const [error, setError] = useState('');
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
   const currentUrl = window.location.origin;
+  const [localLoading, setLocalLoading] = useState(false);
 
   const onSuccess = useCallback(async (codeResponse) => {
+    setLocalLoading(true);
     setError('');
     try {
       const response = await googleAPI.googleCallback(
@@ -32,6 +34,8 @@ const GoogleLogin = () => {
       navigate('/');
     } catch (error) {
       setError('Login failed. Please try again.');
+    } finally {
+      setLocalLoading(false)
     }
   }, [login, refreshUserData, navigate]);
 
@@ -56,7 +60,7 @@ const GoogleLogin = () => {
       <Button
         fullWidth
         variant="outlined"
-        startIcon={<GoogleIcon />}
+        startIcon={localLoading ? <></> : <GoogleIcon />}
         onClick={handleLoginClick}
         sx={{
           py: 1.8,
@@ -74,8 +78,9 @@ const GoogleLogin = () => {
             color: '#DB4437',
           }
         }}
+        disabled={localLoading}
       >
-        Continue with Google
+        {localLoading ? <CircularProgress size={20} /> : "Continue with Google"}
       </Button>
       <StatusAlert error={error} />
     </>

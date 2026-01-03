@@ -57,8 +57,7 @@ export const AuthProvider = ({ children }) => {
         // Initial Mount Auth Check
         if (!isInitialized.current) {
             isInitialized.current = true;
-            fetchGlobalConfig();
-            refreshUserData();
+            Promise.all([fetchGlobalConfig(), refreshUserData()]);
         }
 
         // --- DEVICE SYNC LOGIC ---
@@ -85,6 +84,7 @@ export const AuthProvider = ({ children }) => {
 
     const login = (userData) => {
         setUser(userData);
+        setLoading(true)
     };
 
     const logout = async () => {
