@@ -9,15 +9,16 @@ import {
 } from '@mui/material';
 import { PhoneAndroid } from '@mui/icons-material';
 
-const TruecallerLogin = ({ login, user, loading, isLoading: externalIsLoading = false }) => {
+const TruecallerLogin = ({ login, user, loading, isLoading: externalIsLoading = false, refreshUserData }) => {
   const navigate = useNavigate();
   const theme = useTheme();
   const [internalIsLoading, setInternalIsLoading] = useState(false);
   const isLoading = externalIsLoading || internalIsLoading;
   const { startPolling, clearPolling } = useTruecallerPolling(
-    (data) => {
+    async (data) => {
       setInternalIsLoading(false);
       login(data);
+      await refreshUserData()
       navigate('/', { replace: true });
     },
     (error) => {
