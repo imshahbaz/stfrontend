@@ -100,7 +100,7 @@ const Header = ({ toggleTheme, theme }) => {
                   )}
                   <button
                     onClick={handleLogout}
-                    className="ml-2 px-4 py-1.5 text-sm font-semibold text-destructive border border-destructive/20 rounded-full hover:bg-destructive hover:text-white transition-all"
+                    className="ml-2 px-4 py-1.5 text-sm font-semibold text-destructive border border-destructive/20 rounded-full hover:bg-destructive hover:text-destructive-foreground transition-all"
                   >
                     Logout
                   </button>
