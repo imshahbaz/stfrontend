@@ -105,7 +105,7 @@ function AppContent() {
         <main className="flex-grow flex flex-col min-h-0 pb-[100px] md:pb-0">
           <AnimatedRoutes auth={authContext.appConfig.auth} />
         </main>
-
+        
         {import.meta.env.VITE_ENV === 'production' && (
           <div className="hidden md:flex w-full justify-center py-4 bg-background">
             <AdsterraBanner />
