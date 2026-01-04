@@ -10,7 +10,7 @@ import StatusAlert from './shared/StatusAlert';
 const BACKEND_CALLBACK_URL = process.env.REACT_APP_BACKEND_URL + "/api/auth/google/callback";
 
 const GoogleLogin = () => {
-  const { login, refreshUserData } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
   const theme = useTheme();
   const [error, setError] = useState('');
@@ -26,18 +26,15 @@ const GoogleLogin = () => {
         codeResponse.code,
         "standard"
       );
-
       const { user } = response.data.data;
-
-      login(user);
-      await refreshUserData();
+      await login(user);
       navigate('/');
     } catch (error) {
       setError('Login failed. Please try again.');
     } finally {
       setLocalLoading(false)
     }
-  }, [login, refreshUserData, navigate]);
+  }, [login, navigate]);
 
   const triggerLogin = useGoogleLogin({
     flow: 'auth-code',
