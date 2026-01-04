@@ -1,10 +1,10 @@
 import axios from 'axios';
 
-const APP_KEY = process.env.REACT_APP_TRUECALLER_APP_KEY;
+const APP_KEY = import.meta.env.VITE_TRUECALLER_APP_KEY;
 const APP_NAME = "Shahbaz Trades";
 
 const api = axios.create({
-  baseURL: process.env.REACT_APP_BACKEND_URL,
+  baseURL: import.meta.env.VITE_BACKEND_URL,
   withCredentials: true,
 });
 
