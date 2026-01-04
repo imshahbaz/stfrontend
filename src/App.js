@@ -24,6 +24,7 @@ import ChartPage from './components/ChartPage';
 import HeatmapV2 from './components/HeatmapV2';
 import AdsterraBanner from './components/AdsterraBanner';
 import PageNotFound from './components/PageNotFound';
+import GoogleCallback from './components/GoogleCallback';
 import { userPreferenceAPI } from "../src/api/axios";
 import ScrollToTop from './components/shared/ScrollToTop';
 import { GoogleOAuthProvider } from '@react-oauth/google';
@@ -147,6 +148,7 @@ function AnimatedRoutes(props) {
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<PageWrapper><Home /></PageWrapper>} />
         <Route path="/login" element={<PageWrapper><Login /></PageWrapper>} />
+        <Route path="/google/callback" element={<PageWrapper><GoogleCallback /></PageWrapper>} />
         {props.auth.email &&
           (<Route path="/signup" element={<PageWrapper><Signup /></PageWrapper>} />)}
         <Route path="/strategies" element={<PageWrapper><Strategies /></PageWrapper>} />
