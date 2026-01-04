@@ -30,7 +30,7 @@ import StatusAlert from './shared/StatusAlert';
 import { motion } from 'framer-motion';
 
 const Settings = () => {
-  const { user, refreshUserData, appConfig } = useAuth();
+  const { user, login, appConfig, refreshUserData } = useAuth();
   const { auth } = appConfig
   const theme = useTheme();
 
@@ -89,7 +89,7 @@ const Settings = () => {
     try {
       const response = await userPreferenceAPI.updateUsername(userId, username);
       if (response.status === 200 && response.data.success) {
-        await refreshUserData();
+        await login({ ...user, username: username })
         setProfileSuccess('Username updated successfully');
       } else {
         setProfileError(response.data.error || 'Failed to update settings');
@@ -188,7 +188,7 @@ const Settings = () => {
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 6, textAlign: 'center' }}>
             <Box sx={{ position: 'relative', mb: 2 }}>
               <Avatar
-              src={profileImageLoaded && !profileImageError ? user?.profile : undefined}
+                src={profileImageLoaded && !profileImageError ? user?.profile : undefined}
                 sx={{
                   width: 100,
                   height: 100,

@@ -82,9 +82,10 @@ export const AuthProvider = ({ children }) => {
         };
     }, []);
 
-    const login = (userData) => {
+    const login = (userData, showLoading = true) => {
+        if (showLoading) { setLoading(true) }
         setUser(userData);
-        setLoading(true)
+        if (showLoading) { setLoading(false) }
     };
 
     const logout = async () => {
