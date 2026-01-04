@@ -209,7 +209,7 @@ const GenericPriceActionTab = ({
     return (
         <>
             <Grid container spacing={isMobile ? 0 : 3}>
-                <Grid xs={12} md={6} sx={{ mb: isMobile ? 3 : 0, px: isMobile ? 2 : 0 }}>
+                <Grid item xs={12} md={6} sx={{ mb: isMobile ? 3 : 0, px: isMobile ? 2 : 0 }}>
                     <AdminFormContainer
                         title={editingId ? `Update ${title}` : `Insert ${title}`}
                         onSubmit={handleSubmit}
@@ -324,7 +324,7 @@ const GenericPriceActionTab = ({
                     </AdminFormContainer>
                 </Grid>
 
-                <Grid xs={12} md={6} sx={{ px: isMobile ? 2 : 0 }}>
+                <Grid item xs={12} md={6} sx={{ px: isMobile ? 2 : 0 }}>
                     <AdminListContainer
                         title={`${title} Database`}
                         actions={
