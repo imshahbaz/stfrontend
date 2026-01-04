@@ -121,8 +121,12 @@ const Header = ({ toggleTheme, theme }) => {
             <div className="md:hidden">
               <Dialog.Root open={drawerOpen} onOpenChange={setDrawerOpen}>
                 <Dialog.Trigger asChild>
-                  <button className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white text-sm font-bold shadow-md">
-                    {user?.name?.[0] || user?.email?.[0] || <Menu className="h-5 w-5" />}
+                  <button className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white text-sm font-bold shadow-md overflow-hidden">
+                    {user?.profile ? (
+                      <img src={user.profile} alt="Profile" className="h-9 w-9 rounded-full object-cover" />
+                    ) : (
+                      user?.name?.[0] || user?.email?.[0] || <Menu className="h-5 w-5" />
+                    )}
                   </button>
                 </Dialog.Trigger>
                 <Dialog.Portal>
@@ -137,8 +141,12 @@ const Header = ({ toggleTheme, theme }) => {
                     </div>
 
                     <div className="text-center mb-8">
-                      <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-primary text-white text-2xl font-black shadow-xl">
-                        {user?.name?.[0] || user?.email?.[0] || 'U'}
+                      <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-primary text-white text-2xl font-black shadow-xl overflow-hidden">
+                        {user?.profile ? (
+                          <img src={user.profile} alt="Profile" className="h-20 w-20 rounded-full object-cover" />
+                        ) : (
+                          user?.name?.[0] || user?.email?.[0] || 'U'
+                        )}
                       </div>
                       <Dialog.Title className="text-xl font-extrabold tracking-tight">
                         {user ? (user.name || user.email.split('@')[0]) : 'Guest'}

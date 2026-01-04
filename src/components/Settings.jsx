@@ -149,8 +149,12 @@ const Settings = () => {
           {/* PROFILE HEADER */}
           <div className="flex flex-col items-center mb-12 text-center">
             <div className="relative mb-4">
-              <div className="w-24 h-24 rounded-full bg-primary text-white flex items-center justify-center text-4xl font-black shadow-2xl shadow-primary/20 border-4 border-card">
-                {username?.charAt(0).toUpperCase() || <User size={40} />}
+              <div className="w-24 h-24 rounded-full bg-primary text-white flex items-center justify-center text-4xl font-black shadow-2xl shadow-primary/20 border-4 border-card overflow-hidden">
+                {user?.profile ? (
+                  <img src={user.profile} alt="Profile" className="w-24 h-24 rounded-full object-cover" />
+                ) : (
+                  username?.charAt(0).toUpperCase() || <User size={40} />
+                )}
               </div>
               <div className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-secondary text-white flex items-center justify-center border-2 border-card shadow-lg">
                 <Fingerprint size={16} />
