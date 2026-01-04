@@ -5,7 +5,7 @@ import { ArrowForward } from '@mui/icons-material';
 
 const ActionCard = ({ title, description, icon: Icon, onClick }) => {
     return (
-        <Grid item xs={12} sm={6} md={4}>
+        <Grid xs={12} sm={6} md={4}>
             <motion.div
                 whileHover={{ y: -8 }}
                 whileTap={{ scale: 0.98 }}

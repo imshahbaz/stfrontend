@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
+import { HashRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Box, Backdrop, CircularProgress, useMediaQuery } from '@mui/material';
@@ -116,7 +116,8 @@ function AppContent() {
             flexGrow: 1,
             pb: isMobile ? '100px' : 0,
             display: 'flex',
-            flexDirection: 'column'
+            flexDirection: 'column',
+            minHeight: 0,
           }}>
             <AnimatedRoutes auth={auth} />
           </Box>
@@ -145,7 +146,7 @@ function AnimatedRoutes(props) {
 
   return (
     <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
+      <Routes location={location} key={location.key}>
         <Route path="/" element={<PageWrapper><Home /></PageWrapper>} />
         <Route path="/login" element={<PageWrapper><Login /></PageWrapper>} />
         <Route path="/google/callback" element={<PageWrapper><GoogleCallback /></PageWrapper>} />
