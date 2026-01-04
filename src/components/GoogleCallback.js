@@ -11,7 +11,7 @@ const GoogleCallback = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const [searchParams] = useSearchParams();
   const [error, setError] = useState('');
 
@@ -30,36 +30,40 @@ const GoogleCallback = () => {
   const { status, isPolling, startPolling, clearPolling } = useGooglePolling(onSuccess, onError);
 
   useEffect(() => {
+    if (user) {
+      navigate('/', { replace: true });
+      return;
+    }
     if (code && state) {
       startPolling(code, state);
     } else {
       setError('Missing session data.');
     }
     return () => clearPolling();
-  }, [code, state, startPolling, clearPolling]);
+  }, [code, state, startPolling, clearPolling, user, navigate]);
 
   return (
-    <Box sx={{ 
-      height: '100dvh', 
+    <Box sx={{
+      height: '100dvh',
       width: '100vw',
-      display: 'flex', 
-      alignItems: 'center', 
-      justifyContent: 'center', 
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
       bgcolor: theme.palette.background.default,
       overflow: 'hidden', // Prevents any accidental scrolling
       position: 'fixed', // Locks the background on mobile
       top: 0,
       left: 0
     }}>
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }} 
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         style={{ width: '100%', maxWidth: isMobile ? '100%' : 450, height: isMobile ? '100%' : 'auto' }}
       >
-        <Paper sx={{ 
-          p: 4, 
-          borderRadius: isMobile ? 0 : '24px', 
-          textAlign: 'center', 
+        <Paper sx={{
+          p: 4,
+          borderRadius: isMobile ? 0 : '24px',
+          textAlign: 'center',
           height: isMobile ? '100%' : 'auto',
           display: 'flex',
           flexDirection: 'column',
@@ -70,7 +74,7 @@ const GoogleCallback = () => {
           boxShadow: isMobile ? 'none' : theme.shadows[2]
         }}>
           <GoogleIcon sx={{ fontSize: 56, color: '#DB4437', mb: 3 }} />
-          
+
           <Box sx={{ mb: 4 }}>
             {isPolling && !error ? (
               <>
@@ -91,13 +95,13 @@ const GoogleCallback = () => {
           </Box>
 
           {error && (
-            <Button 
-              variant="contained" 
-              startIcon={<ArrowBackIcon />} 
+            <Button
+              variant="contained"
+              startIcon={<ArrowBackIcon />}
               onClick={() => navigate('/login')}
-              sx={{ 
-                borderRadius: '16px', 
-                fontWeight: 'bold', 
+              sx={{
+                borderRadius: '16px',
+                fontWeight: 'bold',
                 py: 1.5,
                 px: 4,
                 textTransform: 'none'

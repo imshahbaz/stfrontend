@@ -55,7 +55,7 @@ const useGooglePolling = (onSuccess, onError) => {
         if (httpStatus === 404) {
           
         } else {
-          onError(err.response?.data?.message || "Auth Error");
+          onError(err.response?.data?.detail || "Auth Error");
           clearPolling();
           return;
         }
