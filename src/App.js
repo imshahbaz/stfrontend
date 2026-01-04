@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { HashRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Box, Backdrop, CircularProgress, useMediaQuery } from '@mui/material';
