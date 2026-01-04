@@ -36,6 +36,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Header = ({ toggleTheme, theme }) => {
+  const urlSet = new Set(["/login", "/google/callback"]);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -143,16 +144,18 @@ const Header = ({ toggleTheme, theme }) => {
             Logout
           </Button>
         ) : (
-          <Button
-            fullWidth
-            variant="contained"
-            color="primary"
-            startIcon={<Login />}
-            onClick={() => navigate('/login')}
-            sx={{ borderRadius: 3, py: 1.5 }}
-          >
-            Login
-          </Button>
+          !urlSet.has(location.pathname) && (
+            <Button
+              fullWidth
+              variant="contained"
+              color="primary"
+              startIcon={<Login />}
+              onClick={() => navigate('/login')}
+              sx={{ borderRadius: 3, py: 1.5 }}
+            >
+              Login
+            </Button>
+          )
         )}
       </Box>
     </Box>
@@ -276,14 +279,16 @@ const Header = ({ toggleTheme, theme }) => {
                   </Button>
                 </>
               ) : (
-                <Button
-                  variant="contained"
-                  component={Link}
-                  to="/login"
-                  sx={{ borderRadius: '20px', px: 4, fontWeight: 700 }}
-                >
-                  Login
-                </Button>
+                !urlSet.has(location.pathname) && (
+                  <Button
+                    variant="contained"
+                    component={Link}
+                    to="/login"
+                    sx={{ borderRadius: '20px', px: 4, fontWeight: 700 }}
+                  >
+                    Login
+                  </Button>
+                )
               )
             )}
           </Box>

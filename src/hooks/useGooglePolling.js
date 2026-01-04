@@ -26,9 +26,9 @@ const useGooglePolling = (onSuccess, onError) => {
     attemptsRef.current = 0;
     setStatus('Waiting for Google authorization...');
 
-    const INITIAL_WAIT = 2000; 
-    const POLL_INTERVAL = 3000;
-    const MAX_ATTEMPTS = 10;
+    const INITIAL_WAIT = 1000; 
+    const POLL_INTERVAL = 500;
+    const MAX_ATTEMPTS = 5;
     
     const executeSinglePoll = async () => {
       if (!pollingActive.current) return;
