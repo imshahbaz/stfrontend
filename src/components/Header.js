@@ -30,7 +30,6 @@ import {
   TrendingUp,
   Calculate,
   GridView,
-  MoreHoriz,
   ArrowForwardIos
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
