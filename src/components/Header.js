@@ -30,7 +30,6 @@ import {
   TrendingUp,
   Calculate,
   GridView,
-  MoreHoriz,
   ArrowForwardIos
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -211,7 +210,7 @@ const Header = ({ toggleTheme, theme }) => {
             </Typography>
           </Box>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, md: 2 } }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, md: 2 } }}>
             <Box
               onClick={toggleTheme}
               sx={{
@@ -260,6 +259,22 @@ const Header = ({ toggleTheme, theme }) => {
                 </AnimatePresence>
               </motion.div>
             </Box>
+
+            {isMobile && (
+              <Avatar
+                onClick={() => setDrawerOpen(true)}
+                src={profileImageLoaded && !profileImageError ? user?.profile : undefined}
+                sx={{
+                  width: 32,
+                  height: 32,
+                  cursor: 'pointer',
+                  bgcolor: 'primary.main',
+                  fontSize: '1rem'
+                }}
+              >
+                {user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}
+              </Avatar>
+            )}
 
             {!isMobile && (
               user ? (
@@ -331,15 +346,11 @@ const Header = ({ toggleTheme, theme }) => {
           }}
           elevation={0}
         >
-          <BottomNavigation
+            <BottomNavigation
             showLabels
             value={currentTab}
             onChange={(event, newValue) => {
-              if (newValue === 'more') {
-                setDrawerOpen(true);
-              } else {
-                navigate(newValue);
-              }
+              navigate(newValue);
             }}
             sx={{
               height: 65,
@@ -372,7 +383,6 @@ const Header = ({ toggleTheme, theme }) => {
             <BottomNavigationAction label="Screener" value="/strategies" icon={<GridView />} />
             <BottomNavigationAction label="Calc" value="/calculator" icon={<Calculate />} />
             <BottomNavigationAction label="Heatmap" value="/heatmap" icon={<GridView />} />
-            <BottomNavigationAction label="More" value="more" icon={<MoreHoriz />} />
           </BottomNavigation>
         </Paper>
       )}
