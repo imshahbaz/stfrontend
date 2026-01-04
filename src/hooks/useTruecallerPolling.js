@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { truecallerAPI } from '../api/axios';
+import { useAuth } from "../context/AuthContext";
 
 const useTruecallerPolling = (onSuccess, onError) => {
   const [status, setStatus] = useState('');
@@ -10,6 +11,7 @@ const useTruecallerPolling = (onSuccess, onError) => {
   const initialInterval = 2500;
   const maxInterval = 10000;
   const backoffFactor = 1.5;
+  const { setLoading } = useAuth();
 
   const clearPolling = useCallback(() => {
     if (pollingInterval.current) {
@@ -17,7 +19,8 @@ const useTruecallerPolling = (onSuccess, onError) => {
       pollingInterval.current = null;
     }
     setIsPolling(false);
-  }, []);
+    setLoading(false)
+  }, [setLoading]);
 
   const startPolling = useCallback((requestId) => {
     if (isPolling) return;

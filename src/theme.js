@@ -5,33 +5,33 @@ const getDesignTokens = (mode) => ({
     mode,
     ...(mode === 'light'
       ? {
-          // LIGHT: "Pure Clean"
-          primary: { main: '#7C3AED' },    // Vivid Violet
-          secondary: { main: '#111827' }, // Ink Black
-          background: {
-            default: '#FFFFFF',           // Crisp White
-            paper: '#F9FAFB',             // Very light grey for contrast
-          },
-          text: {
-            primary: '#111827',           // Rich black
-            secondary: '#4B5563',         // Slate grey
-          },
-          divider: '#E5E7EB',
-        }
+        // LIGHT: "Pure Clean"
+        primary: { main: '#7C3AED' },    // Vivid Violet
+        secondary: { main: '#111827' }, // Ink Black
+        background: {
+          default: '#FFFFFF',           // Crisp White
+          paper: '#F9FAFB',             // Very light grey for contrast
+        },
+        text: {
+          primary: '#111827',           // Rich black
+          secondary: '#4B5563',         // Slate grey
+        },
+        divider: '#E5E7EB',
+      }
       : {
-          // DARK: "Deep Obsidian"
-          primary: { main: '#A78BFA' },    // Soft Electric Violet
-          secondary: { main: '#F3F4F6' },
-          background: {
-            default: '#000000',           // Pure Pitch Black
-            paper: '#111827',             // Deep Charcoal
-          },
-          text: {
-            primary: '#FFFFFF',           // Pure White
-            secondary: '#9CA3AF',         // Muted Silver
-          },
-          divider: '#1F2937',
-        }),
+        // DARK: "Deep Obsidian"
+        primary: { main: '#A78BFA' },    // Soft Electric Violet
+        secondary: { main: '#F3F4F6' },
+        background: {
+          default: '#000000',           // Pure Pitch Black
+          paper: '#111827',             // Deep Charcoal
+        },
+        text: {
+          primary: '#FFFFFF',           // Pure White
+          secondary: '#9CA3AF',         // Muted Silver
+        },
+        divider: '#1F2937',
+      }),
   },
   typography: {
     fontFamily: '"Plus Jakarta Sans", "Inter", sans-serif',
@@ -102,17 +102,15 @@ const getDesignTokens = (mode) => ({
     },
     // SCROLLBARS & BASELINE
     MuiCssBaseline: {
-      styleOverrides: (theme) => ({
+      styleOverrides: {
         body: {
-          scrollbarColor: theme.palette.mode === 'dark' ? '#374151 #000000' : '#D1D5DB #FFFFFF',
-          '&::-webkit-scrollbar': { width: '10px' },
-          '&::-webkit-scrollbar-thumb': {
-            backgroundColor: theme.palette.mode === 'dark' ? '#374151' : '#D1D5DB',
-            borderRadius: '10px',
-            border: `2px solid ${theme.palette.background.default}`,
+          msOverflowStyle: 'none',  /* IE and Edge */
+          scrollbarWidth: 'none',   /* Firefox */
+          '&::-webkit-scrollbar': {
+            display: 'none',        /* Chrome, Safari and Opera */
           },
         },
-      }),
+      },
     },
   },
 });

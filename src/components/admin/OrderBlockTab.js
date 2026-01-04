@@ -11,7 +11,8 @@ const OrderBlockTab = () => {
             apiMethods={{
                 create: priceActionAPI.createOrderBlock,
                 update: priceActionAPI.updateOrderBlock,
-                delete: priceActionAPI.deleteOrderBlock
+                delete: priceActionAPI.deleteOrderBlock,
+                get: priceActionAPI.getPriceActionBySymbol
             }}
             refreshApiMethod={priceActionAPI.refreshMitigationData}
         />

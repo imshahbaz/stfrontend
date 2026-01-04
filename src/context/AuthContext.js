@@ -2,10 +2,39 @@ import React, { createContext, useState, useEffect, useContext, useRef } from 'r
 import { authAPI } from '../api/axios';
 
 const AuthContext = createContext(null);
+const CONFIG_CACHE_KEY = 'app_global_config';
+const CACHE_EXPIRY = 300000;
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+
+    const [configLoading, setConfigLoading] = useState(true);
+    const [appConfig, setAppConfig] = useState({
+        auth: { google: true, truecaller: true, email: true }
+    });
+
+    const fetchGlobalConfig = async (forceRefresh = false) => {
+        const cached = JSON.parse(localStorage.getItem(CONFIG_CACHE_KEY));
+        const now = Date.now();
+
+        if (!forceRefresh && cached && (now - cached.timestamp < CACHE_EXPIRY)) {
+            setAppConfig(cached.data);
+            setConfigLoading(false);
+            return;
+        }
+
+        try {
+            const res = await authAPI.clientConfig();
+            const data = res.data.data;
+            setAppConfig(data);
+            localStorage.setItem(CONFIG_CACHE_KEY, JSON.stringify({ data, timestamp: now }));
+        } catch (err) {
+            console.error("Public config fetch failed", err);
+        } finally {
+            setConfigLoading(false);
+        }
+    };
 
     const isInitialized = useRef(false);
 
@@ -28,13 +57,13 @@ export const AuthProvider = ({ children }) => {
         // Initial Mount Auth Check
         if (!isInitialized.current) {
             isInitialized.current = true;
-            refreshUserData();
+            Promise.all([fetchGlobalConfig(), refreshUserData()]);
         }
 
         // --- DEVICE SYNC LOGIC ---
         // Re-check auth whenever user returns to the tab (Syncs changes from other devices)
         const handleFocus = () => {
-            // Optional: only refresh if we already have a user (logged in)
+            fetchGlobalConfig(true);
             if (isInitialized.current) {
                 refreshUserData();
             }
@@ -53,20 +82,24 @@ export const AuthProvider = ({ children }) => {
         };
     }, []);
 
-    const login = (userData) => {
+    const login = (userData, showLoading = true) => {
+        if (showLoading) { setLoading(true) }
         setUser(userData);
+        if (showLoading) { setLoading(false) }
     };
 
     const logout = async () => {
+        setLoading(true);
         try {
             await authAPI.logout();
         } finally {
             setUser(null);
+            setLoading(false);
         }
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, loading, refreshUserData }}>
+        <AuthContext.Provider value={{ user, login, logout, loading, refreshUserData, configLoading, appConfig, setLoading }}>
             {children}
         </AuthContext.Provider>
     );

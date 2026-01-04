@@ -1,11 +1,16 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Box, Typography, Grid, Fade } from '@mui/material';
-import { TrendingUp, Calculate, Map as MapIcon } from '@mui/icons-material';
+import { Container, Box, Typography, Grid, useTheme, useMediaQuery } from '@mui/material';
+import { TrendingUp, Calculate, GridView } from '@mui/icons-material';
 import ActionCard from './shared/ActionCard';
+import { useAuth } from '../context/AuthContext';
+import { motion } from 'framer-motion';
 
 const Home = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const actions = [
     {
@@ -23,37 +28,81 @@ const Home = () => {
     {
       title: 'Market Heat Map',
       description: 'Visualize real-time performance of Nifty indices.',
-      icon: MapIcon,
+      icon: GridView,
       path: '/heatmap'
     }
   ];
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
   return (
-    <Fade in={true} timeout={1000}>
-      <Container maxWidth="lg" sx={{ flexGrow: 1, py: 8 }}>
-        <Box sx={{ textAlign: 'center', mb: 8 }}>
-          <Typography variant="h2" component="h1" color="primary" gutterBottom fontWeight="900" sx={{ fontSize: { xs: '2.5rem', md: '3.75rem' } }}>
-            Shahbaz Trades
+    <Container maxWidth="lg" sx={{ pt: { xs: 4, md: 8 }, pb: 12 }}>
+      {/* Header Section */}
+      <Box
+        component={motion.div}
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: 6
+        }}
+      >
+        <Box>
+          <Typography
+            variant={isMobile ? "h4" : "h2"}
+            fontWeight="900"
+            sx={{
+              letterSpacing: '-1px',
+              background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              mb: 1
+            }}
+          >
+            {user ? `Hey, ${user.name || user.email.split('@')[0]}! 👋` : 'Welcome! 👋'}
           </Typography>
-          <Typography variant="h5" color="text.secondary" sx={{ maxWidth: '700px', mx: 'auto', fontWeight: 500 }}>
-            Your premier destination for seamless trading experiences and advanced market analysis.
+          <Typography variant="body1" color="text.secondary" fontWeight="500">
+            Let's see what the markets are doing today.
           </Typography>
         </Box>
 
-        <Grid container spacing={4} justifyContent="center">
-          {actions.map((action, idx) => (
-            <ActionCard
-              key={idx}
-              title={action.title}
-              description={action.description}
-              icon={action.icon}
-              onClick={() => navigate(action.path)}
-            />
-          ))}
-        </Grid>
-      </Container>
-    </Fade>
+      </Box>
+
+
+
+      {/* Action Cards Grid */}
+      <Grid
+        container
+        spacing={3}
+        component={motion.div}
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+
+        {actions.map((action, idx) => (
+          <ActionCard
+            key={idx}
+            title={action.title}
+            description={action.description}
+            icon={action.icon}
+            onClick={() => navigate(action.path)}
+          />
+        ))}
+      </Grid>
+    </Container>
   );
 };
 
 export default Home;
+

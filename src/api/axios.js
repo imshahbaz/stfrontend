@@ -28,6 +28,7 @@ export const authAPI = {
   login: (email, password) => api.post('/api/auth/login', { email, password }),
   logout: () => api.post('/api/auth/logout'),
   getMe: () => api.get('/api/auth/me'),
+  clientConfig:()=> api.get('/api/config/client/active')
 };
 
 export const userPreferenceAPI = {
@@ -90,6 +91,15 @@ export const priceActionAPI = {
 export const truecallerAPI = {
   getTruecallerStatus: (requestId) => api.get(`/api/auth/truecaller/status/${requestId}`),
   truecallerLogin: (requestId) => `truecallersdk://truesdk/web_verify?type=btmsheet&requestNonce=${requestId}&partnerKey=${APP_KEY}&partnerName=${APP_NAME}&lang=en&title=logIn&skipOption=useanothernum`,
+}
+
+export const googleAPI = {
+  googleCallback: (code, random) => api.get("/api/auth/google/callback", {
+    params: {
+      code: code,
+      state: random
+    }
+  })
 }
 
 export default api;

@@ -11,7 +11,8 @@ const FvgTab = () => {
             apiMethods={{
                 create: priceActionAPI.createFVG,
                 update: priceActionAPI.updateFVG,
-                delete: priceActionAPI.deleteFVG
+                delete: priceActionAPI.deleteFVG,
+                get: priceActionAPI.getPriceActionBySymbol
             }}
             refreshApiMethod={priceActionAPI.refreshFvgMitigationData}
         />
