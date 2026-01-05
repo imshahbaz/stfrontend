@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import { Loader2 } from 'lucide-react';
 
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -11,6 +10,7 @@ import Footer from './components/Footer';
 import AdsterraBanner from './components/AdsterraBanner';
 import { userPreferenceAPI } from "./api/axios";
 import ScrollToTop from './components/shared/ScrollToTop';
+import LoadingScreen from './components/LoadingScreen';
 
 // Lazy load page components
 import Home from './components/Home';
@@ -90,35 +90,33 @@ function AppContent() {
     }
   };
 
-  if (!authContext || authContext.loading) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-      </div>
-    );
-  }
-
   return (
-    <Router>
-      <ScrollToTop />
-      <div className="flex min-h-screen flex-col bg-background text-foreground relative">
-        <Header toggleTheme={toggleTheme} theme={theme} />
+    <AnimatePresence mode="wait">
+      {(!authContext || authContext.loading) ? (
+        <LoadingScreen key="loading" />
+      ) : (
+        <Router key="main">
+          <ScrollToTop />
+          <div className="flex min-h-screen flex-col bg-background text-foreground relative">
+            <Header toggleTheme={toggleTheme} theme={theme} />
 
-        <main className="flex-grow flex flex-col min-h-0 pb-[100px] md:pb-0">
-          <AnimatedRoutes auth={authContext.appConfig.auth} />
-        </main>
+            <main className="flex-grow flex flex-col min-h-0 pb-[100px] md:pb-0">
+              <AnimatedRoutes auth={authContext.appConfig.auth} />
+            </main>
 
-        {import.meta.env.VITE_ENV === 'production' && (
-          <div className="hidden md:flex w-full justify-center py-4 bg-background">
-            <AdsterraBanner />
+            {import.meta.env.VITE_ENV === 'production' && (
+              <div className="hidden md:flex w-full justify-center py-4 bg-background">
+                <AdsterraBanner />
+              </div>
+            )}
+
+            <div className="hidden md:block">
+              <Footer />
+            </div>
           </div>
-        )}
-
-        <div className="hidden md:block">
-          <Footer />
-        </div>
-      </div>
-    </Router>
+        </Router>
+      )}
+    </AnimatePresence>
   );
 }
 
