@@ -4,7 +4,7 @@ import { googleAPI } from '../api/axios';
 const useGooglePolling = (onSuccess, onError) => {
   const [status, setStatus] = useState('');
   const [isPolling, setIsPolling] = useState(false);
-  
+
   const pollingActive = useRef(false);
   const timerRef = useRef(null);
   const attemptsRef = useRef(0);
@@ -20,19 +20,19 @@ const useGooglePolling = (onSuccess, onError) => {
 
   const startPolling = useCallback((code, state) => {
     if (pollingActive.current) return;
-    
+
     pollingActive.current = true;
     setIsPolling(true);
     attemptsRef.current = 0;
     setStatus('Waiting for Google authorization...');
 
-    const INITIAL_WAIT = 1000; 
+    const INITIAL_WAIT = 1000;
     const POLL_INTERVAL = 500;
     const MAX_ATTEMPTS = 5;
-    
+
     const executeSinglePoll = async () => {
       if (!pollingActive.current) return;
-      
+
       attemptsRef.current++;
 
       if (attemptsRef.current > MAX_ATTEMPTS) {
@@ -43,7 +43,7 @@ const useGooglePolling = (onSuccess, onError) => {
 
       try {
         const res = await googleAPI.googleCallback(code, state);
-        
+
         if (res.status === 200 || res.status === 201) {
           onSuccess(res.data.data);
           clearPolling();
@@ -53,7 +53,7 @@ const useGooglePolling = (onSuccess, onError) => {
         const httpStatus = err.response?.status;
 
         if (httpStatus === 404) {
-          
+
         } else {
           onError(err.response?.data?.detail || "Auth Error");
           clearPolling();

@@ -151,7 +151,7 @@ const HeatmapV2 = () => {
           </div>
         </div>
         <div className="h-4 w-full bg-destructive/20 rounded-full overflow-hidden flex shadow-inner border border-border/50">
-          <motion.div 
+          <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${marketBreadth.percentUp}%` }}
             transition={{ duration: 1, ease: "easeOut" }}

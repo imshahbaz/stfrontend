@@ -23,8 +23,8 @@ const AdminTable = ({ columns, data, renderMobileCard, keyField = 'id' }) => {
                     <thead>
                         <tr className="bg-muted/50 border-b border-border">
                             {columns.map((column) => (
-                                <th 
-                                    key={column.field} 
+                                <th
+                                    key={column.field}
                                     className={`px-4 py-4 font-extrabold text-foreground uppercase tracking-wider ${column.align === 'center' ? 'text-center' : column.align === 'right' ? 'text-right' : ''}`}
                                 >
                                     {column.label}
@@ -36,8 +36,8 @@ const AdminTable = ({ columns, data, renderMobileCard, keyField = 'id' }) => {
                         {data.map((item, index) => (
                             <tr key={item[keyField] || index} className="hover:bg-muted/30 transition-colors">
                                 {columns.map((column) => (
-                                    <td 
-                                        key={column.field} 
+                                    <td
+                                        key={column.field}
                                         className={`px-4 py-4 font-medium text-foreground ${column.align === 'center' ? 'text-center' : column.align === 'right' ? 'text-right' : ''}`}
                                     >
                                         {column.render ? column.render(item) : item[column.field]}

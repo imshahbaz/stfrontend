@@ -26,10 +26,10 @@ const Heatmap = () => {
 
   const marketBreadth = useMemo(() => {
     const up = data.filter(d => d.pChange > 0).length;
-    return { 
-        up, 
-        down: data.length - up,
-        percentUp: data.length > 0 ? (up / data.length) * 100 : 0
+    return {
+      up,
+      down: data.length - up,
+      percentUp: data.length > 0 ? (up / data.length) * 100 : 0
     };
   }, [data]);
 
@@ -44,7 +44,7 @@ const Heatmap = () => {
   };
 
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
-  
+
   const series = [{
     data: data.map(item => ({
       x: item.index,
@@ -131,7 +131,7 @@ const Heatmap = () => {
           </div>
         </div>
         <div className="h-4 w-full bg-destructive/20 rounded-full overflow-hidden flex shadow-inner border border-border/50">
-          <motion.div 
+          <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${marketBreadth.percentUp}%` }}
             transition={{ duration: 1, ease: "easeOut" }}
@@ -140,7 +140,7 @@ const Heatmap = () => {
         </div>
       </div>
 
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="bg-card border border-border rounded-[3rem] p-4 md:p-8 shadow-2xl shadow-black/5 overflow-hidden"

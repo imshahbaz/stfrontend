@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Calculator as CalcIcon, 
-  ArrowRight, 
-  ArrowLeft, 
-  Receipt, 
-  Wallet, 
-  Edit3, 
-  RefreshCcw, 
+import {
+  Calculator as CalcIcon,
+  ArrowRight,
+  ArrowLeft,
+  Receipt,
+  Wallet,
+  Edit3,
+  RefreshCcw,
   TrendingUp,
   Search
 } from 'lucide-react';
@@ -51,7 +51,7 @@ const Calculator = () => {
     fetchMargins();
   }, []);
 
-  const filteredMargins = Array.isArray(margins) ? margins.filter(m => 
+  const filteredMargins = Array.isArray(margins) ? margins.filter(m =>
     m.symbol.toLowerCase().includes(searchQuery.toLowerCase())
   ).slice(0, 10) : [];
 
@@ -157,7 +157,7 @@ const Calculator = () => {
                 <h2 className="text-2xl font-black tracking-tight">Trade Calculator</h2>
                 <p className="text-sm font-bold opacity-80">Estimate your MTF returns precisely</p>
                 <div className="absolute bottom-0 left-0 w-full h-1.5 bg-white/20">
-                  <motion.div 
+                  <motion.div
                     initial={{ width: "50%" }}
                     animate={{ width: activeStep === 1 ? "50%" : "100%" }}
                     className="h-full bg-white"
@@ -267,11 +267,11 @@ const Calculator = () => {
                         <div className="flex justify-between items-center px-1">
                           <label className="text-[10px] font-black uppercase tracking-widest text-primary">Exit Strategy</label>
                           <div className="flex bg-muted p-1 rounded-xl gap-1">
-                            <button 
+                            <button
                               onClick={() => setSellType('exact')}
                               className={cn("px-4 py-1.5 rounded-lg text-xs font-bold transition-all", sellType === 'exact' ? "bg-background shadow-sm" : "text-muted-foreground")}
                             >Target Price</button>
-                            <button 
+                            <button
                               onClick={() => setSellType('percent')}
                               className={cn("px-4 py-1.5 rounded-lg text-xs font-bold transition-all", sellType === 'percent' ? "bg-background shadow-sm" : "text-muted-foreground")}
                             >Percentage</button>
@@ -322,11 +322,11 @@ const Calculator = () => {
                         <div className="flex justify-between items-center px-1">
                           <label className="text-[10px] font-black uppercase tracking-widest text-primary">Entry Method</label>
                           <div className="flex bg-muted p-1 rounded-xl gap-1">
-                            <button 
+                            <button
                               onClick={() => setQuantityType('quantity')}
                               className={cn("px-4 py-1.5 rounded-lg text-xs font-bold transition-all", quantityType === 'quantity' ? "bg-background shadow-sm" : "text-muted-foreground")}
                             >By Quantity</button>
-                            <button 
+                            <button
                               onClick={() => setQuantityType('investment')}
                               className={cn("px-4 py-1.5 rounded-lg text-xs font-bold transition-all", quantityType === 'investment' ? "bg-background shadow-sm" : "text-muted-foreground")}
                             >By Capital</button>
@@ -350,14 +350,14 @@ const Calculator = () => {
                       </div>
 
                       <div className="flex gap-4 mt-6">
-                        <button 
-                          onClick={() => setActiveStep(1)} 
+                        <button
+                          onClick={() => setActiveStep(1)}
                           className="btn flex-1 bg-muted border border-border h-14 rounded-2xl font-black text-muted-foreground hover:bg-muted/80"
                         >
                           <ArrowLeft className="mr-2 h-5 w-5" /> Back
                         </button>
-                        <button 
-                          onClick={calculateReturns} 
+                        <button
+                          onClick={calculateReturns}
                           className="btn flex-[1.5] bg-green-500 text-white h-14 rounded-2xl font-black shadow-xl shadow-green-500/20 hover:scale-[1.02] active:scale-95 transition-all"
                         >
                           <CalcIcon className="mr-2 h-5 w-5" /> Calculate
@@ -381,14 +381,14 @@ const Calculator = () => {
                 "absolute top-0 left-0 w-full h-2",
                 results.isProfit ? "bg-green-500" : "bg-destructive"
               )} />
-              
+
               <div className={cn(
                 "mx-auto w-20 h-20 rounded-full flex items-center justify-center mb-6 shadow-xl transition-transform hover:scale-110",
                 results.isProfit ? "bg-green-500 text-white shadow-green-500/20" : "bg-destructive text-white shadow-destructive/20"
               )}>
                 <TrendingUp size={40} />
               </div>
-              
+
               <span className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground mb-2 block">Net P&L Result</span>
               <h2 className={cn(
                 "text-6xl font-black tracking-tighter mb-4",
@@ -396,7 +396,7 @@ const Calculator = () => {
               )}>
                 ₹{results.net}
               </h2>
-              
+
               <div className={cn(
                 "inline-flex px-6 py-2 rounded-full font-black text-sm",
                 results.isProfit ? "bg-green-500/10 text-green-600 dark:text-green-400" : "bg-destructive/10 text-destructive"

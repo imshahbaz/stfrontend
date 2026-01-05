@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Search, 
-  RefreshCcw, 
-  Calendar, 
-  TrendingUp, 
-  TrendingDown, 
-  Save, 
-  X, 
-  Store,
-  Edit3,
-  Trash2,
-  Loader2
+import {
+    Search,
+    RefreshCcw,
+    Calendar,
+    TrendingUp,
+    TrendingDown,
+    Save,
+    X,
+    Store,
+    Edit3,
+    Trash2,
+    Loader2
 } from 'lucide-react';
 import dayjs from 'dayjs';
 
@@ -132,7 +132,7 @@ const GenericPriceActionTab = ({
         setModalOpen(true);
     };
 
-    const filteredMargins = margins.filter(m => 
+    const filteredMargins = margins.filter(m =>
         m.symbol.toLowerCase().includes(searchQuery.toLowerCase())
     ).slice(0, 8);
 

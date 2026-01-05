@@ -8,8 +8,8 @@ const StatusAlert = ({ success, error, className }) => {
     return (
         <div className={cn(
             "mt-4 p-4 rounded-2xl flex items-center gap-3 border transition-all animate-in fade-in slide-in-from-top-1",
-            success 
-                ? "bg-green-500/10 border-green-500/20 text-green-600 dark:text-green-400" 
+            success
+                ? "bg-green-500/10 border-green-500/20 text-green-600 dark:text-green-400"
                 : "bg-destructive/10 border-destructive/20 text-destructive",
             className
         )}>

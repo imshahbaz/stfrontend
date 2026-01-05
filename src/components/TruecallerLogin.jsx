@@ -9,7 +9,7 @@ const TruecallerLogin = ({ login, user, loading, isLoading: externalIsLoading = 
   const navigate = useNavigate();
   const [internalIsLoading, setInternalIsLoading] = useState(false);
   const isLoading = externalIsLoading || internalIsLoading;
-  
+
   const { startPolling, clearPolling } = useTruecallerPolling(
     async (data) => {
       setInternalIsLoading(false);

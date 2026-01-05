@@ -33,7 +33,7 @@ const MarginDataTab = () => {
                 <div className="mx-auto w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center text-primary shadow-xl shadow-primary/5">
                     <UploadCloud size={48} />
                 </div>
-                
+
                 <div>
                     <h3 className="text-3xl font-black tracking-tight mb-2">CSV Data Sync</h3>
                     <p className="text-muted-foreground font-medium">

@@ -1,10 +1,10 @@
 import React, { useEffect, memo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  TrendingUp, 
-  ExternalLink, 
-  BarChart3, 
+import {
+  TrendingUp,
+  ExternalLink,
+  BarChart3,
   Loader2,
   ChevronLeft
 } from 'lucide-react';

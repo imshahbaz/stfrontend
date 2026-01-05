@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Mail, 
-  User, 
-  Save, 
-  Key, 
-  Check, 
-  UserPlus, 
-  Lock, 
-  BadgeCheck, 
-  ShieldCheck, 
+import {
+  Mail,
+  User,
+  Save,
+  Key,
+  Check,
+  UserPlus,
+  Lock,
+  BadgeCheck,
+  ShieldCheck,
   Fingerprint,
   Loader2,
   ChevronLeft

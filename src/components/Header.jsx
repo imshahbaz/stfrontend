@@ -3,14 +3,14 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Popover from '@radix-ui/react-popover';
 import * as Dialog from '@radix-ui/react-dialog';
-import { 
-  TrendingUp, 
-  Settings, 
-  LayoutDashboard, 
-  LogOut, 
-  LogIn, 
-  ChevronRight, 
-  Sun, 
+import {
+  TrendingUp,
+  Settings,
+  LayoutDashboard,
+  LogOut,
+  LogIn,
+  ChevronRight,
+  Sun,
   Moon,
   Menu,
   X,
@@ -84,15 +84,15 @@ const Header = ({ toggleTheme, theme }) => {
             <nav className="hidden md:flex items-center gap-2">
               {user ? (
                 <>
-                  <Link 
-                    to="/settings" 
+                  <Link
+                    to="/settings"
                     className="px-3 py-2 text-sm font-semibold hover:text-primary transition-colors"
                   >
                     Settings
                   </Link>
                   {user.role === 'ADMIN' && (
-                    <Link 
-                      to="/admin/dashboard" 
+                    <Link
+                      to="/admin/dashboard"
                       className="px-3 py-2 text-sm font-semibold bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors"
                     >
                       Admin
@@ -232,7 +232,7 @@ const Header = ({ toggleTheme, theme }) => {
                   {item.label}
                 </span>
                 {isActive && (
-                  <motion.div 
+                  <motion.div
                     layoutId="activeTab"
                     className="absolute -bottom-1 h-1 w-4 rounded-full bg-primary"
                   />

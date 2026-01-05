@@ -9,7 +9,7 @@ import GoogleLogin from '../GoogleLogin';
 const AuthWrapper = ({ title, subtitle, children, isLogin }) => {
     const navigate = useNavigate();
     const authContext = useAuth();
-    
+
     useEffect(() => {
         if (authContext && !authContext.loading && authContext.user) {
             navigate('/', { replace: true });
