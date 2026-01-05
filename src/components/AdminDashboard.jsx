@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Tabs from '@radix-ui/react-tabs';
-import { 
-  LayoutDashboard, 
-  Settings, 
-  Database, 
-  ListTodo 
+import {
+  LayoutDashboard,
+  Settings,
+  Database,
+  ListTodo
 } from 'lucide-react';
 
 import StrategiesTab from './admin/StrategiesTab';
@@ -39,8 +39,8 @@ const AdminDashboard = () => {
         </div>
 
         {/* TABS NAVIGATION */}
-        <Tabs.Root 
-          value={activeTab} 
+        <Tabs.Root
+          value={activeTab}
           onValueChange={setActiveTab}
           className="space-y-8"
         >
@@ -54,8 +54,8 @@ const AdminDashboard = () => {
                     value={tab.value}
                     className={cn(
                       "flex items-center gap-2 px-6 py-4 rounded-full text-sm font-bold transition-all whitespace-nowrap",
-                      isActive 
-                        ? "bg-primary text-white shadow-lg shadow-primary/20 scale-105" 
+                      isActive
+                        ? "bg-primary text-white shadow-lg shadow-primary/20 scale-105"
                         : "text-muted-foreground hover:bg-muted/50"
                     )}
                   >
@@ -69,8 +69,8 @@ const AdminDashboard = () => {
 
           <AnimatePresence mode="wait">
             {tabs.map((tab) => (
-              <Tabs.Content 
-                key={tab.value} 
+              <Tabs.Content
+                key={tab.value}
                 value={tab.value}
                 asChild
               >

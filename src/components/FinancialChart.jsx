@@ -58,7 +58,7 @@ const FinancialChart = ({ rawData, height = 700, theme = 'dark', enableZoom = tr
             enabled: true,
             theme: theme,
             shared: true,
-            intersect: false 
+            intersect: false
         },
         // theme: { mode: theme },
         xaxis: {
@@ -85,12 +85,12 @@ const FinancialChart = ({ rawData, height = 700, theme = 'dark', enableZoom = tr
         },
         grid: { borderColor: theme === 'dark' ? '#374151' : '#e5e7eb' },
         plotOptions: {
-          candlestick: {
-            colors: {
-              upward: '#22c55e',
-              downward: '#ef4444'
+            candlestick: {
+                colors: {
+                    upward: '#22c55e',
+                    downward: '#ef4444'
+                }
             }
-          }
         }
     }), [theme]);
 

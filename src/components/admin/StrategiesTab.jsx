@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Type, 
-  Code, 
-  Save, 
-  X, 
-  Settings, 
-  Power, 
-  Edit3, 
-  Trash2,
-  Loader2
+import {
+    Type,
+    Code,
+    Save,
+    X,
+    Settings,
+    Power,
+    Edit3,
+    Trash2,
+    Loader2
 } from 'lucide-react';
 import * as Checkbox from '@radix-ui/react-checkbox';
 import { CheckIcon } from '@radix-ui/react-icons';
@@ -97,13 +97,13 @@ const StrategiesTab = () => {
             align: 'right',
             render: (s) => (
                 <div className="flex justify-end gap-1">
-                    <button 
+                    <button
                         onClick={() => { setStrategyForm(s); setEditingId(s.name); }}
                         className="p-2 rounded-lg hover:bg-primary/10 text-primary transition-colors"
                     >
                         <Edit3 size={16} />
                     </button>
-                    <button 
+                    <button
                         onClick={() => handleOpenModal('Delete Strategy', `Remove ${s.name} from registry?`, () => strategyAPI.deleteStrategy(s.name).then(fetchStrategies))}
                         className="p-2 rounded-lg hover:bg-destructive/10 text-destructive transition-colors"
                     >
@@ -192,15 +192,15 @@ const StrategiesTab = () => {
                             </div>
 
                             <div className="flex items-center gap-4 p-4 rounded-2xl bg-muted/20 border border-border">
-                                <Checkbox.Root 
-                                  className="flex h-6 w-6 appearance-none items-center justify-center rounded-lg bg-background border border-border outline-none focus:ring-2 focus:ring-primary data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500 transition-colors"
-                                  id="active"
-                                  checked={strategyForm.active}
-                                  onCheckedChange={(checked) => setStrategyForm(prev => ({ ...prev, active: checked }))}
+                                <Checkbox.Root
+                                    className="flex h-6 w-6 appearance-none items-center justify-center rounded-lg bg-background border border-border outline-none focus:ring-2 focus:ring-primary data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500 transition-colors"
+                                    id="active"
+                                    checked={strategyForm.active}
+                                    onCheckedChange={(checked) => setStrategyForm(prev => ({ ...prev, active: checked }))}
                                 >
-                                  <Checkbox.Indicator>
-                                    <CheckIcon className="h-4 w-4 text-white font-black" />
-                                  </Checkbox.Indicator>
+                                    <Checkbox.Indicator>
+                                        <CheckIcon className="h-4 w-4 text-white font-black" />
+                                    </Checkbox.Indicator>
                                 </Checkbox.Root>
                                 <label className="flex items-center gap-2 cursor-pointer" htmlFor="active">
                                     <Power size={16} className={strategyForm.active ? "text-green-500" : "text-muted-foreground"} />

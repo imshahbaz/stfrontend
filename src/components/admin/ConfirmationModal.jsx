@@ -16,14 +16,14 @@ const ConfirmationModal = ({ open, onClose, title, message, onConfirm }) => {
                             {title}
                         </AlertDialog.Title>
                     </div>
-                    
+
                     <AlertDialog.Description className="text-muted-foreground font-medium mb-8 leading-relaxed">
                         {message}
                     </AlertDialog.Description>
 
                     <div className="flex justify-end gap-3">
                         <AlertDialog.Cancel asChild>
-                            <button 
+                            <button
                                 onClick={onClose}
                                 className="px-6 py-2.5 text-sm font-bold rounded-xl hover:bg-muted transition-colors"
                             >

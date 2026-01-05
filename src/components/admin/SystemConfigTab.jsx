@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Save, 
-  RefreshCcw, 
-  Code, 
-  AlertTriangle, 
-  Loader2,
-  FileCode
+import {
+    Save,
+    RefreshCcw,
+    Code,
+    AlertTriangle,
+    Loader2,
+    FileCode
 } from 'lucide-react';
 import { configAPI } from '../../api/axios';
 import AdminFormContainer from '../shared/AdminFormContainer';
@@ -66,7 +66,7 @@ const SystemConfigTab = () => {
                 <div className="p-5 rounded-2xl bg-primary/5 border border-primary/10 flex gap-4 items-start mb-8 shadow-sm shadow-primary/5">
                     <AlertTriangle className="h-6 w-6 text-primary shrink-0 mt-0.5" />
                     <p className="text-sm font-semibold text-muted-foreground leading-relaxed">
-                        <strong className="text-primary font-black uppercase tracking-tighter mr-1">Direct Override:</strong> 
+                        <strong className="text-primary font-black uppercase tracking-tighter mr-1">Direct Override:</strong>
                         This modifies core system parameters. Ensure your JSON syntax is 100% valid before committing.
                     </p>
                 </div>

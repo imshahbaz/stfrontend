@@ -49,7 +49,7 @@ const ChartPage = () => {
       <div className="flex-grow p-4 md:p-8 relative">
         <AnimatePresence mode="wait">
           {chartLoading ? (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -72,7 +72,7 @@ const ChartPage = () => {
               </div>
               <h3 className="text-2xl font-black tracking-tight mb-2">Error Loading Chart</h3>
               <p className="text-muted-foreground font-medium max-w-sm mb-8">{chartError}</p>
-              <button 
+              <button
                 onClick={() => fetchChartData(symbol)}
                 className="btn btn-primary h-12 px-8 rounded-xl font-black"
               >
