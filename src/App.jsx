@@ -92,7 +92,7 @@ function AppContent() {
 
   return (
     <AnimatePresence mode="wait">
-      {(!authContext || authContext.loading) ? (
+      {(!authContext || authContext.appLoading) ? (
         <LoadingScreen key="loading" />
       ) : (
         <Router key="main">

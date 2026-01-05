@@ -11,7 +11,6 @@ import {
 import { configAPI } from '../../api/axios';
 import AdminFormContainer from '../shared/AdminFormContainer';
 import StatusAlert from '../shared/StatusAlert';
-import { cn } from '../../lib/utils';
 
 const SystemConfigTab = () => {
     const [configJson, setConfigJson] = useState('');

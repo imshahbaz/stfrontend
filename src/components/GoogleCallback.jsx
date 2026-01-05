@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Loader2, ArrowLeft, ShieldCheck, ShieldAlert } from 'lucide-react';
@@ -12,6 +12,7 @@ const GoogleCallback = () => {
   const { login, user } = useAuth();
   const [searchParams] = useSearchParams();
   const [error, setError] = useState('');
+  const startedRef = useRef(false);
 
   const code = searchParams.get('code');
   const state = searchParams.get('state');
@@ -32,7 +33,7 @@ const GoogleCallback = () => {
       navigate('/', { replace: true });
       return;
     }
-    if (code && state) {
+    if (!startedRef.current && code && state) {
       startPolling(code, state);
     } else {
       setError('Missing session data.');

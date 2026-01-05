@@ -7,12 +7,13 @@ const CACHE_EXPIRY = 300000;
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
-
-    const [configLoading, setConfigLoading] = useState(false);
     const [appConfig, setAppConfig] = useState({
         auth: { google: true, truecaller: true, email: true }
     });
+
+    const [appLoading, setAppLoading] = useState(true);
+    const [authLoading, setAuthLoading] = useState(false);
+    const [configLoading, setConfigLoading] = useState(true);
 
     const fetchGlobalConfig = async (forceRefresh = false) => {
         const cached = JSON.parse(localStorage.getItem(CONFIG_CACHE_KEY));
@@ -46,12 +47,11 @@ export const AuthProvider = ({ children }) => {
             const res = await authAPI.getMe();
             setUser(res.data.data);
         } catch (err) {
-            // Only clear user if the error is an Auth error (401/403)
             if (err.response?.status === 401 || err.response?.status === 403) {
                 setUser(null);
             }
         } finally {
-            setLoading(false);
+            setAppLoading(false);
         }
     };
 
@@ -85,23 +85,33 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     const login = (userData, showLoading = true) => {
-        if (showLoading) { setLoading(true) }
+        if (showLoading) { setAuthLoading(true) }
         setUser(userData);
-        if (showLoading) { setLoading(false) }
+        if (showLoading) { setAuthLoading(false) }
     };
 
     const logout = async () => {
-        setLoading(true);
+        setAuthLoading(true);
         try {
             await authAPI.logout();
         } finally {
             setUser(null);
-            setLoading(false);
+            setAuthLoading(false);
         }
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, loading, refreshUserData, configLoading, appConfig, setLoading }}>
+        <AuthContext.Provider value={{
+            user,
+            login,
+            logout,
+            appLoading,
+            authLoading,
+            refreshUserData,
+            configLoading,
+            appConfig,
+            setAuthLoading
+        }}>
             {children}
         </AuthContext.Provider>
     );
