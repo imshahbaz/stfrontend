@@ -51,7 +51,11 @@ const AuthWrapper = ({ title, subtitle, children, isLogin }) => {
 
                     <div className="space-y-6">
                         {auth.truecaller && (
-                            <TruecallerLogin login={login} user={user} loading={authContext.loading} isLogin={isLogin} refreshUserData={refreshUserData} />
+                            <TruecallerLogin
+                                login={login}
+                                user={user}
+                                isLogin={isLogin}
+                                refreshUserData={refreshUserData} />
                         )}
 
                         {auth.google && (
