@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GoogleOAuthProvider } from '@react-oauth/google';
@@ -54,20 +54,23 @@ function App() {
 }
 
 function AppContent() {
+  const hasHydratedTheme = useRef(false)
   const authContext = useAuth();
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('theme') || 'dark';
   });
 
   useEffect(() => {
-    if (authContext?.user?.theme) {
+    if (!authContext?.user?.theme) return
+    if (!hasHydratedTheme.current) {
       const userTheme = authContext.user.theme === 'DARK' ? 'dark' : 'light';
-      if (theme !== userTheme) {
-        setTheme(userTheme);
-        localStorage.setItem('theme', userTheme);
-      }
+      setTheme(userTheme);
+      localStorage.setItem('theme', userTheme);
+      document.documentElement.classList.toggle('dark', userTheme === 'dark');
+
+      hasHydratedTheme.current = true;
     }
-  }, [authContext?.user, theme]);
+  }, [authContext?.user]);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -79,13 +82,12 @@ function AppContent() {
     const newTheme = theme === 'dark' ? 'light' : 'dark';
     setTheme(newTheme);
     localStorage.setItem('theme', newTheme);
-    const root = window.document.documentElement;
-    root.classList.remove('light', 'dark');
-    root.classList.add(newTheme);
+    document.documentElement.classList.toggle('dark', newTheme === 'dark');
+
     if (authContext?.user) {
       userPreferenceAPI.updateTheme(newTheme.toUpperCase());
       if (authContext?.login) {
-        authContext.login({ ...authContext.user, theme: newTheme.toUpperCase() });
+        authContext.login({ ...authContext.user, theme: newTheme.toUpperCase() }, false);
       }
     }
   };
