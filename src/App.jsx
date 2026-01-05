@@ -90,25 +90,13 @@ function AppContent() {
     }
   };
 
-  useEffect(() => {
-    if (authContext && !authContext.loading) {
-      const loader = document.getElementById('pre-loader');
-      if (loader) {
-        loader.style.transition = 'opacity 0.8s ease-in-out';
-        loader.style.opacity = '0';
-        setTimeout(() => loader.remove(), 800);
-      }
-    }
-  }, [authContext?.loading]);
-
-  if (!authContext || authContext.loading) {
-    return null;
-  }
-
   return (
     <AnimatePresence mode="wait">
-      <Router key="main">
-        <ScrollToTop />
+      {(!authContext || authContext.loading) ? (
+        <LoadingScreen key="loading" />
+      ) : (
+        <Router key="main">
+          <ScrollToTop />
           <div className="flex min-h-screen flex-col bg-background text-foreground relative">
             <Header toggleTheme={toggleTheme} theme={theme} />
 
@@ -127,6 +115,7 @@ function AppContent() {
             </div>
           </div>
         </Router>
+      )}
     </AnimatePresence>
   );
 }
