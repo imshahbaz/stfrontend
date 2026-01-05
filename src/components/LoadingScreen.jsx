@@ -14,27 +14,27 @@ const LoadingScreen = () => {
       <div className="relative z-10 flex flex-col items-center w-full max-w-xs gap-10">
         {/* Logo with Pulse Effect */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
+          initial={{ opacity: 0, scale: 0.8 }}
           animate={{ 
             opacity: 1, 
-            scale: 1,
-            boxShadow: [
-              "0 0 20px 0px rgba(124, 58, 237, 0.2)",
-              "0 0 40px 10px rgba(124, 58, 237, 0.4)",
-              "0 0 20px 0px rgba(124, 58, 237, 0.2)"
+            scale: [1, 1.05, 1],
+            filter: [
+              "drop-shadow(0 0 15px rgba(124, 58, 237, 0.3))",
+              "drop-shadow(0 0 35px rgba(124, 58, 237, 0.6))",
+              "drop-shadow(0 0 15px rgba(124, 58, 237, 0.3))"
             ]
           }}
           transition={{ 
-            duration: 2, 
+            duration: 3, 
             repeat: Infinity, 
             ease: "easeInOut" 
           }}
-          className="flex h-24 w-24 items-center justify-center rounded-2xl bg-card border border-border/50 backdrop-blur-sm"
+          className="flex h-32 w-32 items-center justify-center"
         >
           <img
             src="/logo512.png"
             alt="Shahbaz Trades Logo"
-            className="h-14 w-14 object-contain"
+            className="h-28 w-28 object-contain"
           />
         </motion.div>
 
