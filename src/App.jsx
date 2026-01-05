@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GoogleOAuthProvider } from '@react-oauth/google';
@@ -14,17 +14,17 @@ import ScrollToTop from './components/shared/ScrollToTop';
 
 // Lazy load page components
 import Home from './components/Home';
-const Login = lazy(() => import('./components/Login'));
-const Signup = lazy(() => import('./components/Signup'));
-const Strategies = lazy(() => import('./components/Strategies'));
-const Calculator = lazy(() => import('./components/Calculator'));
-const Settings = lazy(() => import('./components/Settings'));
-const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
-const Unauthorized = lazy(() => import('./components/Unauthorized'));
-const ChartPage = lazy(() => import('./components/ChartPage'));
-const HeatmapV2 = lazy(() => import('./components/HeatmapV2'));
-const PageNotFound = lazy(() => import('./components/PageNotFound'));
-const GoogleCallback = lazy(() => import('./components/GoogleCallback'));
+import Login from './components/Login';
+import Signup from './components/Signup';
+import Strategies from './components/Strategies';
+import Calculator from './components/Calculator';
+import Settings from './components/Settings';
+import AdminDashboard from './components/AdminDashboard';
+import Unauthorized from './components/Unauthorized';
+import ChartPage from './components/ChartPage';
+import HeatmapV2 from './components/HeatmapV2';
+import PageNotFound from './components/PageNotFound';
+import GoogleCallback from './components/GoogleCallback';
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
