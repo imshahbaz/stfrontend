@@ -90,31 +90,33 @@ function AppContent() {
     }
   };
 
-  if (!authContext || authContext.loading) {
-    return <LoadingScreen />;
-  }
-
   return (
-    <Router>
-      <ScrollToTop />
-      <div className="flex min-h-screen flex-col bg-background text-foreground relative">
-        <Header toggleTheme={toggleTheme} theme={theme} />
+    <AnimatePresence mode="wait">
+      {(!authContext || authContext.loading) ? (
+        <LoadingScreen key="loading" />
+      ) : (
+        <Router key="main">
+          <ScrollToTop />
+          <div className="flex min-h-screen flex-col bg-background text-foreground relative">
+            <Header toggleTheme={toggleTheme} theme={theme} />
 
-        <main className="flex-grow flex flex-col min-h-0 pb-[100px] md:pb-0">
-          <AnimatedRoutes auth={authContext.appConfig.auth} />
-        </main>
+            <main className="flex-grow flex flex-col min-h-0 pb-[100px] md:pb-0">
+              <AnimatedRoutes auth={authContext.appConfig.auth} />
+            </main>
 
-        {import.meta.env.VITE_ENV === 'production' && (
-          <div className="hidden md:flex w-full justify-center py-4 bg-background">
-            <AdsterraBanner />
+            {import.meta.env.VITE_ENV === 'production' && (
+              <div className="hidden md:flex w-full justify-center py-4 bg-background">
+                <AdsterraBanner />
+              </div>
+            )}
+
+            <div className="hidden md:block">
+              <Footer />
+            </div>
           </div>
-        )}
-
-        <div className="hidden md:block">
-          <Footer />
-        </div>
-      </div>
-    </Router>
+        </Router>
+      )}
+    </AnimatePresence>
   );
 }
 
