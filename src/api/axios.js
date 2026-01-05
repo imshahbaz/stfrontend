@@ -28,7 +28,7 @@ export const authAPI = {
   login: (email, password) => api.post('/api/auth/login', { email, password }),
   logout: () => api.post('/api/auth/logout'),
   getMe: () => api.get('/api/auth/me'),
-  clientConfig:()=> api.get('/api/config/client/active')
+  clientConfig: () => api.get('/api/config/client/active')
 };
 
 export const userPreferenceAPI = {
@@ -99,7 +99,8 @@ export const googleAPI = {
       code: code,
       state: random
     }
-  })
+  }),
+  googleTokenValidation: (token) => api.post("/api/auth/google/token",null, { params: { code: token, state: "validate" } })
 }
 
 export default api;

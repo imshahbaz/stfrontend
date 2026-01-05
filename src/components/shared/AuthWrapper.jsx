@@ -5,6 +5,7 @@ import { Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import TruecallerLogin from '../TruecallerLogin';
 import GoogleLogin from '../GoogleLogin';
+import { GoogleButton } from '../auth/GoogleAuth';
 
 const AuthWrapper = ({ title, subtitle, children, isLogin }) => {
     const navigate = useNavigate();
@@ -59,8 +60,7 @@ const AuthWrapper = ({ title, subtitle, children, isLogin }) => {
                         )}
 
                         {auth.google && (
-                            <GoogleLogin />
-                        )}
+                            <><GoogleButton /></>)}
 
                         {auth.email && (
                             <>
