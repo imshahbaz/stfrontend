@@ -28,10 +28,18 @@ const LoadingScreen = () => {
               "drop-shadow(0 0 15px rgba(124, 58, 237, 0.3))"
             ]
           }}
-          transition={{
-            duration: 3,
-            repeat: Infinity,
-            ease: "easeInOut"
+          transition={{ 
+            opacity: { duration: 1, ease: "easeOut" },
+            scale: { 
+              duration: 5, 
+              repeat: Infinity, 
+              ease: "easeInOut" 
+            },
+            filter: { 
+              duration: 5, 
+              repeat: Infinity, 
+              ease: "easeInOut" 
+            }
           }}
           className="flex h-32 w-32 items-center justify-center"
         >
