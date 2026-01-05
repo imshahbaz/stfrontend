@@ -7,7 +7,8 @@ import { useAuth } from '../context/AuthContext';
 const BACKEND_CALLBACK_URL = import.meta.env.VITE_BACKEND_URL + "/api/auth/google/callback";
 
 const GoogleLogin = () => {
-  const{authLoading,setAuthLoading} = useAuth();
+  const [localLoading, setLocalLoading] = useState(false);
+  const { setAuthLoading } = useAuth();
   const [error, setError] = useState('');
   const currentUrl = window.location.origin;
 
@@ -19,20 +20,21 @@ const GoogleLogin = () => {
   });
 
   const handleLoginClick = () => {
+    if (localLoading) return;
     setError('');
     setAuthLoading(true);
     triggerLogin();
-    setTimeout(() => setLocalLoading(false), 1000);
+    setTimeout(() => setLocalLoading(false), 2000);
   };
 
   return (
     <div className="w-full space-y-4">
       <button
         onClick={handleLoginClick}
-        disabled={authLoading}
+        disabled={localLoading}
         className="w-full h-14 flex items-center justify-center gap-3 bg-background border border-border rounded-2xl font-bold transition-all hover:bg-muted/50 active:scale-95 disabled:opacity-50"
       >
-        {authLoading ? (
+        {localLoading ? (
           <Loader2 className="animate-spin h-5 w-5 text-primary" />
         ) : (
           <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -54,7 +56,7 @@ const GoogleLogin = () => {
             />
           </svg>
         )}
-        {authLoading ? 'Connecting...' : 'Continue with Google'}
+        {localLoading ? 'Connecting...' : 'Continue with Google'}
       </button>
       <StatusAlert error={error} />
     </div>

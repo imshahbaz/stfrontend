@@ -5,10 +5,13 @@ import { truecallerAPI } from '../api/axios';
 import useTruecallerPolling from '../hooks/useTruecallerPolling';
 import { cn } from '../lib/utils';
 
-const TruecallerLogin = ({ login, user, loading, isLoading: externalIsLoading = false, refreshUserData }) => {
+const TruecallerLogin = ({ 
+  login,
+  user,
+  refreshUserData }) => {
   const navigate = useNavigate();
   const [internalIsLoading, setInternalIsLoading] = useState(false);
-  const isLoading = externalIsLoading || internalIsLoading;
+  const isLoading = internalIsLoading;
 
   const { startPolling, clearPolling } = useTruecallerPolling(
     async (data) => {
@@ -22,12 +25,6 @@ const TruecallerLogin = ({ login, user, loading, isLoading: externalIsLoading = 
       setInternalIsLoading(false);
     }
   );
-
-  useEffect(() => {
-    if (!loading && user) {
-      navigate('/');
-    }
-  }, [user, loading, navigate]);
 
   const generateNonce = () => crypto.randomUUID();
 
