@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import TruecallerLogin from '../TruecallerLogin';
-import GoogleLogin from '../GoogleLogin';
 import { GoogleButton } from '../auth/GoogleAuth';
 
 const AuthWrapper = ({ title, subtitle, children, isLogin }) => {

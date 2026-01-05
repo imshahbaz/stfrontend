@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useContext, useRef } from 'react';
 import { authAPI } from '../api/axios';
+import { googleLogout } from '@react-oauth/google';
 
 const AuthContext = createContext(null);
 const CONFIG_CACHE_KEY = 'app_global_config';
@@ -94,6 +95,7 @@ export const AuthProvider = ({ children }) => {
         setAuthLoading(true);
         try {
             await authAPI.logout();
+            googleLogout()
         } finally {
             setUser(null);
             setAuthLoading(false);
