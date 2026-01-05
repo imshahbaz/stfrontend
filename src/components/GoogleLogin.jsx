@@ -2,12 +2,13 @@ import { useGoogleLogin } from '@react-oauth/google';
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import StatusAlert from './shared/StatusAlert';
+import { useAuth } from '../context/AuthContext';
 
 const BACKEND_CALLBACK_URL = import.meta.env.VITE_BACKEND_URL + "/api/auth/google/callback";
 
 const GoogleLogin = () => {
+  const{authLoading,setAuthLoading} = useAuth();
   const [error, setError] = useState('');
-  const [localLoading, setLocalLoading] = useState(false);
   const currentUrl = window.location.origin;
 
   const triggerLogin = useGoogleLogin({
@@ -19,7 +20,7 @@ const GoogleLogin = () => {
 
   const handleLoginClick = () => {
     setError('');
-    setLocalLoading(true);
+    setAuthLoading(true);
     triggerLogin();
     setTimeout(() => setLocalLoading(false), 1000);
   };
@@ -28,10 +29,10 @@ const GoogleLogin = () => {
     <div className="w-full space-y-4">
       <button
         onClick={handleLoginClick}
-        disabled={localLoading}
+        disabled={authLoading}
         className="w-full h-14 flex items-center justify-center gap-3 bg-background border border-border rounded-2xl font-bold transition-all hover:bg-muted/50 active:scale-95 disabled:opacity-50"
       >
-        {localLoading ? (
+        {authLoading ? (
           <Loader2 className="animate-spin h-5 w-5 text-primary" />
         ) : (
           <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -53,7 +54,7 @@ const GoogleLogin = () => {
             />
           </svg>
         )}
-        {localLoading ? 'Connecting...' : 'Continue with Google'}
+        {authLoading ? 'Connecting...' : 'Continue with Google'}
       </button>
       <StatusAlert error={error} />
     </div>

@@ -11,7 +11,7 @@ const useTruecallerPolling = (onSuccess, onError) => {
   const initialInterval = 2500;
   const maxInterval = 10000;
   const backoffFactor = 1.5;
-  const { setLoading } = useAuth();
+  const { setAuthLoading } = useAuth();
 
   const clearPolling = useCallback(() => {
     if (pollingInterval.current) {
@@ -19,12 +19,13 @@ const useTruecallerPolling = (onSuccess, onError) => {
       pollingInterval.current = null;
     }
     setIsPolling(false);
-    setLoading(false)
-  }, [setLoading]);
+    setAuthLoading(false)
+  }, [setAuthLoading]);
 
   const startPolling = useCallback((requestId) => {
     if (isPolling) return;
     setIsPolling(true);
+    setAuthLoading(true)
     setStatus('Verifying via Truecaller...');
     retryCount.current = 0;
     let currentInterval = initialInterval;
