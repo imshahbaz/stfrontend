@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import { Loader2 } from 'lucide-react';
 
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -11,6 +10,7 @@ import Footer from './components/Footer';
 import AdsterraBanner from './components/AdsterraBanner';
 import { userPreferenceAPI } from "./api/axios";
 import ScrollToTop from './components/shared/ScrollToTop';
+import LoadingScreen from './components/LoadingScreen';
 
 // Lazy load page components
 import Home from './components/Home';
@@ -91,11 +91,7 @@ function AppContent() {
   };
 
   if (!authContext || authContext.loading) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (
