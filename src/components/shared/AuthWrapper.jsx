@@ -66,7 +66,7 @@ const AuthWrapper = ({ title, subtitle, children, isLogin }) => {
                                 refreshUserData={refreshUserData} />
                         )}
 
-                        {auth.google && <GoogleButton />}
+                        {auth.google && <GoogleButton setError={setError} />}
 
                         {auth.email && (
                             <>

@@ -3,13 +3,15 @@ import { googleAPI } from "../../api/axios";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
-export function GoogleButton() {
+export function GoogleButton({ setError }) {
     const navigate = useNavigate()
     const { setAuthLoading } = useAuth()
 
     const onSuccess = async (cred) => {
+        setError('');
         if (!cred?.credential) {
             console.error("Missing Google credential");
+            setError('Google Login failed. Missing credentials.');
             return;
         }
         try {
@@ -17,9 +19,15 @@ export function GoogleButton() {
             setAuthLoading(true)
             navigate("/google/callback?code=" + res.data.data + "&state=standard")
         }
-        catch {
-            console.log("Error Login with Google")
+        catch (err) {
+            console.log("Error Login with Google", err)
+            setError('Google sign-in failed. Please try again.')
         }
+    }
+
+    const onError = () => {
+        console.log("Login failed")
+        setError('Could not initialize Google Login. Please check your connection.')
     }
 
     return (
@@ -51,7 +59,7 @@ export function GoogleButton() {
             <div className="absolute inset-0 opacity-[0.01] overflow-hidden cursor-pointer">
                 <GoogleLogin
                     onSuccess={onSuccess}
-                    onError={() => console.log("Login failed")}
+                    onError={onError}
                     useOneTap={false}
                     type="standard"
                     width="400"
