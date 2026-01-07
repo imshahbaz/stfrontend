@@ -62,24 +62,25 @@ const SystemConfigTab = () => {
             >
                 <StatusAlert success={configSuccess} error={configError} className="mb-6" />
 
-                <div className="p-5 rounded-2xl bg-primary/5 border border-primary/10 flex gap-4 items-start mb-8 shadow-sm shadow-primary/5">
-                    <AlertTriangle className="h-6 w-6 text-primary shrink-0 mt-0.5" />
-                    <p className="text-sm font-semibold text-muted-foreground leading-relaxed">
+                <div className="p-4 md:p-5 rounded-xl md:rounded-2xl bg-primary/5 border border-primary/10 flex gap-3 md:gap-4 items-start mb-6 md:mb-8 shadow-sm shadow-primary/5">
+                    <AlertTriangle className="h-5 w-5 md:h-6 md:w-6 text-primary shrink-0 mt-0.5" />
+                    <p className="text-xs md:text-sm font-semibold text-muted-foreground leading-relaxed">
                         <strong className="text-primary font-black uppercase tracking-tighter mr-1">Direct Override:</strong>
                         This modifies core system parameters. Ensure your JSON syntax is 100% valid before committing.
                     </p>
                 </div>
 
-                <div className="rounded-[2.5rem] border border-border bg-muted/30 overflow-hidden shadow-2xl shadow-black/5">
-                    <div className="px-6 py-3 border-b border-border bg-card flex items-center justify-between">
+                <div className="rounded-[1.5rem] md:rounded-[2.5rem] border border-border bg-muted/30 overflow-hidden shadow-2xl shadow-black/5">
+                    <div className="px-4 md:px-6 py-2 md:py-3 border-b border-border bg-card flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <FileCode size={16} className="text-primary" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">config_schema.json</span>
+                            <FileCode size={14} className="text-primary md:hidden" />
+                            <FileCode size={16} className="text-primary hidden md:block" />
+                            <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-muted-foreground">config_schema.json</span>
                         </div>
                         {configFetching && <Loader2 className="animate-spin h-3 w-3 text-primary" />}
                     </div>
                     <textarea
-                        className="w-full min-h-[500px] p-8 bg-transparent focus:outline-none font-mono text-sm leading-relaxed text-blue-600 dark:text-blue-400"
+                        className="w-full min-h-[300px] md:min-h-[500px] p-5 md:p-8 bg-transparent focus:outline-none font-mono text-[11px] md:text-sm leading-relaxed text-blue-600 dark:text-blue-400"
                         value={configJson}
                         onChange={(e) => setConfigJson(e.target.value)}
                         spellCheck={false}
@@ -88,23 +89,23 @@ const SystemConfigTab = () => {
                     />
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-4 mt-8">
+                <div className="flex flex-col sm:flex-row gap-3 md:gap-4 mt-6 md:mt-8">
                     <button
                         type="submit"
                         disabled={configLoading || configFetching}
-                        className="btn btn-primary flex-grow h-16 rounded-2xl font-black text-lg shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
+                        className="btn btn-primary flex-grow h-12 md:h-16 rounded-xl md:rounded-2xl font-black text-base md:text-lg shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
                     >
-                        {configLoading ? <Loader2 className="animate-spin h-6 w-6 mr-2" /> : <Save className="mr-2 h-6 w-6" />}
+                        {configLoading ? <Loader2 className="animate-spin h-5 w-5 md:h-6 md:w-6 mr-2" /> : <Save className="mr-2 h-5 w-5 md:h-6 md:w-6" />}
                         {configLoading ? 'Updating...' : 'Commit Changes'}
                     </button>
                     <button
                         type="button"
                         onClick={fetchConfig}
                         disabled={configFetching || configLoading}
-                        className="btn bg-muted border border-border h-16 px-10 rounded-2xl font-black text-muted-foreground hover:bg-muted/80 flex items-center justify-center transition-all"
+                        className="btn bg-muted border border-border h-12 md:h-16 px-6 md:px-10 rounded-xl md:rounded-2xl font-black text-muted-foreground hover:bg-muted/80 flex items-center justify-center transition-all"
                     >
-                        {configFetching ? <Loader2 className="animate-spin h-6 w-6" /> : <RefreshCcw className="h-6 w-6" />}
-                        <span className="hidden sm:inline ml-2">Reload</span>
+                        {configFetching ? <Loader2 className="animate-spin h-5 w-5 md:h-6 md:w-6" /> : <RefreshCcw className="h-5 w-5 md:h-6 md:w-6" />}
+                        <span className="hidden sm:inline ml-2 text-base md:text-lg">Reload</span>
                     </button>
                 </div>
             </AdminFormContainer>

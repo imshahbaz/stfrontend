@@ -198,7 +198,7 @@ const StrategiesTab = () => {
                     >
                         <StatusAlert success={strategySuccess} error={strategyError} className="mb-6" />
 
-                        <div className="space-y-6">
+                        <div className="space-y-5 md:space-y-6">
                             <div className="space-y-2">
                                 <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Execution Label</label>
                                 <div className="relative">
@@ -206,7 +206,7 @@ const StrategiesTab = () => {
                                     <input
                                         type="text"
                                         disabled={!!editingId}
-                                        className="input pl-12 h-14 rounded-2xl bg-muted/30 border-border/50 focus:bg-background"
+                                        className="input pl-12 h-12 md:h-14 rounded-xl md:rounded-2xl bg-muted/30 border-border/50 focus:bg-background"
                                         value={strategyForm.name}
                                         onChange={(e) => setStrategyForm(prev => ({ ...prev, name: e.target.value }))}
                                         required
@@ -219,8 +219,8 @@ const StrategiesTab = () => {
                                 <div className="relative">
                                     <Code className="absolute left-4 top-4 h-5 w-5 text-muted-foreground" />
                                     <textarea
-                                        rows={6}
-                                        className="input pl-12 py-4 h-auto rounded-2xl bg-muted/30 border-border/50 focus:bg-background font-mono text-xs"
+                                        rows={4}
+                                        className="input pl-12 py-3 md:py-4 h-auto rounded-xl md:rounded-2xl bg-muted/30 border-border/50 focus:bg-background font-mono text-xs"
                                         value={strategyForm.scanClause}
                                         onChange={(e) => setStrategyForm(prev => ({ ...prev, scanClause: e.target.value }))}
                                         required
@@ -246,11 +246,11 @@ const StrategiesTab = () => {
                                 </label>
                             </div>
 
-                            <div className="flex gap-4 pt-4">
+                            <div className="flex gap-3 md:gap-4 pt-2">
                                 <button
                                     type="submit"
                                     disabled={strategyLoading}
-                                    className="btn btn-primary flex-grow h-14 rounded-2xl font-black text-lg shadow-xl shadow-primary/20"
+                                    className="btn btn-primary flex-grow h-12 md:h-14 rounded-xl md:rounded-2xl font-black text-base md:text-lg shadow-xl shadow-primary/20"
                                 >
                                     {strategyLoading ? <Loader2 className="animate-spin h-5 w-5 mr-2" /> : <Save className="mr-2 h-5 w-5" />}
                                     {editingId ? 'Update Entry' : 'Add Entry'}
@@ -259,7 +259,7 @@ const StrategiesTab = () => {
                                     <button
                                         type="button"
                                         onClick={handleCancel}
-                                        className="btn bg-muted border border-border h-14 px-8 rounded-2xl font-black text-muted-foreground hover:bg-muted/80"
+                                        className="btn bg-muted border border-border h-12 md:h-14 px-6 md:px-8 rounded-xl md:rounded-2xl font-black text-muted-foreground hover:bg-muted/80"
                                     >
                                         <X size={20} />
                                     </button>
