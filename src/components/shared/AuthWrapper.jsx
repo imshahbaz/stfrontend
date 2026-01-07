@@ -25,7 +25,7 @@ const AuthWrapper = ({ title, subtitle, children, isLogin }) => {
         }
     }, [error]);
 
-    if (!authContext || authContext.authLoading) {
+    if (!authContext) {
         return (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
                 <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -33,11 +33,26 @@ const AuthWrapper = ({ title, subtitle, children, isLogin }) => {
         );
     }
 
-    const { login, appConfig, refreshUserData } = authContext;
+    const { login, appConfig, refreshUserData, authLoading } = authContext;
     const auth = appConfig?.auth || { google: true, truecaller: true, email: true };
 
     return (
         <div className="min-h-[calc(100vh-160px)] md:min-h-screen flex flex-col items-center justify-start md:justify-center p-4 pt-10 md:pt-0 bg-background relative overflow-hidden">
+            {/* Overlay Loader - Keeps children mounted while showing progress */}
+            {authLoading && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/60 backdrop-blur-md transition-all duration-300">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="flex flex-col items-center gap-4"
+                    >
+                        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                        <p className="text-sm font-black tracking-widest text-primary uppercase animate-pulse">
+                            Authenticating...
+                        </p>
+                    </motion.div>
+                </div>
+            )}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
