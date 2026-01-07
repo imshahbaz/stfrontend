@@ -36,6 +36,7 @@ const Strategies = memo(() => {
   }, [selectedStrategy]);
 
   const handleViewChart = (stock) => {
+    sessionStorage.setItem('returning_from_chart', 'true');
     navigate(`/chart/${stock.symbol}`);
   };
 
@@ -74,7 +75,7 @@ const Strategies = memo(() => {
                     : "bg-muted text-muted-foreground hover:bg-muted/80"
                 )}
               >
-                {strategy.name}
+                {strategy.displayName}
               </button>
             ))
           )}
@@ -92,63 +93,76 @@ const Strategies = memo(() => {
             >
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-black tracking-tight">
-                  {selectedStrategy} Results
+                  {strategies.find(s => s.name === selectedStrategy)?.displayName || selectedStrategy} Results
                 </h2>
                 {loading && <Loader2 className="h-5 w-5 animate-spin text-primary" />}
               </div>
 
               <StatusAlert error={error} className="mb-6" />
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="flex flex-col bg-card sm:bg-transparent sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-6 rounded-xl sm:rounded-none border-y sm:border-0 border-border overflow-hidden">
                 {strategyData.map((stock, index) => (
                   <motion.div
                     key={`${stock.symbol}-${index}`}
                     layout
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.2, delay: index * 0.05 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.2, delay: index * 0.03 }}
+                    className={cn(
+                      "group relative transition-all cursor-pointer",
+                      "bg-background sm:bg-card hover:bg-muted/40 sm:hover:bg-card",
+                      "border-b border-border/60 sm:border sm:rounded-2xl last:border-b-0",
+                      "sm:hover:-translate-y-1 sm:hover:border-primary/50 sm:hover:shadow-xl sm:hover:shadow-black/5"
+                    )}
+                    onClick={() => handleViewChart(stock)}
                   >
-                    <div
-                      onClick={() => handleViewChart(stock)}
-                      className="group relative flex flex-col p-6 rounded-[2rem] bg-card border border-border cursor-pointer transition-all hover:-translate-y-2 hover:border-primary hover:shadow-2xl hover:shadow-black/10 dark:hover:shadow-black/50 overflow-hidden"
-                    >
-                      {/* Status Light */}
-                      <div className="absolute top-0 left-0 h-full w-1 bg-green-500 opacity-60" />
-
-                      <div className="flex justify-between items-start mb-4">
+                    <div className="flex flex-col py-3 px-4 sm:p-5 h-full">
+                      <div className="flex justify-between items-start">
                         <div className="min-w-0">
-                          <h3 className="text-xl font-black tracking-tighter leading-tight group-hover:text-primary transition-colors">
+                          <div className="flex items-center gap-1.5 mb-0.5">
+                            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                              NSE
+                            </span>
+                          </div>
+                          <h3 className="text-[15px] sm:text-[16px] font-semibold sm:font-bold tracking-tight leading-tight group-hover:text-primary transition-colors">
                             {stock.symbol}
                           </h3>
-                          <p className="text-xs font-bold text-muted-foreground truncate max-w-[140px]">
-                            {stock.name}
-                          </p>
                         </div>
+
                         <div className="text-right">
-                          <span className="text-xl font-black text-green-500 block">
-                            ₹{stock.close}
-                          </span>
-                          <div className="flex items-center justify-end gap-1 mt-0.5">
-                            <TrendingUp className="h-3 w-3 text-green-500" />
-                            <span className="text-[10px] font-black text-green-500 uppercase">LTP</span>
+                          <div className="flex items-center justify-end gap-1 mb-0.5 uppercase">
+                            <span className="text-[10px] font-medium text-muted-foreground">
+                              LTP
+                            </span>
+                            <span className="text-[13px] sm:text-[14px] font-bold text-foreground">
+                              {stock.close}
+                            </span>
+                          </div>
+                          <div className="text-[13px] font-semibold text-green-500">
+                            {stock.margin}x <span className="text-muted-foreground text-[11px] font-medium ml-0.5">Margin</span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex gap-3 mt-auto pt-4 border-t border-dashed border-border">
-                        <div className="flex-1 px-3 py-1.5 rounded-xl bg-muted/40 group-hover:bg-muted transition-colors">
-                          <span className="block text-[10px] font-black text-muted-foreground uppercase">Margin</span>
-                          <span className="text-sm font-black">{stock.margin}x</span>
+                      {/* Info Row - Cleaner Zerodha style */}
+                      <div className="flex justify-between items-center mt-2 pt-2 border-t border-border/40">
+                        <div className="flex items-center gap-1">
+                          {stock.date ? (
+                            <>
+                              <span className="text-[10px] text-muted-foreground uppercase font-bold">Found:</span>
+                              <span className="text-[11px] font-bold">{stock.date}</span>
+                            </>
+                          ) : (
+                            <span className="text-[11px] text-muted-foreground font-semibold truncate max-w-[150px]">
+                              {stock.name || 'NSE Equity'}
+                            </span>
+                          )}
                         </div>
-                        {stock.date && (
-                          <div className="flex-[1.5] px-3 py-1.5 rounded-xl bg-primary/5 group-hover:bg-primary/10 transition-colors border border-primary/10">
-                            <span className="block text-[10px] font-black text-primary uppercase">Found On</span>
-                            <span className="text-sm font-black text-primary">{stock.date}</span>
-                          </div>
-                        )}
+                        <div className="flex items-center gap-1">
+                          <span className="text-[10px] text-muted-foreground uppercase font-bold">Avg:</span>
+                          <span className="text-[11px] font-bold">₹{stock.close}</span>
+                        </div>
                       </div>
-
-                      <ExternalLink className="absolute right-4 bottom-4 h-4 w-4 opacity-10 group-hover:opacity-40 transition-opacity" />
                     </div>
                   </motion.div>
                 ))}
