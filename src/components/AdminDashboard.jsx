@@ -5,12 +5,14 @@ import {
   LayoutDashboard,
   Settings,
   Database,
-  ListTodo
+  ListTodo,
+  ShieldCheck
 } from 'lucide-react';
 
 import StrategiesTab from './admin/StrategiesTab';
 import MarginDataTab from './admin/MarginDataTab';
 import SystemConfigTab from './admin/SystemConfigTab';
+import ManagementTab from './admin/ManagementTab';
 import { cn } from '../lib/utils';
 
 const AdminDashboard = () => {
@@ -19,6 +21,7 @@ const AdminDashboard = () => {
   const tabs = [
     { value: 'strategies', label: 'Strategies', icon: ListTodo, component: <StrategiesTab /> },
     { value: 'margin', label: 'Margin Data', icon: Database, component: <MarginDataTab /> },
+    { value: 'management', label: 'Management', icon: ShieldCheck, component: <ManagementTab /> },
     { value: 'config', label: 'System Config', icon: Settings, component: <SystemConfigTab /> },
   ];
 

@@ -86,6 +86,10 @@ export const priceActionAPI = {
   updateFVG: (fvgReq) => api.patch('/api/price-action/fvg', fvgReq),
   checkFVGMitigation: () => api.get('/api/price-action/fvg/mitigation'),
   refreshFvgMitigationData: () => api.post('/api/price-action/fvg/check'),
+
+  //automation
+  runAutomation: () => api.post('/api/price-action/automate'),
+  cleanUpActions: () => api.post('/api/price-action/cleanup'),
 }
 
 export const truecallerAPI = {
@@ -100,7 +104,7 @@ export const googleAPI = {
       state: random
     }
   }),
-  googleTokenValidation: (token) => api.post("/api/auth/google/token",null, { params: { code: token, state: "validate" } })
+  googleTokenValidation: (token) => api.post("/api/auth/google/token", null, { params: { code: token, state: "validate" } })
 }
 
 export default api;
