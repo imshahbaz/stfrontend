@@ -5,6 +5,9 @@ const ScrollToTop = () => {
     const { pathname } = useLocation();
 
     useLayoutEffect(() => {
+        const isReturning = sessionStorage.getItem('returning_from_chart') === 'true';
+        if (pathname === '/strategies' && isReturning) return;
+
         window.scrollTo({
             top: 0,
             left: 0,

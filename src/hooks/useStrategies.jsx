@@ -1,4 +1,4 @@
-import { useReducer, useCallback } from 'react';
+import { useReducer, useCallback, useEffect } from 'react';
 import { strategyAPI, priceActionAPI } from '../api/axios';
 
 const initialState = {
@@ -24,6 +24,8 @@ const reducer = (state, action) => {
       return { ...state, strategyData: action.payload || [] };
     case 'SET_CACHE':
       return { ...state, cache: { ...state.cache, [action.key]: action.payload } };
+    case 'HYDRATE':
+      return { ...state, ...action.payload };
     default:
       return state;
   }
@@ -31,6 +33,36 @@ const reducer = (state, action) => {
 
 export const useStrategies = () => {
   const [state, dispatch] = useReducer(reducer, initialState);
+
+  // Restore state from sessionStorage ONLY if returning from chart
+  useEffect(() => {
+    const returningFlag = sessionStorage.getItem('returning_from_chart');
+    if (returningFlag === 'true') {
+      const savedState = sessionStorage.getItem('strategies_state');
+      if (savedState) {
+        try {
+          const parsed = JSON.parse(savedState);
+          dispatch({ type: 'HYDRATE', payload: parsed });
+        } catch (e) {
+          console.error('Failed to restore strategies state', e);
+        }
+      }
+      // Clear the flag after restoration
+      sessionStorage.removeItem('returning_from_chart');
+    }
+  }, []);
+
+  // Save state to sessionStorage whenever it changes
+  useEffect(() => {
+    if (state.selectedStrategy) {
+      const stateToSave = {
+        selectedStrategy: state.selectedStrategy,
+        strategyData: state.strategyData,
+        cache: state.cache
+      };
+      sessionStorage.setItem('strategies_state', JSON.stringify(stateToSave));
+    }
+  }, [state.selectedStrategy, state.strategyData, state.cache]);
 
   const fetchStrategies = useCallback(async () => {
     try {
@@ -45,21 +77,24 @@ export const useStrategies = () => {
   }, []);
 
   const fetchStrategyData = useCallback(async (strategyName, retryCount = 0) => {
+    // If the strategy is already selected, toggle it off
     if (state.selectedStrategy === strategyName) {
       dispatch({ type: 'SET_SELECTED_STRATEGY', payload: null });
+      dispatch({ type: 'SET_STRATEGY_DATA', payload: [] });
       return;
     }
 
     dispatch({ type: 'SET_SELECTED_STRATEGY', payload: strategyName });
-    dispatch({ type: 'SET_LOADING', payload: true });
-    dispatch({ type: 'SET_ERROR', payload: '' });
-    dispatch({ type: 'SET_STRATEGY_DATA', payload: [] });
 
+    // Check cache first
     if (state.cache[strategyName]) {
-      dispatch({ type: 'SET_LOADING', payload: false });
       dispatch({ type: 'SET_STRATEGY_DATA', payload: state.cache[strategyName] });
       return;
     }
+
+    dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'SET_ERROR', payload: '' });
+    dispatch({ type: 'SET_STRATEGY_DATA', payload: [] });
 
     try {
       let response;

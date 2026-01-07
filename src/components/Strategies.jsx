@@ -36,6 +36,7 @@ const Strategies = memo(() => {
   }, [selectedStrategy]);
 
   const handleViewChart = (stock) => {
+    sessionStorage.setItem('returning_from_chart', 'true');
     navigate(`/chart/${stock.symbol}`);
   };
 
@@ -99,43 +100,52 @@ const Strategies = memo(() => {
 
               <StatusAlert error={error} className="mb-6" />
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-0 sm:gap-6 bg-card sm:bg-transparent rounded-[2rem] sm:rounded-none border border-border sm:border-0 overflow-hidden">
                 {strategyData.map((stock, index) => (
                   <motion.div
                     key={`${stock.symbol}-${index}`}
                     layout
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.2, delay: index * 0.05 }}
+                    className={cn(
+                      "group relative transition-all cursor-pointer",
+                      "bg-card hover:bg-muted/30 sm:hover:bg-card",
+                      "border-b border-border sm:border sm:rounded-[2rem] sm:mb-0 last:border-b-0 sm:last:border-b",
+                      "sm:hover:-translate-y-2 sm:hover:border-primary sm:hover:shadow-2xl sm:hover:shadow-black/10 dark:sm:hover:shadow-black/50"
+                    )}
+                    onClick={() => handleViewChart(stock)}
                   >
-                    <div
-                      onClick={() => handleViewChart(stock)}
-                      className="group relative flex flex-col p-6 rounded-[2rem] bg-card border border-border cursor-pointer transition-all hover:-translate-y-2 hover:border-primary hover:shadow-2xl hover:shadow-black/10 dark:hover:shadow-black/50 overflow-hidden"
-                    >
-                      {/* Status Light */}
-                      <div className="absolute top-0 left-0 h-full w-1 bg-green-500 opacity-60" />
+                    <div className="flex flex-col p-5 sm:p-6 h-full">
+                      {/* Left side indicator like Zerodha */}
+                      <div className="absolute top-0 left-0 h-full w-1 bg-green-500 opacity-60 sm:rounded-l-[2rem]" />
 
-                      <div className="flex justify-between items-start mb-4">
+                      <div className="flex justify-between items-center mb-1 sm:mb-4">
                         <div className="min-w-0">
-                          <h3 className="text-xl font-black tracking-tighter leading-tight group-hover:text-primary transition-colors">
+                          <h3 className="text-lg sm:text-xl font-bold tracking-tight leading-tight group-hover:text-primary transition-colors flex items-center gap-2">
                             {stock.symbol}
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-medium uppercase tracking-wider">
+                              NSE
+                            </span>
                           </h3>
-                          <p className="text-xs font-bold text-muted-foreground truncate max-w-[140px]">
+                          <p className="text-xs font-medium text-muted-foreground truncate max-w-[140px] hidden sm:block">
                             {stock.name}
                           </p>
                         </div>
                         <div className="text-right">
-                          <span className="text-xl font-black text-green-500 block">
+                          <span className="text-lg sm:text-xl font-bold text-foreground block">
                             ₹{stock.close}
                           </span>
-                          <div className="flex items-center justify-end gap-1 mt-0.5">
-                            <TrendingUp className="h-3 w-3 text-green-500" />
-                            <span className="text-[10px] font-black text-green-500 uppercase">LTP</span>
+                          <div className="flex items-center justify-end gap-1 mt-0.5 sm:hidden">
+                            <span className="text-[10px] font-medium text-green-500 bg-green-500/10 px-1.5 py-0.5 rounded-sm uppercase">
+                              LTP
+                            </span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex gap-3 mt-auto pt-4 border-t border-dashed border-border">
+                      {/* Desktop specific footer */}
+                      <div className="hidden sm:flex gap-3 mt-auto pt-4 border-t border-dashed border-border">
                         <div className="flex-1 px-3 py-1.5 rounded-xl bg-muted/40 group-hover:bg-muted transition-colors">
                           <span className="block text-[10px] font-black text-muted-foreground uppercase">Margin</span>
                           <span className="text-sm font-black">{stock.margin}x</span>
@@ -148,7 +158,18 @@ const Strategies = memo(() => {
                         )}
                       </div>
 
-                      <ExternalLink className="absolute right-4 bottom-4 h-4 w-4 opacity-10 group-hover:opacity-40 transition-opacity" />
+                      {/* Mobile specific subtext */}
+                      <div className="flex sm:hidden justify-between items-center mt-1">
+                        <p className="text-[11px] font-medium text-muted-foreground">
+                          {stock.date ? `Found on ${stock.date}` : stock.name}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-60">Margin</span>
+                          <span className="text-[11px] font-bold">{stock.margin}x</span>
+                        </div>
+                      </div>
+
+                      <ExternalLink className="absolute right-4 bottom-4 h-4 w-4 opacity-5 group-hover:opacity-40 transition-opacity hidden sm:block" />
                     </div>
                   </motion.div>
                 ))}
