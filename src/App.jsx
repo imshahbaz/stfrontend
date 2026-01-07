@@ -22,7 +22,7 @@ import Settings from './components/Settings';
 import AdminDashboard from './components/AdminDashboard';
 import Unauthorized from './components/Unauthorized';
 import ChartPage from './components/ChartPage';
-import HeatmapV2 from './components/HeatmapV2';
+import Heatmap from './components/Heatmap';
 import PageNotFound from './components/PageNotFound';
 import GoogleCallback from './components/GoogleCallback';
 
@@ -145,7 +145,7 @@ function AnimatedRoutes({ auth }) {
         )}
         <Route path="/strategies" element={<PageWrapper><Strategies /></PageWrapper>} />
         <Route path="/calculator" element={<PageWrapper><Calculator /></PageWrapper>} />
-        <Route path="/heatmap" element={<PageWrapper><HeatmapV2 /></PageWrapper>} />
+        <Route path="/heatmap" element={<PageWrapper><Heatmap /></PageWrapper>} />
         <Route path="/chart/:symbol" element={<PageWrapper><ChartPage /></PageWrapper>} />
 
         <Route element={<ProtectedRoute />}>
