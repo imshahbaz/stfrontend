@@ -13,65 +13,79 @@ const useTruecallerPolling = (onSuccess, onError) => {
   const backoffFactor = 1.5;
   const { setAuthLoading } = useAuth();
 
+  // Use refs to avoid re-creating startPolling when callbacks change
+  const successRef = useRef(onSuccess);
+  const errorRef = useRef(onError);
+
+  useEffect(() => {
+    successRef.current = onSuccess;
+    errorRef.current = onError;
+  }, [onSuccess, onError]);
+
   const clearPolling = useCallback(() => {
     if (pollingInterval.current) {
       clearTimeout(pollingInterval.current);
       pollingInterval.current = null;
     }
     setIsPolling(false);
-    setAuthLoading(false)
+    setAuthLoading(false);
   }, [setAuthLoading]);
 
   const startPolling = useCallback((requestId) => {
-    if (isPolling) return;
     setIsPolling(true);
-    setAuthLoading(true)
+    setAuthLoading(true);
     setStatus('Verifying via Truecaller...');
     retryCount.current = 0;
     let currentInterval = initialInterval;
 
     const poll = async () => {
-      if (!pollingInterval.current) return;
+      if (!pollingActiveRef.current) return;
 
       try {
         const res = await truecallerAPI.getTruecallerStatus(requestId);
-        if (!pollingInterval.current) return;
+        if (!pollingActiveRef.current) return;
 
         if (res.status === 200 || res.status === 201) {
           setStatus('Login Successful!');
-          onSuccess(res.data.data);
+          successRef.current?.(res.data.data);
           clearPolling();
         } else {
           setStatus('Still verifying...');
           pollingInterval.current = setTimeout(poll, currentInterval);
         }
       } catch (e) {
-        if (!pollingInterval.current) return;
+        if (!pollingActiveRef.current) return;
 
         retryCount.current += 1;
         if (retryCount.current >= maxRetries) {
           setStatus('Verification failed. Please try again.');
-          onError && onError(e);
+          errorRef.current?.(e);
           clearPolling();
         } else {
           setStatus(`Retrying verification... (${retryCount.current}/${maxRetries})`);
-          // Exponential backoff
           currentInterval = Math.min(currentInterval * backoffFactor, maxInterval);
           pollingInterval.current = setTimeout(poll, currentInterval);
         }
       }
     };
 
+    const pollingActiveRef = { current: true };
+    const originalClear = clearPolling;
     pollingInterval.current = setTimeout(poll, 0);
 
     // Stop polling after 2 minutes
-    setTimeout(() => {
-      if (isPolling) {
+    const timeoutId = setTimeout(() => {
+      if (pollingActiveRef.current) {
         setStatus('Verification timed out. Please try again.');
         clearPolling();
       }
     }, 120000);
-  }, [isPolling, onSuccess, onError, clearPolling]);
+
+    return () => {
+      pollingActiveRef.current = false;
+      clearTimeout(timeoutId);
+    };
+  }, [clearPolling, setAuthLoading]);
 
   useEffect(() => {
     return () => clearPolling();
