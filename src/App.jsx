@@ -109,15 +109,13 @@ function AppContent() {
           <div className="flex min-h-screen flex-col bg-background text-foreground relative">
             <Header toggleTheme={toggleTheme} theme={theme} />
 
-            <main className={`flex-grow flex flex-col min-h-0 md:pb-0 ${import.meta.env.VITE_ENV === 'production' ? 'pb-[180px]' : 'pb-[100px]'}`}>
+            <main className={`flex-grow flex flex-col min-h-0 pb-[100px] md:pb-0 ${import.meta.env.VITE_ENV === 'production' ? 'pt-[60px] md:pt-0' : ''}`}>
               <AnimatedRoutes auth={authContext.appConfig.auth} />
             </main>
 
             {import.meta.env.VITE_ENV === 'production' && (
-              <div className="fixed bottom-24 left-0 right-0 z-30 flex w-full justify-center px-4 md:relative md:bottom-auto md:left-auto md:right-auto md:z-0 md:px-0 md:py-6">
-                <div className="bg-background/80 backdrop-blur-md p-1 rounded-2xl border border-border/50 shadow-xl md:bg-transparent md:backdrop-blur-none md:p-0 md:border-none md:shadow-none">
-                  <AdsterraBanner isMobile={isMobile} />
-                </div>
+              <div className="fixed top-16 left-0 right-0 z-30 flex w-full justify-center px-4 py-2 bg-background/80 backdrop-blur-md border-b border-border/40 md:relative md:top-auto md:left-auto md:right-auto md:z-0 md:px-0 md:py-6 md:border-none md:bg-transparent">
+                <AdsterraBanner isMobile={isMobile} />
               </div>
             )}
 
