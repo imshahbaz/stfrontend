@@ -44,28 +44,26 @@ const AdminDashboard = () => {
           onValueChange={setActiveTab}
           className="space-y-8"
         >
-          <div className="sticky top-20 z-10">
-            <Tabs.List className="flex bg-card border border-border rounded-[2rem] p-2 shadow-xl shadow-black/5 overflow-x-auto scrollbar-hide">
-              {tabs.map((tab) => {
-                const isActive = activeTab === tab.value;
-                return (
-                  <Tabs.Trigger
-                    key={tab.value}
-                    value={tab.value}
-                    className={cn(
-                      "flex items-center gap-2 px-6 py-4 rounded-full text-sm font-bold transition-all whitespace-nowrap",
-                      isActive
-                        ? "bg-primary text-white shadow-lg shadow-primary/20 scale-105"
-                        : "text-muted-foreground hover:bg-muted/50"
-                    )}
-                  >
-                    <tab.icon className="h-4 w-4" />
-                    {tab.label}
-                  </Tabs.Trigger>
-                );
-              })}
-            </Tabs.List>
-          </div>
+          <Tabs.List className="flex bg-card border border-border rounded-[2rem] p-2 shadow-xl shadow-black/5 overflow-x-auto scrollbar-hide">
+            {tabs.map((tab) => {
+              const isActive = activeTab === tab.value;
+              return (
+                <Tabs.Trigger
+                  key={tab.value}
+                  value={tab.value}
+                  className={cn(
+                    "flex items-center gap-2 px-6 py-4 rounded-full text-sm font-bold transition-all whitespace-nowrap",
+                    isActive
+                      ? "bg-primary text-white shadow-lg shadow-primary/20 scale-105"
+                      : "text-muted-foreground hover:bg-muted/50"
+                  )}
+                >
+                  <tab.icon className="h-4 w-4" />
+                  {tab.label}
+                </Tabs.Trigger>
+              );
+            })}
+          </Tabs.List>
 
           <AnimatePresence mode="wait">
             {tabs.map((tab) => (
@@ -86,8 +84,8 @@ const AdminDashboard = () => {
             ))}
           </AnimatePresence>
         </Tabs.Root>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };
 

@@ -3,9 +3,9 @@ import React from 'react';
 const AdminTable = ({ columns, data, renderMobileCard, keyField = 'id' }) => {
     if (renderMobileCard && typeof window !== 'undefined' && window.innerWidth < 1024) {
         return (
-            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+            <div className="flex flex-col w-full border-y border-border overflow-hidden bg-background">
                 {data.map((item, index) => (
-                    <div key={item[keyField] || index} className="min-w-[280px] max-w-[calc(100vw-64px)] flex-shrink-0 bg-card border border-border rounded-2xl p-4 shadow-sm">
+                    <div key={item[keyField] || index} className="w-full border-b border-border/60 last:border-b-0">
                         {renderMobileCard(item)}
                     </div>
                 ))}

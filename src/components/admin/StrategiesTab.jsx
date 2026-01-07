@@ -32,6 +32,13 @@ const StrategiesTab = () => {
     const [modalOpen, setModalOpen] = useState(false);
     const [modalConfig, setModalConfig] = useState({ title: '', message: '', onConfirm: null });
 
+    const toTitleCase = (str) => {
+        if (!str) return '';
+        return str.toLowerCase().split(' ').map(word =>
+            word.charAt(0).toUpperCase() + word.slice(1)
+        ).join(' ');
+    };
+
     useEffect(() => {
         fetchStrategies();
     }, []);
@@ -39,7 +46,9 @@ const StrategiesTab = () => {
     const fetchStrategies = async () => {
         try {
             const response = await strategyAPI.getStrategiesAdmin();
-            setStrategies(response.data.data);
+            const rawData = Array.isArray(response.data.data) ? response.data.data : [];
+            const sortedData = [...rawData].sort((a, b) => a.name.localeCompare(b.name));
+            setStrategies(sortedData);
         } catch (error) { console.error(error); }
     };
 
@@ -77,7 +86,14 @@ const StrategiesTab = () => {
         {
             field: 'name',
             label: 'Strategy Name',
-            render: (s) => <span className="font-black text-primary">{s.name}</span>
+            render: (s) => (
+                <div className="flex flex-col">
+                    <span className="font-black text-primary">{toTitleCase(s.name)}</span>
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-widest leading-none mt-1 opacity-60">
+                        {s.name}
+                    </span>
+                </div>
+            )
         },
         {
             field: 'active',
@@ -104,7 +120,7 @@ const StrategiesTab = () => {
                         <Edit3 size={16} />
                     </button>
                     <button
-                        onClick={() => handleOpenModal('Delete Strategy', `Remove ${s.name} from registry?`, () => strategyAPI.deleteStrategy(s.name).then(fetchStrategies))}
+                        onClick={() => handleOpenModal('Delete Strategy', `Remove ${toTitleCase(s.name)}?`, () => strategyAPI.deleteStrategy(s.name).then(fetchStrategies))}
                         className="p-2 rounded-lg hover:bg-destructive/10 text-destructive transition-colors"
                     >
                         <Trash2 size={16} />
@@ -115,52 +131,74 @@ const StrategiesTab = () => {
     ];
 
     const renderMobileCard = (s) => (
-        <div className="space-y-4">
-            <div className="flex justify-between items-center">
-                <span className="font-black text-primary text-lg">{s.name}</span>
-                <span className={cn(
-                    "px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider",
-                    s.active ? "bg-green-500/10 text-green-600" : "bg-muted text-muted-foreground"
-                )}>
-                    {s.active ? "Live" : "Inactive"}
-                </span>
+        <div className="flex flex-col py-3 px-4 h-full group">
+            <div className="flex justify-between items-start">
+                <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                        <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                            Strategy
+                        </span>
+                    </div>
+                    <h3 className="text-[15px] font-semibold tracking-tight leading-tight group-hover:text-primary transition-colors">
+                        {toTitleCase(s.name)}
+                    </h3>
+                </div>
+
+                <div className="text-right">
+                    <div className="flex items-center justify-end gap-1 mb-0.5 uppercase">
+                        <span className="text-[10px] font-medium text-muted-foreground">
+                            Status
+                        </span>
+                        <span className={cn(
+                            "text-[13px] font-bold",
+                            s.active ? "text-green-500" : "text-muted-foreground/60"
+                        )}>
+                            {s.active ? "Live" : "Disabled"}
+                        </span>
+                    </div>
+                    <div className="text-[13px] font-semibold text-primary/80">
+                        Operational <span className="text-muted-foreground text-[11px] font-medium ml-0.5">State</span>
+                    </div>
+                </div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-muted/30 border border-border flex items-center gap-3">
-                <Settings size={16} className="text-muted-foreground" />
-                <p className="text-xs font-bold text-muted-foreground truncate">
-                    Clause: {s.scanClause}
-                </p>
-            </div>
-
-            <div className="flex gap-3">
-                <button
-                    onClick={() => { setStrategyForm(s); setEditingId(s.name); }}
-                    className="flex-1 py-3 rounded-xl bg-primary/10 text-primary font-black text-sm flex items-center justify-center gap-2"
-                >
-                    <Edit3 size={16} /> Edit
-                </button>
-                <button
-                    onClick={() => handleOpenModal('Delete Strategy', `Remove ${s.name}?`, () => strategyAPI.deleteStrategy(s.name).then(fetchStrategies))}
-                    className="flex-1 py-3 rounded-xl bg-destructive/10 text-destructive font-black text-sm flex items-center justify-center gap-2"
-                >
-                    <Trash2 size={16} /> Delete
-                </button>
+            {/* Info Row - Exact match to Strategies Results style */}
+            <div className="flex justify-between items-center mt-2 pt-2 border-t border-border/40">
+                <div className="flex items-center gap-1">
+                    <span className="text-[10px] text-muted-foreground uppercase font-bold">ID:</span>
+                    <span className="text-[11px] font-bold uppercase tracking-tighter">{s.name}</span>
+                </div>
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={() => { setStrategyForm(s); setEditingId(s.name); }}
+                        className="flex items-center gap-1 text-primary hover:opacity-80 transition-opacity"
+                    >
+                        <span className="text-[10px] text-muted-foreground uppercase font-bold">Edit</span>
+                        <Edit3 size={14} />
+                    </button>
+                    <button
+                        onClick={() => handleOpenModal('Delete Strategy', `Remove ${toTitleCase(s.name)}?`, () => strategyAPI.deleteStrategy(s.name).then(fetchStrategies))}
+                        className="flex items-center gap-1 text-destructive hover:opacity-80 transition-opacity"
+                    >
+                        <span className="text-[10px] text-muted-foreground uppercase font-bold">Delete</span>
+                        <Trash2 size={14} />
+                    </button>
+                </div>
             </div>
         </div>
     );
 
     return (
         <>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="order-2 lg:order-1">
+            <div className="flex flex-col gap-8">
+                <div>
                     <AdminFormContainer
                         title={editingId ? 'Update Strategy' : 'Insert Strategy'}
                         onSubmit={handleStrategySubmit}
                     >
                         <StatusAlert success={strategySuccess} error={strategyError} className="mb-6" />
 
-                        <div className="space-y-6">
+                        <div className="space-y-5 md:space-y-6">
                             <div className="space-y-2">
                                 <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Execution Label</label>
                                 <div className="relative">
@@ -168,7 +206,7 @@ const StrategiesTab = () => {
                                     <input
                                         type="text"
                                         disabled={!!editingId}
-                                        className="input pl-12 h-14 rounded-2xl bg-muted/30 border-border/50 focus:bg-background"
+                                        className="input pl-12 h-12 md:h-14 rounded-xl md:rounded-2xl bg-muted/30 border-border/50 focus:bg-background"
                                         value={strategyForm.name}
                                         onChange={(e) => setStrategyForm(prev => ({ ...prev, name: e.target.value }))}
                                         required
@@ -181,8 +219,8 @@ const StrategiesTab = () => {
                                 <div className="relative">
                                     <Code className="absolute left-4 top-4 h-5 w-5 text-muted-foreground" />
                                     <textarea
-                                        rows={6}
-                                        className="input pl-12 py-4 h-auto rounded-2xl bg-muted/30 border-border/50 focus:bg-background font-mono text-xs"
+                                        rows={4}
+                                        className="input pl-12 py-3 md:py-4 h-auto rounded-xl md:rounded-2xl bg-muted/30 border-border/50 focus:bg-background font-mono text-xs"
                                         value={strategyForm.scanClause}
                                         onChange={(e) => setStrategyForm(prev => ({ ...prev, scanClause: e.target.value }))}
                                         required
@@ -208,11 +246,11 @@ const StrategiesTab = () => {
                                 </label>
                             </div>
 
-                            <div className="flex gap-4 pt-4">
+                            <div className="flex gap-3 md:gap-4 pt-2">
                                 <button
                                     type="submit"
                                     disabled={strategyLoading}
-                                    className="btn btn-primary flex-grow h-14 rounded-2xl font-black text-lg shadow-xl shadow-primary/20"
+                                    className="btn btn-primary flex-grow h-12 md:h-14 rounded-xl md:rounded-2xl font-black text-base md:text-lg shadow-xl shadow-primary/20"
                                 >
                                     {strategyLoading ? <Loader2 className="animate-spin h-5 w-5 mr-2" /> : <Save className="mr-2 h-5 w-5" />}
                                     {editingId ? 'Update Entry' : 'Add Entry'}
@@ -221,7 +259,7 @@ const StrategiesTab = () => {
                                     <button
                                         type="button"
                                         onClick={handleCancel}
-                                        className="btn bg-muted border border-border h-14 px-8 rounded-2xl font-black text-muted-foreground hover:bg-muted/80"
+                                        className="btn bg-muted border border-border h-12 md:h-14 px-6 md:px-8 rounded-xl md:rounded-2xl font-black text-muted-foreground hover:bg-muted/80"
                                     >
                                         <X size={20} />
                                     </button>
@@ -231,8 +269,8 @@ const StrategiesTab = () => {
                     </AdminFormContainer>
                 </div>
 
-                <div className="order-1 lg:order-2">
-                    <AdminListContainer title="Strategies Database">
+                <div>
+                    <AdminListContainer>
                         <AdminTable
                             columns={columns}
                             data={strategies}
