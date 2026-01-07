@@ -15,11 +15,6 @@ export const AuthProvider = ({ children }) => {
     const [appLoading, setAppLoading] = useState(true);
     const [authLoading, setAuthLoading] = useState(false);
     const [configLoading, setConfigLoading] = useState(true);
-    const authLoadingRef = useRef(false);
-
-    useEffect(() => {
-        authLoadingRef.current = authLoading;
-    }, [authLoading]);
 
     const fetchGlobalConfig = async (forceRefresh = false) => {
         const cached = JSON.parse(localStorage.getItem(CONFIG_CACHE_KEY));
@@ -72,7 +67,7 @@ export const AuthProvider = ({ children }) => {
         // Re-check auth whenever user returns to the tab (Syncs changes from other devices)
         const handleFocus = () => {
             fetchGlobalConfig(true);
-            if (isInitialized.current && !authLoadingRef.current) {
+            if (isInitialized.current) {
                 refreshUserData();
             }
         };
