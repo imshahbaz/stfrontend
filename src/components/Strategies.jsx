@@ -75,7 +75,7 @@ const Strategies = memo(() => {
                     : "bg-muted text-muted-foreground hover:bg-muted/80"
                 )}
               >
-                {strategy.name}
+                {strategy.displayName}
               </button>
             ))
           )}
@@ -93,7 +93,7 @@ const Strategies = memo(() => {
             >
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-black tracking-tight">
-                  {selectedStrategy} Results
+                  {strategies.find(s => s.name === selectedStrategy)?.displayName || selectedStrategy} Results
                 </h2>
                 {loading && <Loader2 className="h-5 w-5 animate-spin text-primary" />}
               </div>

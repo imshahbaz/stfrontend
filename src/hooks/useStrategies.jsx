@@ -65,11 +65,27 @@ export const useStrategies = () => {
   }, [state.selectedStrategy, state.strategyData, state.cache]);
 
   const fetchStrategies = useCallback(async () => {
+    const toTitleCase = (str) => {
+      return str.toLowerCase().split(' ').map(word =>
+        word.charAt(0).toUpperCase() + word.slice(1)
+      ).join(' ');
+    };
+
     try {
       const response = await strategyAPI.getStrategies();
       const apiData = Array.isArray(response.data.data) ? response.data.data : [];
-      const strategiesWithOrderBlock = [...apiData, { name: 'Order Block' }, { name: 'Fair Value Gap' }];
-      dispatch({ type: 'SET_STRATEGIES', payload: strategiesWithOrderBlock });
+      let combinedStrategies = [...apiData, { name: 'Order Block' }, { name: 'Fair Value Gap' }];
+
+      // Format names for display but keep original 'name' for backend calls
+      combinedStrategies = combinedStrategies
+        .map(s => ({
+          ...s,
+          displayName: toTitleCase(s.name),
+          name: s.name // Keep original name
+        }))
+        .sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+      dispatch({ type: 'SET_STRATEGIES', payload: combinedStrategies });
     } catch (error) {
       console.error('Error fetching strategies:', error);
       dispatch({ type: 'SET_ERROR', payload: 'Failed to load strategies' });
