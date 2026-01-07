@@ -13,10 +13,10 @@ const AuthWrapper = ({ title, subtitle, children, isLogin }) => {
     const [error, setError] = React.useState('');
 
     useEffect(() => {
-        if (authContext && !authContext.loading && authContext.user) {
+        if (authContext && !authContext.authLoading && authContext.user) {
             navigate('/', { replace: true });
         }
-    }, [authContext?.user, authContext?.loading, navigate]);
+    }, [authContext?.user, authContext?.authLoading, navigate]);
 
     useEffect(() => {
         if (error) {
@@ -25,7 +25,7 @@ const AuthWrapper = ({ title, subtitle, children, isLogin }) => {
         }
     }, [error]);
 
-    if (!authContext || authContext.loading) {
+    if (!authContext || authContext.authLoading) {
         return (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
                 <Loader2 className="h-12 w-12 animate-spin text-primary" />
