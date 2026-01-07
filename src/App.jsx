@@ -109,13 +109,15 @@ function AppContent() {
           <div className="flex min-h-screen flex-col bg-background text-foreground relative">
             <Header toggleTheme={toggleTheme} theme={theme} />
 
-            <main className="flex-grow flex flex-col min-h-0 pb-[100px] md:pb-0">
+            <main className={`flex-grow flex flex-col min-h-0 md:pb-0 ${import.meta.env.VITE_ENV === 'production' ? 'pb-[180px]' : 'pb-[100px]'}`}>
               <AnimatedRoutes auth={authContext.appConfig.auth} />
             </main>
 
             {import.meta.env.VITE_ENV === 'production' && (
-              <div className="flex w-full justify-center py-4 bg-background pb-24 md:pb-4">
-                <AdsterraBanner isMobile={isMobile} />
+              <div className="fixed bottom-24 left-0 right-0 z-30 flex w-full justify-center px-4 md:relative md:bottom-auto md:left-auto md:right-auto md:z-0 md:px-0 md:py-6">
+                <div className="bg-background/80 backdrop-blur-md p-1 rounded-2xl border border-border/50 shadow-xl md:bg-transparent md:backdrop-blur-none md:p-0 md:border-none md:shadow-none">
+                  <AdsterraBanner isMobile={isMobile} />
+                </div>
               </div>
             )}
 
