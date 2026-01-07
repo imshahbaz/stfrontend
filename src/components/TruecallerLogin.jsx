@@ -17,8 +17,6 @@ const TruecallerLogin = ({
     async (data) => {
       setInternalIsLoading(false);
       login(data);
-      await refreshUserData()
-      navigate('/', { replace: true });
     },
     (error) => {
       console.error('Truecaller polling error:', error);
