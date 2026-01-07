@@ -9,7 +9,7 @@ import { cn } from '../lib/utils';
 
 const GoogleCallback = () => {
   const navigate = useNavigate();
-  const { login, user } = useAuth();
+  const { login, user, setAuthLoading } = useAuth();
   const [searchParams] = useSearchParams();
   const [error, setError] = useState('');
   const startedRef = useRef(false);
@@ -19,11 +19,13 @@ const GoogleCallback = () => {
 
   const onSuccess = useCallback(async (user) => {
     await login(user);
+    setAuthLoading(false)
     navigate('/', { replace: true });
   }, [login, navigate]);
 
   const onError = useCallback((msg) => {
     setError(msg);
+    setAuthLoading(false)
   }, []);
 
   const { status, isPolling, startPolling, clearPolling } = useGooglePolling(onSuccess, onError);
