@@ -59,6 +59,13 @@ function AppContent() {
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('theme') || 'dark';
   });
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     if (!authContext?.user?.theme) return
@@ -102,13 +109,13 @@ function AppContent() {
           <div className="flex min-h-screen flex-col bg-background text-foreground relative">
             <Header toggleTheme={toggleTheme} theme={theme} />
 
-            <main className="flex-grow flex flex-col min-h-0 pb-[100px] md:pb-0">
+            <main className={`flex-grow flex flex-col min-h-0 pb-[100px] md:pb-0 ${import.meta.env.VITE_ENV === 'production' ? 'pt-[60px] md:pt-0' : ''}`}>
               <AnimatedRoutes auth={authContext.appConfig.auth} />
             </main>
 
             {import.meta.env.VITE_ENV === 'production' && (
-              <div className="hidden md:flex w-full justify-center py-4 bg-background">
-                <AdsterraBanner />
+              <div className="fixed top-16 left-0 right-0 z-30 flex w-full justify-center px-4 py-2 bg-background/80 backdrop-blur-md border-b border-border/40 md:relative md:top-auto md:left-auto md:right-auto md:z-0 md:px-0 md:py-6 md:border-none md:bg-transparent">
+                <AdsterraBanner isMobile={isMobile} />
               </div>
             )}
 
