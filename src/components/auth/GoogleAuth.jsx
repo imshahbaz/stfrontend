@@ -56,14 +56,16 @@ export function GoogleButton({ setError }) {
             </div>
 
             {/* Hidden REAL Google Button Overlay */}
-            <div className="absolute inset-0 opacity-[0.01] overflow-hidden cursor-pointer">
-                <GoogleLogin
-                    onSuccess={onSuccess}
-                    onError={onError}
-                    useOneTap={false}
-                    type="standard"
-                    width="400"
-                />
+            <div className="absolute inset-0 opacity-[0.01] overflow-hidden cursor-pointer flex items-center justify-center">
+                <div className="scale-[2.0] w-full flex justify-center">
+                    <GoogleLogin
+                        onSuccess={onSuccess}
+                        onError={onError}
+                        useOneTap={false}
+                        type="standard"
+                        width="100%"
+                    />
+                </div>
             </div>
         </div>
     )
