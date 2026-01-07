@@ -1,31 +1,54 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Chart from 'react-apexcharts';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Grid3X3, TrendingUp, TrendingDown, Loader2 } from 'lucide-react';
 import { strategyAPI } from '../api/axios';
 import { cn } from '../lib/utils';
 
 const Heatmap = () => {
+  const [rawData, setRawData] = useState([]);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedPeriod, setSelectedPeriod] = useState('D');
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await strategyAPI.getHeatMap();
-        const sorted = response.data.data.sort((a, b) => b.pChange - a.pChange);
-        setData(sorted);
-      } catch (err) {
-        console.error("Error fetching heatmap:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchData();
   }, []);
 
+  const fetchData = async () => {
+    try {
+      const response = await strategyAPI.getAllIndices();
+      setRawData(response.data.data);
+    } catch (err) {
+      console.error("Error fetching heatmap:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getPercentChange = (item, period) => {
+    switch (period) {
+      case 'D': return item.percentChange;
+      case 'W': return item.perChange1w;
+      case 'M': return item.perChange30d;
+      case 'Y': return item.perChange365d;
+      default: return item.percentChange;
+    }
+  };
+
+  useEffect(() => {
+    if (rawData.length > 0) {
+      const transformed = rawData.map(item => ({
+        ...item,
+        percentChange: getPercentChange(item, selectedPeriod)
+      }));
+      const sorted = transformed.sort((a, b) => b.percentChange - a.percentChange);
+      setData(sorted);
+    }
+  }, [rawData, selectedPeriod]);
+
   const marketBreadth = useMemo(() => {
-    const up = data.filter(d => d.pChange > 0).length;
+    const up = data.filter(d => d.percentChange > 0).length;
     return {
       up,
       down: data.length - up,
@@ -38,19 +61,17 @@ const Heatmap = () => {
     if (pChange <= -0.8) return '#f87171';
     if (pChange <= -0.4) return '#fca5a5';
     if (pChange < 0.4) return '#64748b';
-    if (pChange < 0.8) return '#81C784';
+    if (pChange < 0.8) return '#86efac';
     if (pChange < 1.2) return '#4ade80';
     return '#22c55e';
   };
 
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
-
   const series = [{
     data: data.map(item => ({
-      x: item.index,
-      y: isMobile ? 10 : Math.abs(item.pChange) + 1,
-      pChange: item.pChange,
-      fillColor: getColor(item.pChange),
+      x: item.indexSymbol,
+      y: typeof window !== 'undefined' && window.innerWidth < 640 ? 10 : Math.abs(item.percentChange) + 1,
+      pChange: item.percentChange,
+      fillColor: getColor(item.percentChange),
     }))
   }];
 
@@ -59,8 +80,7 @@ const Heatmap = () => {
     chart: {
       toolbar: { show: false },
       animations: { enabled: true, easing: 'easeinout', speed: 800 },
-      background: 'transparent',
-      width: '100%'
+      background: 'transparent'
     },
     plotOptions: {
       treemap: {
@@ -72,7 +92,7 @@ const Heatmap = () => {
     dataLabels: {
       enabled: true,
       style: {
-        fontSize: isMobile ? '10px' : '12px',
+        fontSize: '12px',
         fontWeight: '900',
         fontFamily: 'inherit'
       },
@@ -111,9 +131,9 @@ const Heatmap = () => {
           <Grid3X3 size={24} />
         </div>
         <div>
-          <h1 className="text-3xl font-black tracking-tight">Market Heatmap</h1>
+          <h1 className="text-3xl font-black tracking-tight">Indices Heatmap</h1>
           <p className="text-sm text-muted-foreground font-medium">
-            Real-time performance distribution
+            Sectoral performance and market sentiment
           </p>
         </div>
       </div>
@@ -140,18 +160,33 @@ const Heatmap = () => {
         </div>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-card border border-border rounded-[3rem] p-4 md:p-8 shadow-2xl shadow-black/5 overflow-hidden"
-      >
+      <div className="flex justify-center mb-10">
+        <div className="flex bg-card border border-border p-1.5 rounded-2xl shadow-xl shadow-black/5">
+          {['D', 'W', 'M', 'Y'].map((p) => (
+            <button
+              key={p}
+              onClick={() => setSelectedPeriod(p)}
+              className={cn(
+                "px-4 md:px-8 py-2.5 rounded-xl text-xs font-black transition-all",
+                selectedPeriod === p
+                  ? "bg-primary text-white shadow-lg shadow-primary/20 scale-105"
+                  : "text-muted-foreground hover:bg-muted/80"
+              )}
+            >
+              {p === 'D' ? 'Daily' : p === 'W' ? 'Weekly' : p === 'M' ? 'Monthly' : 'Yearly'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-card border border-border rounded-[3rem] p-4 md:p-8 shadow-2xl shadow-black/5 overflow-hidden">
         <Chart
           options={options}
           series={series}
           type="treemap"
-          height={isMobile ? 750 : 600}
+          height={600}
         />
-      </motion.div>
+      </div>
     </div>
   );
 };
