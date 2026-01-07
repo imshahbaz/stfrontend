@@ -206,6 +206,9 @@ const Header = ({ toggleTheme, theme }) => {
         </div>
       </header>
 
+      {/* Mobile Bottom Navigation Blur Shield */}
+      <div className="fixed bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-background via-background to-transparent pointer-events-none z-30 md:hidden" />
+
       {/* Mobile Bottom Navigation */}
       <div className="fixed bottom-4 left-4 right-4 z-40 md:hidden">
         <nav className="flex items-center justify-around h-16 rounded-3xl border border-border bg-background/80 backdrop-blur-xl shadow-2xl px-2">
