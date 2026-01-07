@@ -5,16 +5,25 @@ import { Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import TruecallerLogin from '../TruecallerLogin';
 import { GoogleButton } from '../auth/GoogleAuth';
+import StatusAlert from './StatusAlert';
 
 const AuthWrapper = ({ title, subtitle, children, isLogin }) => {
     const navigate = useNavigate();
     const authContext = useAuth();
+    const [error, setError] = React.useState('');
 
     useEffect(() => {
         if (authContext && !authContext.loading && authContext.user) {
             navigate('/', { replace: true });
         }
     }, [authContext?.user, authContext?.loading, navigate]);
+
+    useEffect(() => {
+        if (error) {
+            const timer = setTimeout(() => setError(''), 6000);
+            return () => clearTimeout(timer);
+        }
+    }, [error]);
 
     if (!authContext || authContext.loading) {
         return (
@@ -45,12 +54,15 @@ const AuthWrapper = ({ title, subtitle, children, isLogin }) => {
                         </p>
                     </div>
 
+                    {error && <StatusAlert error={error} className="mb-6" />}
+
                     <div className="space-y-6">
                         {auth.truecaller && (
                             <TruecallerLogin
                                 login={login}
                                 user={user}
                                 isLogin={isLogin}
+                                setError={setError}
                                 refreshUserData={refreshUserData} />
                         )}
 

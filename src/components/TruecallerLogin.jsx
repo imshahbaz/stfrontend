@@ -5,9 +5,10 @@ import { truecallerAPI } from '../api/axios';
 import useTruecallerPolling from '../hooks/useTruecallerPolling';
 import { cn } from '../lib/utils';
 
-const TruecallerLogin = ({ 
+const TruecallerLogin = ({
   login,
   user,
+  setError,
   refreshUserData }) => {
   const navigate = useNavigate();
   const [internalIsLoading, setInternalIsLoading] = useState(false);
@@ -23,25 +24,38 @@ const TruecallerLogin = ({
     (error) => {
       console.error('Truecaller polling error:', error);
       setInternalIsLoading(false);
+      setError('Verification failed or timed out. Please try again.');
     }
   );
 
   const generateNonce = () => crypto.randomUUID();
 
   const handleLogin = () => {
-    const requestId = generateNonce();
+    setError('');
 
+    // Basic mobile check - Truecaller SDK only works on mobile devices with the app installed
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (!isMobile) {
+      setError('Truecaller login is only available on mobile devices.');
+      return;
+    }
+
+    const requestId = generateNonce();
     setInternalIsLoading(true);
+
+    // Attempt to launch Truecaller
     window.location.href = truecallerAPI.truecallerLogin(requestId);
 
+    // If after 1.5s the document still has focus, the app likely didn't launch
     setTimeout(() => {
       if (document.hasFocus()) {
         setInternalIsLoading(false);
         clearPolling();
+        setError('Truecaller app is not installed or failed to open.');
       } else {
         startPolling(requestId);
       }
-    }, 1000);
+    }, 1500);
   };
 
   return (
