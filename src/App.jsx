@@ -59,6 +59,13 @@ function AppContent() {
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('theme') || 'dark';
   });
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     if (!authContext?.user?.theme) return
@@ -107,8 +114,8 @@ function AppContent() {
             </main>
 
             {import.meta.env.VITE_ENV === 'production' && (
-              <div className="hidden md:flex w-full justify-center py-4 bg-background">
-                <AdsterraBanner />
+              <div className="flex w-full justify-center py-4 bg-background pb-24 md:pb-4">
+                <AdsterraBanner isMobile={isMobile} />
               </div>
             )}
 
