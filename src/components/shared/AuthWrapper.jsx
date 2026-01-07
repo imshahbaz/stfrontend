@@ -33,7 +33,7 @@ const AuthWrapper = ({ title, subtitle, children, isLogin }) => {
         );
     }
 
-    const { user, login, appConfig, refreshUserData } = authContext;
+    const { login, appConfig, refreshUserData } = authContext;
     const auth = appConfig?.auth || { google: true, truecaller: true, email: true };
 
     return (
@@ -60,7 +60,6 @@ const AuthWrapper = ({ title, subtitle, children, isLogin }) => {
                         {auth.truecaller && (
                             <TruecallerLogin
                                 login={login}
-                                user={user}
                                 isLogin={isLogin}
                                 setError={setError}
                                 refreshUserData={refreshUserData} />

@@ -7,7 +7,6 @@ import { cn } from '../lib/utils';
 
 const TruecallerLogin = ({
   login,
-  user,
   setError,
   refreshUserData }) => {
   const navigate = useNavigate();
