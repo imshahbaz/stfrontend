@@ -28,7 +28,7 @@ const AuthWrapper = ({ title, subtitle, children, isLogin }) => {
     const auth = appConfig?.auth || { google: true, truecaller: true, email: true };
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background relative overflow-hidden">
+        <div className="min-h-[calc(100vh-160px)] md:min-h-screen flex flex-col items-center justify-start md:justify-center p-4 pt-8 md:pt-0 bg-background relative overflow-hidden">
             {/* Decorative Blobs */}
             <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/10 rounded-full blur-[100px]" />
             <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-secondary/10 rounded-full blur-[100px]" />
