@@ -53,7 +53,7 @@ const Calculator = () => {
 
   const filteredMargins = Array.isArray(margins) ? margins.filter(m =>
     m.symbol.toLowerCase().includes(searchQuery.toLowerCase())
-  ).slice(0, 10) : [];
+  ) : [];
 
   const validateStep = (step) => {
     const newErrors = {};
@@ -152,8 +152,8 @@ const Calculator = () => {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
           >
-            <div className="rounded-[2.5rem] overflow-hidden bg-card border border-border shadow-2xl">
-              <div className="bg-primary p-8 text-white relative">
+            <div className="rounded-[2.5rem] bg-card border border-border shadow-2xl">
+              <div className="bg-primary p-8 text-white relative rounded-t-[2.5rem]">
                 <h2 className="text-2xl font-black tracking-tight">Trade Calculator</h2>
                 <p className="text-sm font-bold opacity-80">Estimate your MTF returns precisely</p>
                 <div className="absolute bottom-0 left-0 w-full h-1.5 bg-white/20">
@@ -222,7 +222,7 @@ const Calculator = () => {
                           </div>
                         )}
                         {showDropdown && searchQuery && !loadingMargins && !marginError && (
-                          <div className="absolute z-10 w-full mt-2 bg-card border border-border rounded-2xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2">
+                          <div className="absolute z-10 w-full mt-2 bg-card border border-border rounded-2xl shadow-xl overflow-y-auto max-h-[300px] animate-in fade-in slide-in-from-top-2 scrollbar-hide">
                             {filteredMargins.length > 0 ? (
                               filteredMargins.map(m => (
                                 <button
