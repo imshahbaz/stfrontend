@@ -51,6 +51,8 @@
       height: 0;
     }
   }
+
+  --shadow-primary-glow: 0px 4px 12px rgba(124, 58, 237, 0.3);
 }
 
 @layer base {
@@ -81,7 +83,7 @@
   }
 
   .btn-primary {
-    @apply bg-primary text-white hover:shadow-[0px_4px_12px_rgba(124, 58, 237, 0.3)];
+    @apply bg-primary text-white hover:shadow-primary-glow;
   }
 
   .input {

@@ -51,9 +51,26 @@ const Calculator = () => {
     fetchMargins();
   }, []);
 
-  const filteredMargins = Array.isArray(margins) ? margins.filter(m =>
-    m.symbol.toLowerCase().includes(searchQuery.toLowerCase())
-  ) : [];
+  const filteredMargins = Array.isArray(margins) ? margins
+    .filter(m => m.symbol.toLowerCase().includes(searchQuery.toLowerCase()))
+    .sort((a, b) => {
+      const q = searchQuery.toLowerCase();
+      const sA = a.symbol.toLowerCase();
+      const sB = b.symbol.toLowerCase();
+
+      // Priority 1: Exact match
+      if (sA === q) return -1;
+      if (sB === q) return 1;
+
+      // Priority 2: Starts with
+      const startsA = sA.startsWith(q);
+      const startsB = sB.startsWith(q);
+      if (startsA && !startsB) return -1;
+      if (!startsA && startsB) return 1;
+
+      // Priority 3: Alphabetical
+      return sA.localeCompare(sB);
+    }) : [];
 
   const validateStep = (step) => {
     const newErrors = {};
