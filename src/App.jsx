@@ -99,37 +99,6 @@ function AppContent() {
     }
   };
 
-  useEffect(() => {
-    if (import.meta.env.VITE_ENV !== 'production') return;
-
-    const AD_ID = "adsterra-popunder";
-    const scriptSrc = "https://pl28445513.effectivegatecpm.com/f0/a0/42/f0a042cb537cc3e5d40ace27eca1b368.js";
-
-    const manageScript = () => {
-      const existingScript = document.getElementById(AD_ID);
-      if (existingScript) {
-        existingScript.remove();
-        console.log("Ad script unmounted.");
-      } else {
-        const script = document.createElement('script');
-        script.id = AD_ID;
-        script.src = scriptSrc;
-        script.async = true;
-        document.head.appendChild(script);
-        console.log("Ad script mounted.");
-      }
-    };
-
-    manageScript();
-
-    const interval = setInterval(manageScript, 30000);
-    return () => {
-      clearInterval(interval);
-      const script = document.getElementById(AD_ID);
-      if (script) script.remove();
-    };
-  }, []);
-
   return (
     <AnimatePresence mode="wait">
       {(!authContext || authContext.appLoading) ? (
