@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Loader2, AlertCircle, Newspaper, ExternalLink, Clock } from 'lucide-react';
+import { ArrowLeft, Loader2, AlertCircle, Newspaper, ExternalLink, Clock, Sparkles, TrendingUp, TrendingDown, Brain } from 'lucide-react';
 import FinancialChart from './FinancialChart';
 import { useChartData } from '../hooks/useChartData';
 import { newsApi } from '../api/axios';
@@ -13,6 +13,8 @@ const ChartPage = () => {
   const [theme, setTheme] = useState(document.documentElement.classList.contains('light') ? 'light' : 'dark');
   const [news, setNews] = useState([]);
   const [newsLoading, setNewsLoading] = useState(false);
+  const [aiAnalysis, setAiAnalysis] = useState(null);
+  const [aiLoading, setAiLoading] = useState(false);
 
   useEffect(() => {
     if (symbol) {
@@ -33,7 +35,22 @@ const ChartPage = () => {
         setNewsLoading(false);
       }
     };
+
+    const fetchAiAnalysis = async () => {
+      if (!symbol) return;
+      try {
+        setAiLoading(true);
+        const response = await newsApi.getGenAiAnalysis(symbol);
+        setAiAnalysis(response.data.data);
+      } catch (error) {
+        console.error('Error fetching AI analysis:', error);
+      } finally {
+        setAiLoading(false);
+      }
+    };
+
     fetchNews();
+    fetchAiAnalysis();
   }, [symbol]);
 
   useEffect(() => {
@@ -112,6 +129,85 @@ const ChartPage = () => {
                   theme={theme}
                 />
               </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* AI Analysis Section */}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-black flex items-center gap-2 uppercase tracking-tight">
+              <Sparkles className="h-6 w-6 text-primary" />
+              AI Technical Analysis
+            </h2>
+          </div>
+
+          <AnimatePresence mode="wait">
+            {aiLoading ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="p-6 rounded-[2rem] bg-muted/30 border border-border animate-pulse flex flex-col gap-4"
+              >
+                <div className="h-8 w-1/3 bg-muted rounded-lg" />
+                <div className="h-24 w-full bg-muted rounded-lg" />
+              </motion.div>
+            ) : aiAnalysis ? (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="relative overflow-hidden rounded-[2rem] border border-border bg-card p-6 md:p-8 shadow-xl"
+              >
+                {/* Background Decoration */}
+                <div className="absolute top-0 right-0 -mt-8 -mr-8 h-32 w-32 bg-primary/5 blur-3xl rounded-full" />
+
+                <div className="grid md:grid-cols-3 gap-8 relative">
+                  {/* Action & Signal */}
+                  <div className="space-y-4">
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Recommendation</p>
+                      <div className={`text-4xl font-black tracking-tighter ${aiAnalysis.action?.toUpperCase() === 'BUY' ? 'text-green-500' :
+                        aiAnalysis.action?.toUpperCase() === 'SELL' ? 'text-red-500' : 'text-yellow-500'
+                        }`}>
+                        {aiAnalysis.action}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Confidence</p>
+                        <div className="text-xl font-bold">{aiAnalysis.confidence}%</div>
+                      </div>
+                      <div className="h-8 w-px bg-border" />
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Trend</p>
+                        <div className="flex items-center gap-1.5 text-xl font-bold capitalize">
+                          {aiAnalysis.trend?.toLowerCase() === 'bullish' ? <TrendingUp className="h-5 w-5 text-green-500" /> : <TrendingDown className="h-5 w-5 text-red-500" />}
+                          {aiAnalysis.trend}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Reasoning */}
+                  <div className="md:col-span-2 space-y-4">
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                        <Brain className="h-3 w-3" />
+                        AI Analysis & Reasoning
+                      </p>
+                      <p className="text-sm md:text-base text-muted-foreground leading-relaxed font-medium">
+                        {aiAnalysis.reasoning}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ) : (
+              <div className="p-12 text-center bg-card rounded-[2rem] border border-dashed border-border">
+                <p className="text-muted-foreground font-bold uppercase tracking-widest text-sm">No AI analysis available for this symbol</p>
+              </div>
             )}
           </AnimatePresence>
         </div>

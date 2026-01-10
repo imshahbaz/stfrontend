@@ -107,7 +107,8 @@ export const googleAPI = {
 }
 
 export const newsApi = {
-  getTvNews: (symbol) => api.get(`/api/news/${symbol}`)
+  getTvNews: (symbol) => api.get(`/api/news/${symbol}`),
+  getGenAiAnalysis: (symbol) => api.get(`/api/news/ai/${symbol}`),
 }
 
 export default api;
