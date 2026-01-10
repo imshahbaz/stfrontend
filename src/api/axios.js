@@ -106,4 +106,8 @@ export const googleAPI = {
   googleTokenValidation: (token) => api.post("/api/auth/google/token", null, { params: { code: token, state: "validate" } })
 }
 
+export const newsApi = {
+  getTvNews: (symbol) => api.get(`/api/news/${symbol}`)
+}
+
 export default api;

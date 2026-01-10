@@ -1,21 +1,40 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Loader2, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Loader2, AlertCircle, Newspaper, ExternalLink, Clock } from 'lucide-react';
 import FinancialChart from './FinancialChart';
 import { useChartData } from '../hooks/useChartData';
+import { newsApi } from '../api/axios';
 
 const ChartPage = () => {
   const { symbol } = useParams();
   const navigate = useNavigate();
   const { chartData, chartLoading, chartError, fetchChartData } = useChartData();
   const [theme, setTheme] = useState(document.documentElement.classList.contains('light') ? 'light' : 'dark');
+  const [news, setNews] = useState([]);
+  const [newsLoading, setNewsLoading] = useState(false);
 
   useEffect(() => {
     if (symbol) {
       fetchChartData(symbol);
     }
   }, [symbol, fetchChartData]);
+
+  useEffect(() => {
+    const fetchNews = async () => {
+      if (!symbol) return;
+      try {
+        setNewsLoading(true);
+        const response = await newsApi.getTvNews(symbol);
+        setNews(response.data.data || []);
+      } catch (error) {
+        console.error('Error fetching news:', error);
+      } finally {
+        setNewsLoading(false);
+      }
+    };
+    fetchNews();
+  }, [symbol]);
 
   useEffect(() => {
     const updateTheme = () => {
@@ -28,8 +47,8 @@ const ChartPage = () => {
   }, [theme]);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-64px)] w-full bg-background overflow-hidden">
-      <div className="px-4 md:px-8 py-4 border-b border-border flex items-center justify-between shrink-0">
+    <div className="flex flex-col min-h-[calc(100vh-64px)] w-full bg-background overflow-y-auto">
+      <div className="px-4 md:px-8 py-4 border-b border-border flex items-center justify-between shrink-0 bg-background/80 backdrop-blur-md sticky top-0 z-10">
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate(-1)}
@@ -46,53 +65,101 @@ const ChartPage = () => {
         </div>
       </div>
 
-      <div className="flex-grow p-4 md:p-8 relative">
-        <AnimatePresence mode="wait">
-          {chartLoading ? (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-background"
-            >
-              <div className="relative">
-                <div className="h-16 w-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
-                <Loader2 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-6 w-6 text-primary animate-pulse" />
-              </div>
-              <p className="text-sm font-black text-muted-foreground uppercase tracking-widest">Fetching Market Data</p>
-            </motion.div>
-          ) : chartError ? (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="h-full flex flex-col items-center justify-center p-8 text-center"
-            >
-              <div className="h-20 w-20 rounded-full bg-destructive/10 flex items-center justify-center text-destructive mb-6 shadow-xl shadow-destructive/5">
-                <AlertCircle size={40} />
-              </div>
-              <h3 className="text-2xl font-black tracking-tight mb-2">Error Loading Chart</h3>
-              <p className="text-muted-foreground font-medium max-w-sm mb-8">{chartError}</p>
-              <button
-                onClick={() => fetchChartData(symbol)}
-                className="btn btn-primary h-12 px-8 rounded-xl font-black"
+      <div className="flex-grow p-4 md:p-8 space-y-8">
+        {/* Chart Section */}
+        <div className="relative min-h-[500px] h-[60vh]">
+          <AnimatePresence mode="wait">
+            {chartLoading ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-background"
               >
-                Retry Request
-              </button>
-            </motion.div>
-          ) : (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="h-full w-full rounded-[2rem] overflow-hidden shadow-2xl shadow-black/5"
-            >
-              <FinancialChart
-                rawData={chartData}
-                height="100%"
-                theme={theme}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+                <div className="relative">
+                  <div className="h-16 w-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+                  <Loader2 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-6 w-6 text-primary animate-pulse" />
+                </div>
+                <p className="text-sm font-black text-muted-foreground uppercase tracking-widest">Fetching Market Data</p>
+              </motion.div>
+            ) : chartError ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="h-full flex flex-col items-center justify-center p-8 text-center"
+              >
+                <div className="h-20 w-20 rounded-full bg-destructive/10 flex items-center justify-center text-destructive mb-6 shadow-xl shadow-destructive/5">
+                  <AlertCircle size={40} />
+                </div>
+                <h3 className="text-2xl font-black tracking-tight mb-2">Error Loading Chart</h3>
+                <p className="text-muted-foreground font-medium max-w-sm mb-8">{chartError}</p>
+                <button
+                  onClick={() => fetchChartData(symbol)}
+                  className="btn btn-primary h-12 px-8 rounded-xl font-black"
+                >
+                  Retry Request
+                </button>
+              </motion.div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="h-full w-full rounded-[2rem] overflow-hidden shadow-2xl shadow-black/5 border border-border"
+              >
+                <FinancialChart
+                  rawData={chartData}
+                  height="100%"
+                  theme={theme}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* News Section */}
+        <div className="space-y-6 pb-20">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-black flex items-center gap-2 uppercase tracking-tight">
+              <Newspaper className="h-6 w-6 text-primary" />
+              Market Headlines
+            </h2>
+          </div>
+
+          <div className="grid gap-3 lg:grid-cols-1">
+            {newsLoading ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="h-20 rounded-2xl bg-muted/50 animate-pulse border border-border" />
+              ))
+            ) : news.length > 0 ? (
+              news.map((item, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="group relative flex items-start p-4 rounded-xl bg-muted/20 border border-border hover:border-primary/30 transition-all hover:bg-muted/40"
+                >
+                  <div className="h-1.5 w-1.5 rounded-full bg-primary/40 group-hover:bg-primary mr-4 transition-colors shrink-0 mt-2" />
+                  <div className="flex flex-col gap-1.5">
+                    <h3 className="text-sm md:text-base font-bold leading-snug group-hover:text-primary transition-colors">
+                      {item.title}
+                    </h3>
+                    {item.published && (
+                      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground/60 font-bold uppercase tracking-widest">
+                        <Clock className="h-3 w-3" />
+                        {new Date(item.published * 1000).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              ))
+            ) : (
+              <div className="col-span-full py-12 text-center bg-muted/20 rounded-[2rem] border border-dashed border-border">
+                <p className="text-muted-foreground font-bold uppercase tracking-widest text-sm">No news available for this symbol</p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
