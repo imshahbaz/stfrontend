@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Loader2, AlertCircle, Newspaper, ExternalLink, Clock, Sparkles, TrendingUp, TrendingDown, Brain } from 'lucide-react';
+import { ArrowLeft, Loader2, AlertCircle, Newspaper, ExternalLink, Clock, Sparkles, TrendingUp, TrendingDown, Brain, ChevronDown, ChevronUp, LineChart } from 'lucide-react';
 import FinancialChart from './FinancialChart';
 import { useChartData } from '../hooks/useChartData';
 import { newsApi } from '../api/axios';
@@ -15,6 +15,7 @@ const ChartPage = () => {
   const [newsLoading, setNewsLoading] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [aiLoading, setAiLoading] = useState(false);
+  const [isChartExpanded, setIsChartExpanded] = useState(false);
 
   useEffect(() => {
     if (symbol) {
@@ -74,9 +75,9 @@ const ChartPage = () => {
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div>
-            <h1 className="text-2xl font-black tracking-tight flex items-center gap-2">
+            <h1 className="text-xl md:text-2xl font-black tracking-tight flex items-center gap-2">
               {symbol}
-              <span className="text-xs font-black px-2 py-0.5 rounded-md bg-primary/10 text-primary uppercase tracking-tighter">Live Chart</span>
+              <span className="text-[10px] md:text-xs font-black px-2 py-0.5 rounded-md bg-primary/10 text-primary uppercase tracking-tighter">Live</span>
             </h1>
           </div>
         </div>
@@ -84,61 +85,98 @@ const ChartPage = () => {
 
       <div className="flex-grow p-4 md:p-8 space-y-8">
         {/* Chart Section */}
-        <div className="relative min-h-[500px] h-[60vh]">
-          <AnimatePresence mode="wait">
-            {chartLoading ? (
+        <div className="space-y-4">
+          <button
+            onClick={() => setIsChartExpanded(!isChartExpanded)}
+            className="w-full flex items-center justify-between p-6 rounded-[2rem] bg-card border border-border hover:border-primary/50 transition-all shadow-sm group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                <LineChart size={20} />
+              </div>
+              <div className="text-left">
+                <h2 className="text-sm md:text-lg font-black uppercase tracking-tight flex items-center gap-2">
+                  Technical Chart
+                  {!isChartExpanded && <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-primary/10 text-primary animate-pulse">Expand</span>}
+                </h2>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest truncate">Real-time market movement</p>
+              </div>
+            </div>
+            <div className={`h-10 w-10 rounded-full flex items-center justify-center bg-muted group-hover:bg-primary group-hover:text-white transition-all ${isChartExpanded ? 'rotate-180' : ''}`}>
+              <ChevronDown size={20} />
+            </div>
+          </button>
+
+          <AnimatePresence>
+            {isChartExpanded && (
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-background"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+                className="overflow-hidden"
               >
-                <div className="relative">
-                  <div className="h-16 w-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
-                  <Loader2 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-6 w-6 text-primary animate-pulse" />
+                <div className="relative min-h-[500px] h-[60vh] rounded-[2rem] overflow-hidden border border-border shadow-2xl shadow-black/5">
+                  <AnimatePresence mode="wait">
+                    {chartLoading ? (
+                      <motion.div
+                        key="loading"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-background"
+                      >
+                        <div className="relative">
+                          <div className="h-16 w-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+                          <Loader2 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-6 w-6 text-primary animate-pulse" />
+                        </div>
+                        <p className="text-sm font-black text-muted-foreground uppercase tracking-widest">Fetching Market Data</p>
+                      </motion.div>
+                    ) : chartError ? (
+                      <motion.div
+                        key="error"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="h-full flex flex-col items-center justify-center p-8 text-center"
+                      >
+                        <div className="h-20 w-20 rounded-full bg-destructive/10 flex items-center justify-center text-destructive mb-6 shadow-xl shadow-destructive/5">
+                          <AlertCircle size={40} />
+                        </div>
+                        <h3 className="text-2xl font-black tracking-tight mb-2">Error Loading Chart</h3>
+                        <p className="text-muted-foreground font-medium max-w-sm mb-8">{chartError}</p>
+                        <button
+                          onClick={() => fetchChartData(symbol)}
+                          className="btn btn-primary h-12 px-8 rounded-xl font-black"
+                        >
+                          Retry Request
+                        </button>
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="chart"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="h-full w-full"
+                      >
+                        <FinancialChart
+                          rawData={chartData}
+                          height="100%"
+                          theme={theme}
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
-                <p className="text-sm font-black text-muted-foreground uppercase tracking-widest">Fetching Market Data</p>
-              </motion.div>
-            ) : chartError ? (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="h-full flex flex-col items-center justify-center p-8 text-center"
-              >
-                <div className="h-20 w-20 rounded-full bg-destructive/10 flex items-center justify-center text-destructive mb-6 shadow-xl shadow-destructive/5">
-                  <AlertCircle size={40} />
-                </div>
-                <h3 className="text-2xl font-black tracking-tight mb-2">Error Loading Chart</h3>
-                <p className="text-muted-foreground font-medium max-w-sm mb-8">{chartError}</p>
-                <button
-                  onClick={() => fetchChartData(symbol)}
-                  className="btn btn-primary h-12 px-8 rounded-xl font-black"
-                >
-                  Retry Request
-                </button>
-              </motion.div>
-            ) : (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="h-full w-full rounded-[2rem] overflow-hidden shadow-2xl shadow-black/5 border border-border"
-              >
-                <FinancialChart
-                  rawData={chartData}
-                  height="100%"
-                  theme={theme}
-                />
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
-        {/* AI Analysis Section */}
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-black flex items-center gap-2 uppercase tracking-tight">
-              <Sparkles className="h-6 w-6 text-primary" />
-              AI Technical Analysis
+            <h2 className="text-lg md:text-xl font-black flex items-center gap-2 uppercase tracking-tight">
+              <Sparkles className="h-5 w-5 md:h-6 md:h-6 text-primary" />
+              AI Analysis
             </h2>
           </div>
 
@@ -166,8 +204,8 @@ const ChartPage = () => {
                   {/* Action & Signal */}
                   <div className="space-y-4">
                     <div className="space-y-1">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Recommendation</p>
-                      <div className={`text-4xl font-black tracking-tighter ${aiAnalysis.action?.toUpperCase() === 'BUY' ? 'text-green-500' :
+                      <p className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-muted-foreground">Recommendation</p>
+                      <div className={`text-3xl md:text-4xl font-black tracking-tighter ${aiAnalysis.action?.toUpperCase() === 'BUY' ? 'text-green-500' :
                         aiAnalysis.action?.toUpperCase() === 'SELL' ? 'text-red-500' : 'text-yellow-500'
                         }`}>
                         {aiAnalysis.action}
@@ -176,14 +214,14 @@ const ChartPage = () => {
 
                     <div className="flex items-center gap-4">
                       <div className="space-y-1">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Confidence</p>
-                        <div className="text-xl font-bold">{aiAnalysis.confidence}%</div>
+                        <p className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-muted-foreground">Confidence</p>
+                        <div className="text-lg md:text-xl font-bold">{aiAnalysis.confidence}%</div>
                       </div>
                       <div className="h-8 w-px bg-border" />
                       <div className="space-y-1">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Trend</p>
-                        <div className="flex items-center gap-1.5 text-xl font-bold capitalize">
-                          {aiAnalysis.trend?.toLowerCase() === 'bullish' ? <TrendingUp className="h-5 w-5 text-green-500" /> : <TrendingDown className="h-5 w-5 text-red-500" />}
+                        <p className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-muted-foreground">Trend</p>
+                        <div className="flex items-center gap-1.5 text-lg md:text-xl font-bold capitalize">
+                          {aiAnalysis.trend?.toLowerCase() === 'bullish' ? <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-green-500" /> : <TrendingDown className="h-4 w-4 md:h-5 md:w-5 text-red-500" />}
                           {aiAnalysis.trend}
                         </div>
                       </div>
@@ -193,11 +231,11 @@ const ChartPage = () => {
                   {/* Reasoning */}
                   <div className="md:col-span-2 space-y-4">
                     <div className="space-y-1">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                      <p className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                         <Brain className="h-3 w-3" />
-                        AI Analysis & Reasoning
+                        Analysis & Reasoning
                       </p>
-                      <p className="text-sm md:text-base text-muted-foreground leading-relaxed font-medium">
+                      <p className="text-xs md:text-base text-muted-foreground leading-relaxed font-medium">
                         {aiAnalysis.reasoning}
                       </p>
                     </div>
@@ -212,11 +250,10 @@ const ChartPage = () => {
           </AnimatePresence>
         </div>
 
-        {/* News Section */}
-        <div className="space-y-6 pb-20">
+        <div className="space-y-4 md:space-y-6 pb-20">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-black flex items-center gap-2 uppercase tracking-tight">
-              <Newspaper className="h-6 w-6 text-primary" />
+            <h2 className="text-lg md:text-xl font-black flex items-center gap-2 uppercase tracking-tight">
+              <Newspaper className="h-5 w-5 md:h-6 md:w-6 text-primary" />
               Market Headlines
             </h2>
           </div>
