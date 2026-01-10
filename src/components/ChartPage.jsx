@@ -137,7 +137,7 @@ const ChartPage = () => {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="group relative flex items-start p-4 rounded-xl bg-muted/20 border border-border hover:border-primary/30 transition-all hover:bg-muted/40"
+                  className="group relative flex items-start p-4 rounded-xl bg-card text-card-foreground border border-border hover:border-primary/30 transition-all hover:bg-accent/50 shadow-sm"
                 >
                   <div className="h-1.5 w-1.5 rounded-full bg-primary/40 group-hover:bg-primary mr-4 transition-colors shrink-0 mt-2" />
                   <div className="flex flex-col gap-1.5">
@@ -154,7 +154,7 @@ const ChartPage = () => {
                 </motion.div>
               ))
             ) : (
-              <div className="col-span-full py-12 text-center bg-muted/20 rounded-[2rem] border border-dashed border-border">
+              <div className="col-span-full py-12 text-center bg-card rounded-[2rem] border border-dashed border-border">
                 <p className="text-muted-foreground font-bold uppercase tracking-widest text-sm">No news available for this symbol</p>
               </div>
             )}
