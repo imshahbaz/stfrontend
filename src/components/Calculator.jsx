@@ -115,7 +115,10 @@ const Calculator = () => {
   };
 
   const handleNext = () => {
-    if (validateStep(1)) setActiveStep(2);
+    if (validateStep(1)) {
+      setActiveStep(2);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   const resetForm = () => {
@@ -180,6 +183,7 @@ const Calculator = () => {
     });
 
     setView('results');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -415,7 +419,10 @@ const Calculator = () => {
 
                       <div className="flex gap-4 mt-6">
                         <button
-                          onClick={() => setActiveStep(1)}
+                          onClick={() => {
+                            setActiveStep(1);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
                           className="btn flex-1 bg-muted border border-border h-14 rounded-2xl font-black text-muted-foreground hover:bg-muted/80"
                         >
                           <ArrowLeft className="mr-2 h-5 w-5" /> Back
@@ -470,7 +477,10 @@ const Calculator = () => {
 
               <div className="grid grid-cols-2 gap-3 md:gap-4 mt-8 md:mt-10">
                 <button
-                  onClick={() => setView('form')}
+                  onClick={() => {
+                    setView('form');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
                   className="btn h-14 bg-muted border border-border rounded-2xl font-black text-muted-foreground hover:bg-muted/80 flex items-center justify-center"
                 >
                   <Edit3 className="mr-2 h-5 w-5" /> Adjust
