@@ -9,11 +9,13 @@ import {
   Edit3,
   RefreshCcw,
   TrendingUp,
-  Search
+  Search,
+  Calendar
 } from 'lucide-react';
 import { marginAPI } from '../api/axios';
 import DetailRow from './shared/DetailRow';
 import { cn } from '../lib/utils';
+import dayjs from 'dayjs';
 
 const Calculator = () => {
   const [view, setView] = useState('form');
@@ -33,6 +35,27 @@ const Calculator = () => {
   const [errors, setErrors] = useState({});
   const [searchQuery, setSearchQuery] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
+  const [entryDate, setEntryDate] = useState(dayjs().format('YYYY-MM-DD'));
+  const [exitDate, setExitDate] = useState('');
+
+  useEffect(() => {
+    if (entryDate) {
+      const start = dayjs(entryDate);
+      const end = exitDate ? dayjs(exitDate) : dayjs();
+
+      // If exitDate is provided and it's before entryDate
+      if (exitDate && end.isBefore(start)) {
+        setExitDate(''); // Clear invalid exitDate
+        setDaysHeld(0);
+        return;
+      }
+
+      const diff = end.diff(start, 'day');
+      setDaysHeld(diff > 0 ? diff : 0);
+    } else {
+      setDaysHeld(0);
+    }
+  }, [entryDate, exitDate]);
 
   useEffect(() => {
     const fetchMargins = async () => {
@@ -321,18 +344,42 @@ const Calculator = () => {
                     </motion.div>
                   ) : (
                     <motion.div key="step2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-                      <div className="space-y-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1 mb-2 block">Holding Period</label>
-                        <div className="relative group">
-                          <input
-                            type="number"
-                            className={cn("input pr-16 h-14 rounded-2xl", errors.daysHeld && "border-destructive")}
-                            value={daysHeld}
-                            onChange={e => { setDaysHeld(e.target.value); setErrors(prev => ({ ...prev, daysHeld: '' })); }}
-                          />
-                          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black text-muted-foreground group-focus-within:text-primary transition-colors">DAYS</span>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1 mb-2 block">Entry Date</label>
+                          <div className="relative group">
+                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                            <input
+                              type="date"
+                              className="input h-14 rounded-2xl pl-12 pr-4 cursor-pointer focus:ring-primary/20 appearance-none"
+                              value={entryDate}
+                              onChange={(e) => setEntryDate(e.target.value)}
+                              onClick={(e) => e.target.showPicker?.()}
+                            />
+                          </div>
                         </div>
-                        {errors.daysHeld && <p className="text-xs text-destructive font-bold mt-1 ml-1">{errors.daysHeld}</p>}
+                        <div className="space-y-2">
+                          <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1 mb-2 block">Exit Date (Optional)</label>
+                          <div className="relative group">
+                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                            <input
+                              type="date"
+                              className="input h-14 rounded-2xl pl-12 pr-4 cursor-pointer focus:ring-primary/20 appearance-none"
+                              value={exitDate}
+                              min={entryDate}
+                              onChange={(e) => setExitDate(e.target.value)}
+                              onClick={(e) => e.target.showPicker?.()}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-muted/50 p-4 rounded-2xl flex justify-between items-center border border-dashed border-border">
+                        <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">Calculated Holding Days</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl font-black text-primary">{daysHeld}</span>
+                          <span className="text-[10px] font-black uppercase tracking-tighter text-muted-foreground opacity-60">Days</span>
+                        </div>
                       </div>
 
                       <div className="space-y-4">

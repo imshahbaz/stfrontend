@@ -83,7 +83,35 @@
   }
 
   .btn-primary {
-    @apply bg-primary text-white hover:shadow-primary-glow;
+    @apply bg-primary text-white shadow-primary-glow hover:bg-primary/90 focus-visible:ring-primary;
+  }
+
+  /* Custom Date Picker Styling */
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    background: transparent;
+    bottom: 0;
+    color: transparent;
+    cursor: pointer;
+    height: auto;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: auto;
+  }
+
+  input[type="date"] {
+    position: relative;
+    color-scheme: dark;
+    /* Force dark mode calendar popup if using dark theme */
+  }
+
+  .dark input[type="date"] {
+    color-scheme: dark;
+  }
+
+  :root:not(.dark) input[type="date"] {
+    color-scheme: light;
   }
 
   .input {
