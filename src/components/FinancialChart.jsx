@@ -7,6 +7,11 @@ const FinancialChart = ({ rawData, height = 700, theme = 'dark' }) => {
     const seriesRef = useRef();
     const [ohlc, setOhlc] = useState(null);
 
+    const TV_COLORS = {
+        up: '#26a69a',
+        down: '#ef5350',
+    };
+
     const months = useMemo(() => ({
         Jan: '01', Feb: '02', Mar: '03', Apr: '04', May: '05', Jun: '06',
         Jul: '07', Aug: '08', Sep: '09', Oct: '10', Nov: '11', Dec: '12'
@@ -78,17 +83,16 @@ const FinancialChart = ({ rawData, height = 700, theme = 'dark' }) => {
         });
 
         const candlestickSeries = chart.addSeries(CandlestickSeries, {
-            upColor: '#22c55e',
-            downColor: '#ef4444',
+            upColor: TV_COLORS.up,
+            downColor: TV_COLORS.down,
             borderVisible: false,
-            wickUpColor: '#22c55e',
-            wickDownColor: '#ef4444',
+            wickUpColor: TV_COLORS.up,
+            wickDownColor: TV_COLORS.down,
         });
 
         chartRef.current = chart;
         seriesRef.current = candlestickSeries;
 
-        // Subscribing to crosshair movement for OHLC legend
         chart.subscribeCrosshairMove(param => {
             if (
                 param.point === undefined ||
@@ -98,7 +102,6 @@ const FinancialChart = ({ rawData, height = 700, theme = 'dark' }) => {
                 param.point.y < 0 ||
                 param.point.y > chartContainerRef.current.clientHeight
             ) {
-                // Set to last known data point when not hovering
                 if (chartData.length > 0) {
                     setOhlc(chartData[chartData.length - 1]);
                 }
@@ -137,7 +140,7 @@ const FinancialChart = ({ rawData, height = 700, theme = 'dark' }) => {
     if (!rawData) return null;
 
     const isPositive = ohlc ? ohlc.close >= ohlc.open : true;
-    const colorClass = isPositive ? 'text-green-500' : 'text-red-500';
+    const currentColor = isPositive ? TV_COLORS.up : TV_COLORS.down;
 
     return (
         <div className="w-full h-full relative" style={{ minHeight: height }}>
@@ -146,28 +149,36 @@ const FinancialChart = ({ rawData, height = 700, theme = 'dark' }) => {
                 <div className="flex items-center gap-3 md:gap-6 min-w-max">
                     <div className="flex items-center gap-1">
                         <span className="text-[9px] font-black text-muted-foreground/70 uppercase">O</span>
-                        <span className={`text-[12px] md:text-sm font-black tabular-nums ${colorClass}`}>{ohlc?.open?.toFixed(2) || '0.00'}</span>
+                        <span className="text-[12px] md:text-sm font-black tabular-nums transition-colors duration-100" style={{ color: currentColor }}>
+                            {ohlc?.open?.toFixed(2) || '0.00'}
+                        </span>
                     </div>
                     <div className="flex items-center gap-1">
                         <span className="text-[9px] font-black text-muted-foreground/70 uppercase">H</span>
-                        <span className={`text-[12px] md:text-sm font-black tabular-nums ${colorClass}`}>{ohlc?.high?.toFixed(2) || '0.00'}</span>
+                        <span className="text-[12px] md:text-sm font-black tabular-nums transition-colors duration-100" style={{ color: currentColor }}>
+                            {ohlc?.high?.toFixed(2) || '0.00'}
+                        </span>
                     </div>
                     <div className="flex items-center gap-1">
                         <span className="text-[9px] font-black text-muted-foreground/70 uppercase">L</span>
-                        <span className={`text-[12px] md:text-sm font-black tabular-nums ${colorClass}`}>{ohlc?.low?.toFixed(2) || '0.00'}</span>
+                        <span className="text-[12px] md:text-sm font-black tabular-nums transition-colors duration-100" style={{ color: currentColor }}>
+                            {ohlc?.low?.toFixed(2) || '0.00'}
+                        </span>
                     </div>
                     <div className="flex items-center gap-1">
                         <span className="text-[9px] font-black text-muted-foreground/70 uppercase">C</span>
-                        <span className={`text-[12px] md:text-sm font-black tabular-nums ${colorClass}`}>{ohlc?.close?.toFixed(2) || '0.00'}</span>
+                        <span className="text-[12px] md:text-sm font-black tabular-nums transition-colors duration-100" style={{ color: currentColor }}>
+                            {ohlc?.close?.toFixed(2) || '0.00'}
+                        </span>
                     </div>
                 </div>
 
                 {ohlc && (
-                    <div className={`flex items-center gap-2 px-2 py-0.5 rounded-md bg-opacity-10 min-w-max ${isPositive ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
-                        <span className={`text-[11px] md:text-xs font-black tabular-nums ${colorClass}`}>
+                    <div className="flex items-center gap-2 px-2 py-0.5 rounded-md min-w-max" style={{ backgroundColor: `${currentColor}15` }}>
+                        <span className="text-[11px] md:text-xs font-black tabular-nums transition-colors duration-100" style={{ color: currentColor }}>
                             {ohlc.close >= ohlc.open ? '+' : ''}{(ohlc.close - ohlc.open).toFixed(2)}
                         </span>
-                        <span className={`text-[10px] md:text-[11px] font-bold opacity-80 ${colorClass}`}>
+                        <span className="text-[10px] md:text-[11px] font-bold opacity-80" style={{ color: currentColor }}>
                             ({((ohlc.close - ohlc.open) / ohlc.open * 100).toFixed(2)}%)
                         </span>
                     </div>
