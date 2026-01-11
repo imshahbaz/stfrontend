@@ -193,9 +193,9 @@ const Calculator = () => {
             exit={{ opacity: 0, x: 20 }}
           >
             <div className="rounded-[2.5rem] bg-card border border-border shadow-2xl">
-              <div className="bg-primary p-8 text-white relative rounded-t-[2.5rem]">
-                <h2 className="text-2xl font-black tracking-tight">Trade Calculator</h2>
-                <p className="text-sm font-bold opacity-80">Estimate your MTF returns precisely</p>
+              <div className="bg-primary p-6 md:p-8 text-white relative rounded-t-[2.5rem]">
+                <h2 className="text-xl md:text-2xl font-black tracking-tight">Trade Calculator</h2>
+                <p className="text-xs md:text-sm font-bold opacity-80">Estimate your MTF returns precisely</p>
                 <div className="absolute bottom-0 left-0 w-full h-1.5 bg-white/20">
                   <motion.div
                     initial={{ width: "50%" }}
@@ -205,7 +205,7 @@ const Calculator = () => {
                 </div>
               </div>
 
-              <div className="p-8 space-y-6">
+              <div className="p-6 md:p-8 space-y-6">
                 <AnimatePresence mode="wait">
                   {activeStep === 1 ? (
                     <motion.div key="step1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
@@ -438,37 +438,37 @@ const Calculator = () => {
             key="results"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="space-y-6"
+            className="space-y-4 md:space-y-6"
           >
-            <div className="rounded-[3rem] bg-card border border-border p-8 md:p-12 text-center relative overflow-hidden shadow-2xl">
+            <div className="rounded-[2.5rem] md:rounded-[3rem] bg-card border border-border p-6 md:p-12 text-center relative overflow-hidden shadow-2xl">
               <div className={cn(
                 "absolute top-0 left-0 w-full h-2",
                 results.isProfit ? "bg-green-500" : "bg-destructive"
               )} />
 
               <div className={cn(
-                "mx-auto w-20 h-20 rounded-full flex items-center justify-center mb-6 shadow-xl transition-transform hover:scale-110",
+                "mx-auto w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center mb-4 md:mb-6 shadow-xl transition-transform hover:scale-110",
                 results.isProfit ? "bg-green-500 text-white shadow-green-500/20" : "bg-destructive text-white shadow-destructive/20"
               )}>
-                <TrendingUp size={40} />
+                <TrendingUp size={window.innerWidth < 768 ? 32 : 40} />
               </div>
 
-              <span className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground mb-2 block">Net P&L Result</span>
+              <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-muted-foreground mb-1 md:mb-2 block">Net P&L Result</span>
               <h2 className={cn(
-                "text-6xl font-black tracking-tighter mb-4",
+                "text-4xl md:text-6xl font-black tracking-tighter mb-2 md:mb-4",
                 results.isProfit ? "text-green-500" : "text-destructive"
               )}>
                 ₹{results.net}
               </h2>
 
               <div className={cn(
-                "inline-flex px-6 py-2 rounded-full font-black text-sm",
+                "inline-flex px-5 py-1.5 md:px-6 md:py-2 rounded-full font-black text-xs md:text-sm",
                 results.isProfit ? "bg-green-500/10 text-green-600 dark:text-green-400" : "bg-destructive/10 text-destructive"
               )}>
                 {results.roi}% ROI
               </div>
 
-              <div className="grid grid-cols-2 gap-4 mt-10">
+              <div className="grid grid-cols-2 gap-3 md:gap-4 mt-8 md:mt-10">
                 <button
                   onClick={() => setView('form')}
                   className="btn h-14 bg-muted border border-border rounded-2xl font-black text-muted-foreground hover:bg-muted/80 flex items-center justify-center"
@@ -484,12 +484,12 @@ const Calculator = () => {
               </div>
             </div>
 
-            <div className="bg-card border border-border rounded-[2.5rem] p-8 shadow-sm space-y-6">
+            <div className="bg-card border border-border rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-8 shadow-sm space-y-4 md:space-y-6">
               <div className="flex items-center gap-3 text-primary">
-                <Wallet className="h-5 w-5" />
-                <h4 className="text-[10px] font-black uppercase tracking-widest">Position Summary</h4>
+                <Wallet className="h-4 w-4 md:h-5 md:w-5" />
+                <h4 className="text-[9px] md:text-[10px] font-black uppercase tracking-widest">Position Summary</h4>
               </div>
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
                 <DetailRow label="Symbol" value={results.symbol} bold />
                 <div className="h-px bg-border" />
                 <DetailRow label="Total Value" value={`₹${results.totalValue}`} />
@@ -499,12 +499,12 @@ const Calculator = () => {
               </div>
             </div>
 
-            <div className="bg-card border border-border rounded-[2.5rem] p-8 shadow-sm space-y-6">
+            <div className="bg-card border border-border rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-8 shadow-sm space-y-4 md:space-y-6">
               <div className="flex items-center gap-3 text-destructive">
-                <Receipt className="h-5 w-5" />
-                <h4 className="text-[10px] font-black uppercase tracking-widest">Cost Breakdown</h4>
+                <Receipt className="h-4 w-4 md:h-5 md:w-5" />
+                <h4 className="text-[9px] md:text-[10px] font-black uppercase tracking-widest">Cost Breakdown</h4>
               </div>
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
                 <DetailRow label="Gross P&L" value={`₹${results.gross}`} />
                 <DetailRow label="MTF Interest" value={`₹${results.interest}`} />
                 <DetailRow label="Total Charges" value={`₹${results.charges}`} bold />
