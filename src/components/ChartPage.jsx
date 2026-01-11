@@ -221,11 +221,34 @@ const ChartPage = () => {
                       <div className="space-y-1">
                         <p className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-muted-foreground">Trend</p>
                         <div className="flex items-center gap-1.5 text-lg md:text-xl font-bold capitalize">
-                          {aiAnalysis.trend?.toLowerCase() === 'bullish' ? <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-green-500" /> : <TrendingDown className="h-4 w-4 md:h-5 md:w-5 text-red-500" />}
+                          {aiAnalysis.trend?.toUpperCase() === 'BULLISH' ? (
+                            <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-green-500" />
+                          ) : aiAnalysis.trend?.toUpperCase() === 'BEARISH' ? (
+                            <TrendingDown className="h-4 w-4 md:h-5 md:w-5 text-red-500" />
+                          ) : (
+                            <div className="h-1.5 w-4 bg-yellow-500 rounded-full" />
+                          )}
                           {aiAnalysis.trend}
                         </div>
                       </div>
                     </div>
+
+                    {(aiAnalysis.tomorrow_high || aiAnalysis.tomorrow_low) && (
+                      <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border/50">
+                        {aiAnalysis.tomorrow_high && (
+                          <div className="space-y-1">
+                            <p className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-muted-foreground">Expected High</p>
+                            <div className="text-lg md:text-xl font-bold text-green-500">₹{aiAnalysis.tomorrow_high}</div>
+                          </div>
+                        )}
+                        {aiAnalysis.tomorrow_low && (
+                          <div className="space-y-1">
+                            <p className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-muted-foreground">Expected Low</p>
+                            <div className="text-lg md:text-xl font-bold text-red-500">₹{aiAnalysis.tomorrow_low}</div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* Reasoning */}
