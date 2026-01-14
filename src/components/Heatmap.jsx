@@ -54,10 +54,9 @@ const Heatmap = () => {
   }, [rawData, selectedPeriod]);
 
   const topMovers = useMemo(() => {
-    if (data.length < 6) return { gainers: [], losers: [] };
     return {
-      gainers: data.slice(0, 3),
-      losers: [...data].reverse().slice(0, 3)
+      gainers: data.filter(item => item.currentChange > 0).slice(0, 3),
+      losers: [...data].reverse().filter(item => item.currentChange < 0).slice(0, 3)
     };
   }, [data]);
 
@@ -128,7 +127,9 @@ const Heatmap = () => {
                   <ArrowUpRight size={16} className="text-[#26a69a] md:w-6 md:h-6" />
                 </div>
                 <span className="text-[8px] md:text-[10px] font-black text-[#26a69a]/70 truncate">{item.indexSymbol}</span>
-                <span className="text-sm md:text-xl font-black tabular-nums text-[#26a69a]">+{item.currentChange}%</span>
+                <span className="text-sm md:text-xl font-black tabular-nums text-[#26a69a]">
+                  {item.currentChange > 0 ? '+' : ''}{item.currentChange}%
+                </span>
               </div>
             ))}
           </div>
@@ -147,7 +148,9 @@ const Heatmap = () => {
                   <ArrowDownRight size={16} className="text-[#ef5350] md:w-6 md:h-6" />
                 </div>
                 <span className="text-[8px] md:text-[10px] font-black text-[#ef5350]/70 truncate">{item.indexSymbol}</span>
-                <span className="text-sm md:text-xl font-black tabular-nums text-[#ef5350]">{item.currentChange}%</span>
+                <span className="text-sm md:text-xl font-black tabular-nums text-[#ef5350]">
+                  {item.currentChange > 0 ? '+' : ''}{item.currentChange}%
+                </span>
               </div>
             ))}
           </div>
