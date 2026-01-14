@@ -145,22 +145,30 @@ const Strategies = memo(() => {
                       </div>
 
                       {/* Info Row - Cleaner Zerodha style */}
-                      <div className="flex justify-between items-center mt-2 pt-2 border-t border-border/40">
-                        <div className="flex items-center gap-1">
+                      <div className="flex justify-between items-center mt-2 pt-2 border-t border-border/40 gap-2">
+                        <div className="flex items-center gap-1 min-w-0">
                           {stock.date ? (
                             <>
                               <span className="text-[10px] text-muted-foreground uppercase font-bold">Found:</span>
                               <span className="text-[11px] font-bold">{stock.date}</span>
                             </>
                           ) : (
-                            <span className="text-[11px] text-muted-foreground font-semibold truncate max-w-[150px]">
+                            <span className="text-[11px] text-muted-foreground font-semibold truncate">
                               {stock.name || 'NSE Equity'}
                             </span>
                           )}
                         </div>
-                        <div className="flex items-center gap-1">
-                          <span className="text-[10px] text-muted-foreground uppercase font-bold">Avg:</span>
-                          <span className="text-[11px] font-bold">₹{stock.close}</span>
+                        <div className="flex items-center gap-3">
+                          {stock.deliveryPercent != null && (
+                            <div className="flex items-center gap-1">
+                              <span className="text-[10px] text-muted-foreground uppercase font-bold">Del%:</span>
+                              <span className="text-[11px] font-bold text-blue-500">{stock.deliveryPercent}%</span>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-1">
+                            <span className="text-[10px] text-muted-foreground uppercase font-bold">Avg:</span>
+                            <span className="text-[11px] font-bold">₹{stock.close}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
