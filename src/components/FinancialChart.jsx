@@ -146,39 +146,39 @@ const FinancialChart = ({ rawData, height = 700, theme = 'dark' }) => {
         <div className="w-full h-full relative" style={{ minHeight: height }}>
             {/* Minimalist Pro OHLC Bar */}
             <div className="absolute top-0 left-0 right-0 z-10 pointer-events-none px-3 py-1.5 md:px-4 md:py-2 bg-background/40 backdrop-blur-md border-b border-white/5 flex items-center justify-between overflow-x-auto no-scrollbar">
-                <div className="flex items-center gap-3 md:gap-6 min-w-max">
+                <div className="flex items-center gap-2 md:gap-6 min-w-max">
                     <div className="flex items-center gap-1">
                         <span className="text-[9px] font-black text-muted-foreground/70 uppercase">O</span>
-                        <span className="text-[12px] md:text-sm font-black tabular-nums transition-colors duration-100" style={{ color: currentColor }}>
+                        <span className="text-[11px] md:text-sm font-black tabular-nums transition-colors duration-100" style={{ color: currentColor }}>
                             {ohlc?.open?.toFixed(2) || '0.00'}
                         </span>
                     </div>
                     <div className="flex items-center gap-1">
                         <span className="text-[9px] font-black text-muted-foreground/70 uppercase">H</span>
-                        <span className="text-[12px] md:text-sm font-black tabular-nums transition-colors duration-100" style={{ color: currentColor }}>
+                        <span className="text-[11px] md:text-sm font-black tabular-nums transition-colors duration-100" style={{ color: currentColor }}>
                             {ohlc?.high?.toFixed(2) || '0.00'}
                         </span>
                     </div>
                     <div className="flex items-center gap-1">
                         <span className="text-[9px] font-black text-muted-foreground/70 uppercase">L</span>
-                        <span className="text-[12px] md:text-sm font-black tabular-nums transition-colors duration-100" style={{ color: currentColor }}>
+                        <span className="text-[11px] md:text-sm font-black tabular-nums transition-colors duration-100" style={{ color: currentColor }}>
                             {ohlc?.low?.toFixed(2) || '0.00'}
                         </span>
                     </div>
                     <div className="flex items-center gap-1">
                         <span className="text-[9px] font-black text-muted-foreground/70 uppercase">C</span>
-                        <span className="text-[12px] md:text-sm font-black tabular-nums transition-colors duration-100" style={{ color: currentColor }}>
+                        <span className="text-[11px] md:text-sm font-black tabular-nums transition-colors duration-100" style={{ color: currentColor }}>
                             {ohlc?.close?.toFixed(2) || '0.00'}
                         </span>
                     </div>
                 </div>
 
                 {ohlc && (
-                    <div className="flex items-center gap-2 px-2 py-0.5 rounded-md min-w-max" style={{ backgroundColor: `${currentColor}15` }}>
-                        <span className="text-[11px] md:text-xs font-black tabular-nums transition-colors duration-100" style={{ color: currentColor }}>
+                    <div className="flex items-center gap-1.5 md:gap-2 px-1.5 py-0.5 rounded-md min-w-max" style={{ backgroundColor: `${currentColor}15` }}>
+                        <span className="text-[10px] md:text-xs font-black tabular-nums transition-colors duration-100" style={{ color: currentColor }}>
                             {ohlc.close >= ohlc.open ? '+' : ''}{(ohlc.close - ohlc.open).toFixed(2)}
                         </span>
-                        <span className="text-[10px] md:text-[11px] font-bold opacity-80" style={{ color: currentColor }}>
+                        <span className="text-[9px] md:text-[11px] font-bold opacity-80" style={{ color: currentColor }}>
                             ({((ohlc.close - ohlc.open) / ohlc.open * 100).toFixed(2)}%)
                         </span>
                     </div>
