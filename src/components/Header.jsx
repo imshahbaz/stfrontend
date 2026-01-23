@@ -15,8 +15,10 @@ import {
   X,
   Search,
   Calculator,
-  Grid3X3
+  Grid3X3,
+  Zap
 } from 'lucide-react';
+
 
 import { useAuth } from '../context/AuthContext';
 import { cn } from '../lib/utils';
@@ -37,7 +39,9 @@ const Header = ({ toggleTheme, theme }) => {
   const menuItems = [
     { label: 'Settings', icon: Settings, path: '/settings', show: !!user },
     { label: 'Admin Dashboard', icon: LayoutDashboard, path: '/admin/dashboard', show: user?.role === 'ADMIN' },
+    { label: 'Zerodha', icon: Zap, path: '/zerodha/dashboard', show: true },
   ];
+
 
   const bottomNavItems = [
     { label: 'Home', path: '/', icon: TrendingUp },
@@ -89,6 +93,13 @@ const Header = ({ toggleTheme, theme }) => {
                   >
                     Settings
                   </Link>
+                  <Link
+                    to="/zerodha/dashboard"
+                    className="px-3 py-2 text-sm font-semibold hover:text-primary transition-colors"
+                  >
+                    Zerodha
+                  </Link>
+
                   {user.role === 'ADMIN' && (
                     <Link
                       to="/admin/dashboard"

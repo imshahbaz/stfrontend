@@ -111,4 +111,15 @@ export const newsApi = {
   getGenAiAnalysis: (symbol) => api.get(`/api/news/ai/${symbol}`),
 }
 
+export const zerodhaAPI = {
+  login: (requestToken, userId) => api.post('/api/zerodha/login',
+    { request_token: requestToken, user_id: userId },
+  ),
+  getMe: () => api.get('/api/zerodha/me'),
+  placeMTFOrder: (orderData) => api.post('/api/order', orderData),
+  getUserOrders: (userId) => api.get(`/api/order/user/${userId}`),
+  updateOrder: (id, orderData) => api.put(`/api/order/${id}`, orderData),
+  deleteOrder: (id) => api.delete(`/api/order/${id}`),
+}
+
 export default api;

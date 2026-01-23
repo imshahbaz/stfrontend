@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, Calculator, Grid3X3 } from 'lucide-react';
+import { TrendingUp, Calculator, Grid3X3, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ActionCard from './shared/ActionCard';
 import { useAuth } from '../context/AuthContext';
@@ -27,6 +27,12 @@ const Home = () => {
       description: 'Visualize real-time performance of Nifty indices.',
       icon: Grid3X3,
       path: '/heatmap'
+    },
+    {
+      title: 'Zerodha Dashboard',
+      description: 'Connect your Zerodha account for real-time tracking and execution.',
+      icon: Zap,
+      path: '/zerodha/dashboard'
     }
   ];
 
