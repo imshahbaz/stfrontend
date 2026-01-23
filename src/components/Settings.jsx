@@ -327,33 +327,6 @@ const Settings = () => {
                 </form>
               </div>
             )}
-            {/* BROKER CONNECTIONS SECTION */}
-            <div className="p-8 rounded-[2.5rem] bg-card border border-border shadow-xl shadow-black/5">
-              <div className="flex items-center gap-3 mb-8">
-                <ShieldCheck className="text-primary h-6 w-6" />
-                <h2 className="text-xl font-black tracking-tight">Broker Connections</h2>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 rounded-2xl bg-muted/30 border border-border/50">
-                  <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <Fingerprint className="h-6 w-6 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold">Zerodha Kite</h3>
-                      <p className="text-xs text-muted-foreground font-medium">Not Connected</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => window.location.href = '/zerodha/dashboard'}
-                    className="px-4 py-2 text-xs font-black bg-primary text-white rounded-full hover:scale-105 transition-all"
-                  >
-                    Connect
-                  </button>
-                </div>
-              </div>
-            </div>
           </div>
         </motion.div>
       </div>

@@ -15,8 +15,7 @@ import {
   X,
   Search,
   Calculator,
-  Grid3X3,
-  Zap
+  Grid3X3
 } from 'lucide-react';
 
 
@@ -39,7 +38,6 @@ const Header = ({ toggleTheme, theme }) => {
   const menuItems = [
     { label: 'Settings', icon: Settings, path: '/settings', show: !!user },
     { label: 'Admin Dashboard', icon: LayoutDashboard, path: '/admin/dashboard', show: user?.role === 'ADMIN' },
-    { label: 'Zerodha', icon: Zap, path: '/zerodha/dashboard', show: true },
   ];
 
 
@@ -92,12 +90,6 @@ const Header = ({ toggleTheme, theme }) => {
                     className="px-3 py-2 text-sm font-semibold hover:text-primary transition-colors"
                   >
                     Settings
-                  </Link>
-                  <Link
-                    to="/zerodha/dashboard"
-                    className="px-3 py-2 text-sm font-semibold hover:text-primary transition-colors"
-                  >
-                    Zerodha
                   </Link>
 
                   {user.role === 'ADMIN' && (
