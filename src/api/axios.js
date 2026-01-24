@@ -8,7 +8,6 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// Interceptor to handle session expiry (401 errors)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -23,7 +22,6 @@ api.interceptors.response.use(
   }
 );
 
-// Auth API methods
 export const authAPI = {
   login: (email, password) => api.post('/api/auth/login', { email, password }),
   logout: () => api.post('/api/auth/logout'),
@@ -36,7 +34,6 @@ export const userPreferenceAPI = {
   updateTheme: (theme) => api.patch('/api/user/theme', { theme }),
 }
 
-// User API methods
 export const userAPI = {
   signup: (email, password, confirmPassword) => api.post('/api/auth/signup', { email, password, confirmPassword }),
   verifyOtp: (email, otp) => api.post('/api/auth/verify-otp', { email, otp }),
@@ -44,7 +41,6 @@ export const userAPI = {
   verifyUpdateOtp: (email, otp) => api.post('/api/user/verify-update-otp', { email, otp }),
 };
 
-// Strategy API methods
 export const strategyAPI = {
   getStrategies: () => api.get('/api/strategy'),
   fetchWithMargin: (strategyName) => api.get(`/api/chartink/fetchWithMargin?strategy=${encodeURIComponent(strategyName)}`),
@@ -58,13 +54,11 @@ export const strategyAPI = {
   getAllIndices: () => api.get('/api/nse/allindices'),
 };
 
-// Margin API methods
 export const marginAPI = {
   getAllMargins: () => api.get('/api/margin/all'),
   loadFromCsv: (formData) => api.post('/api/margin/load-from-csv', formData),
 };
 
-// Config API methods
 export const configAPI = {
   getConfig: () => api.get('/api/config/active'),
   updateConfig: (configData) => api.patch('/api/config/update', configData),
@@ -79,14 +73,12 @@ export const priceActionAPI = {
   checkOrderBlock: () => api.get('/api/price-action/ob/mitigation'),
   refreshMitigationData: () => api.post('/api/price-action/ob/check'),
 
-  //fvg
   createFVG: (fvgReq) => api.post('/api/price-action/fvg', fvgReq),
   deleteFVG: (fvgReq) => api.delete('/api/price-action/fvg', { data: fvgReq }),
   updateFVG: (fvgReq) => api.patch('/api/price-action/fvg', fvgReq),
   checkFVGMitigation: () => api.get('/api/price-action/fvg/mitigation'),
   refreshFvgMitigationData: () => api.post('/api/price-action/fvg/check'),
 
-  //automation
   runAutomation: () => api.post('/api/price-action/automate'),
   cleanUpActions: () => api.post('/api/price-action/cleanup'),
 }
@@ -109,6 +101,18 @@ export const googleAPI = {
 export const newsApi = {
   getTvNews: (symbol) => api.get(`/api/news/${symbol}`),
   getGenAiAnalysis: (symbol) => api.get(`/api/news/ai/${symbol}`),
+}
+
+export const zerodhaAPI = {
+  login: (requestToken, userId) => api.post('/api/zerodha/login',
+    { request_token: requestToken, user_id: userId },
+  ),
+  getMe: () => api.get('/api/zerodha/me'),
+  placeMTFOrder: (orderData) => api.post('/api/order', orderData),
+  getUserOrders: (userId) => api.get(`/api/order/user/${userId}`),
+  updateOrder: (id, orderData) => api.put(`/api/order/${id}`, orderData),
+  deleteOrder: (id) => api.delete(`/api/order/${id}`),
+  saveConfig: (configData) => api.post('/api/zerodha/config', configData),
 }
 
 export default api;

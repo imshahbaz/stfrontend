@@ -18,6 +18,7 @@ import {
   Grid3X3
 } from 'lucide-react';
 
+
 import { useAuth } from '../context/AuthContext';
 import { cn } from '../lib/utils';
 
@@ -38,6 +39,7 @@ const Header = ({ toggleTheme, theme }) => {
     { label: 'Settings', icon: Settings, path: '/settings', show: !!user },
     { label: 'Admin Dashboard', icon: LayoutDashboard, path: '/admin/dashboard', show: user?.role === 'ADMIN' },
   ];
+
 
   const bottomNavItems = [
     { label: 'Home', path: '/', icon: TrendingUp },
@@ -89,6 +91,7 @@ const Header = ({ toggleTheme, theme }) => {
                   >
                     Settings
                   </Link>
+
                   {user.role === 'ADMIN' && (
                     <Link
                       to="/admin/dashboard"

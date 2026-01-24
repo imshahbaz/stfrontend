@@ -25,6 +25,9 @@ import ChartPage from './components/ChartPage';
 import Heatmap from './components/Heatmap';
 import PageNotFound from './components/PageNotFound';
 import GoogleCallback from './components/GoogleCallback';
+import ZerodhaDashboard from './components/ZerodhaDashboard';
+import ZerodhaCallback from './components/ZerodhaCallback';
+
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
@@ -147,9 +150,10 @@ function AnimatedRoutes({ auth }) {
         <Route path="/calculator" element={<PageWrapper><Calculator /></PageWrapper>} />
         <Route path="/heatmap" element={<PageWrapper><Heatmap /></PageWrapper>} />
         <Route path="/chart/:symbol" element={<PageWrapper><ChartPage /></PageWrapper>} />
-
         <Route element={<ProtectedRoute />}>
           <Route path="/settings" element={<PageWrapper><Settings /></PageWrapper>} />
+          <Route path="/zerodha/dashboard" element={<PageWrapper><ZerodhaDashboard /></PageWrapper>} />
+          <Route path="/zerodha/redirect" element={<ZerodhaCallback />} />
         </Route>
 
         <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
