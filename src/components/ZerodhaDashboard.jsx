@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import {
     ExternalLink, Zap, Loader2, CheckCircle2, Send, Calendar,
     Hash, Search, AlertCircle, ShoppingBag, Clock, ArrowUpRight,
-    Edit2, X, Save, Trash2, Key, Shield, Settings, TrendingUp, History, User
+    Edit2, X, Save, Trash2, Key, Shield, Settings, TrendingUp, History, User,
+    Copy, Check
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { zerodhaAPI, marginAPI } from '../api/axios';
@@ -49,6 +50,13 @@ const ZerodhaDashboard = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [showDropdown, setShowDropdown] = useState(false);
     const dropdownRef = useRef(null);
+    const [copiedField, setCopiedField] = useState("");
+
+    const handleCopy = (text, field) => {
+        navigator.clipboard.writeText(text);
+        setCopiedField(field);
+        setTimeout(() => setCopiedField(""), 2000);
+    };
 
     const getISTDate = () => {
         return new Intl.DateTimeFormat('en-CA', {
@@ -424,6 +432,59 @@ const ZerodhaDashboard = () => {
                                         )}
                                     </motion.button>
                                 </form>
+
+                                <div className="mt-10 pt-8 border-t border-border/50">
+                                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary mb-4 flex items-center gap-2">
+                                        <AlertCircle className="h-4 w-4" />
+                                        Quick Setup Guide
+                                    </h3>
+                                    <div className="space-y-4 text-sm font-medium text-muted-foreground leading-relaxed">
+                                        <div className="flex gap-3">
+                                            <div className="h-5 w-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-black shrink-0">1</div>
+                                            <p>Log in to the <a href="https://developers.kite.trade/login" target="_blank" rel="noopener noreferrer" className="text-foreground font-black underline decoration-primary/30 hover:decoration-primary transition-all inline-flex items-center gap-1">Kite Developer Portal <ExternalLink size={12} /></a></p>
+                                        </div>
+                                        <div className="flex gap-3">
+                                            <div className="h-5 w-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-black shrink-0">2</div>
+                                            <div className="space-y-3 w-full">
+                                                <p>Create a New App with these parameters:</p>
+
+                                                <div className="space-y-2">
+                                                    <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">App Name</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="flex-1 p-3 rounded-xl bg-muted/50 border border-border/50 font-mono text-[10px] select-all">
+                                                            Shahbaz Trades
+                                                        </div>
+                                                        <button
+                                                            onClick={() => handleCopy("Shahbaz Trades", "app")}
+                                                            className="p-3 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all shrink-0"
+                                                        >
+                                                            {copiedField === "app" ? <Check size={14} /> : <Copy size={14} />}
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Redirect URL</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="flex-1 p-3 rounded-xl bg-muted/50 border border-border/50 font-mono text-[10px] break-all select-all">
+                                                            {window.location.origin}/zerodha/redirect
+                                                        </div>
+                                                        <button
+                                                            onClick={() => handleCopy(`${window.location.origin}/zerodha/redirect`, "url")}
+                                                            className="p-3 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all shrink-0"
+                                                        >
+                                                            {copiedField === "url" ? <Check size={14} /> : <Copy size={14} />}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-3">
+                                            <div className="h-5 w-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-black shrink-0">3</div>
+                                            <p>Copy your generated <strong>API Key</strong> and <strong>Secret</strong> into the form above.</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </motion.div>
                     ) : (
