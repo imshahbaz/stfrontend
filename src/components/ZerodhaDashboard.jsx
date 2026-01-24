@@ -792,43 +792,6 @@ const ZerodhaDashboard = () => {
                 message="Are you sure you want to delete this order record? This action cannot be undone."
             />
 
-            <AnimatePresence>
-                {isConnected && (
-                    <motion.div
-                        initial={{ y: 100 }}
-                        animate={{ y: 0 }}
-                        className="fixed bottom-0 inset-x-0 z-40 md:hidden pb-safe"
-                    >
-                        <div className="bg-background/80 backdrop-blur-3xl border-t border-border px-8 pt-4 pb-8 flex items-center justify-between">
-                            <button
-                                onClick={() => setActiveTab('trade')}
-                                className={cn(
-                                    "flex flex-col items-center gap-1.5 transition-all duration-300",
-                                    activeTab === 'trade' ? "text-primary scale-110" : "text-muted-foreground opacity-50"
-                                )}
-                            >
-                                <TrendingUp size={24} strokeWidth={activeTab === 'trade' ? 3 : 2} />
-                                <span className="text-[10px] font-black tracking-widest uppercase">Trade</span>
-                            </button>
-
-                            <div className="h-16 w-16 -mt-10 rounded-full bg-primary flex items-center justify-center shadow-xl shadow-primary/40 border-4 border-background">
-                                <Zap className="text-white h-7 w-7" />
-                            </div>
-
-                            <button
-                                onClick={() => setActiveTab('history')}
-                                className={cn(
-                                    "flex flex-col items-center gap-1.5 transition-all duration-300",
-                                    activeTab === 'history' ? "text-primary scale-110" : "text-muted-foreground opacity-50"
-                                )}
-                            >
-                                <History size={24} strokeWidth={activeTab === 'history' ? 3 : 2} />
-                                <span className="text-[10px] font-black tracking-widest uppercase">History</span>
-                            </button>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
         </div>
     );
 };
