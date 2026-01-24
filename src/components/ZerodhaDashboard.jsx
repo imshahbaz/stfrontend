@@ -1,7 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ExternalLink, Zap, Loader2, CheckCircle2, Send, Calendar, Hash, Search, AlertCircle, ShoppingBag, Clock, ArrowUpRight, Edit2, X, Save, Trash2 } from 'lucide-react';
+import {
+    ExternalLink, Zap, Loader2, CheckCircle2, Send, Calendar,
+    Hash, Search, AlertCircle, ShoppingBag, Clock, ArrowUpRight,
+    Edit2, X, Save, Trash2, Key, Shield, Settings, TrendingUp, History, User
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { zerodhaAPI, marginAPI } from '../api/axios';
 import StatusAlert from './shared/StatusAlert';
@@ -14,8 +18,9 @@ const ZerodhaDashboard = () => {
     const [isConnected, setIsConnected] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [zerodhaUser, setZerodhaUser] = useState(null);
+    const [backendApiKey, setBackendApiKey] = useState('');
+    const [activeTab, setActiveTab] = useState('trade');
 
-    // Form States
     const [formData, setFormData] = useState({
         symbol: '',
         date: '',
@@ -27,13 +32,18 @@ const ZerodhaDashboard = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [editingOrder, setEditingOrder] = useState(null);
 
-    // Orders States
     const [orders, setOrders] = useState([]);
     const [loadingOrders, setLoadingOrders] = useState(true);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [orderToDelete, setOrderToDelete] = useState(null);
 
-    // Stock Search States
+    const [needsConfig, setNeedsConfig] = useState(false);
+    const [configData, setConfigData] = useState({
+        apiKey: '',
+        apiSecret: ''
+    });
+    const [configSubmitting, setConfigSubmitting] = useState(false);
+
     const [margins, setMargins] = useState([]);
     const [loadingMargins, setLoadingMargins] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -54,7 +64,6 @@ const ZerodhaDashboard = () => {
         checkConnection();
         fetchMargins();
 
-        // Close dropdown when clicking outside
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
                 setShowDropdown(false);
@@ -90,7 +99,6 @@ const ZerodhaDashboard = () => {
         try {
             const response = await zerodhaAPI.getUserOrders(userId);
             if (response.data && Array.isArray(response.data)) {
-                // Sort by date descending if possible, or just as they come
                 setOrders(response.data);
             } else if (response.data?.data && Array.isArray(response.data.data)) {
                 setOrders(response.data.data);
@@ -104,16 +112,68 @@ const ZerodhaDashboard = () => {
 
     const checkConnection = async () => {
         try {
+            setIsLoading(true);
             const response = await zerodhaAPI.getMe();
-            if (response.status === 200 && response.data.data) {
-                setIsConnected(true);
-                setZerodhaUser(response.data.data);
+
+            if (response.status === 200 && response.data) {
+                if (response.data.success === false) {
+                    const message = response.data.message || "";
+                    if (message.includes("Token expired")) {
+                        setIsConnected(false);
+                        setNeedsConfig(false);
+                        if (response.data.data) {
+                            setBackendApiKey(response.data.data);
+                        }
+                    } else if (message.includes("E001") || !response.data.data) {
+                        setNeedsConfig(true);
+                    }
+                } else if (response.data.data) {
+                    setIsConnected(true);
+                    setNeedsConfig(false);
+                    setZerodhaUser(response.data.data);
+                }
             }
         } catch (error) {
             console.error("Zerodha connection check failed:", error);
             setIsConnected(false);
+
+            const data = error.response?.data;
+            const errorMsg = (typeof data === 'string' ? data : (data?.message || data?.error || "")).toString();
+
+            if (errorMsg.includes("E001") || error.response?.status === 404) {
+                if (errorMsg.includes("Token expired")) {
+                    setNeedsConfig(false);
+                } else {
+                    setNeedsConfig(true);
+                }
+            } else {
+                setNeedsConfig(false);
+            }
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleConfigSubmit = async (e) => {
+        e.preventDefault();
+        setConfigSubmitting(true);
+        setOrderError('');
+        setOrderSuccess('');
+
+        try {
+            const response = await zerodhaAPI.saveConfig({
+                apiKey: configData.apiKey,
+                apiSecret: configData.apiSecret
+            });
+            if (response.status === 200 || response.status === 201) {
+                setOrderSuccess('Zerodha configuration saved successfully!');
+                setNeedsConfig(false);
+                checkConnection();
+            }
+        } catch (err) {
+            setOrderError(err.response?.data?.message || 'Failed to save configuration. Please try again.');
+        } finally {
+            setConfigSubmitting(false);
         }
     };
 
@@ -133,7 +193,7 @@ const ZerodhaDashboard = () => {
         }).slice(0, 10) : [];
 
     const handleConnect = () => {
-        const apiKey = import.meta.env.VITE_ZERODHA_API_KEY || "YOUR_API_KEY";
+        const apiKey = backendApiKey || import.meta.env.VITE_ZERODHA_API_KEY;
         const zerodhaLoginUrl = `https://kite.trade/connect/login?v=3&api_key=${apiKey}`;
         window.location.href = zerodhaLoginUrl;
     };
@@ -158,6 +218,7 @@ const ZerodhaDashboard = () => {
             quantity: order.quantity.toString()
         });
         setSearchQuery(order.symbol);
+        setActiveTab('trade');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
@@ -178,14 +239,12 @@ const ZerodhaDashboard = () => {
             if (response.status === 200) {
                 setOrderSuccess('Order deleted successfully!');
 
-                // If the deleted order was being edited, reset the form
                 if (isEditing && editingOrder?.id === orderToDelete) {
                     resetForm();
                 }
 
                 fetchOrders();
 
-                // Clear success message after 3 seconds
                 setTimeout(() => {
                     setOrderSuccess('');
                 }, 3000);
@@ -223,13 +282,13 @@ const ZerodhaDashboard = () => {
             if (response.status === 200 || response.status === 201) {
                 setOrderSuccess(isEditing ? 'Order updated successfully!' : 'Order placed successfully!');
                 resetForm();
-                // Refresh orders after successful placement
                 fetchOrders();
 
-                // Clear success message after 2 seconds
                 setTimeout(() => {
                     setOrderSuccess('');
                 }, 3000);
+
+                if (!isEditing) setActiveTab('history');
             }
         } catch (err) {
             setOrderError(err.response?.data?.message || `Failed to ${isEditing ? 'update' : 'place'} order. Please check your connection.`);
@@ -238,300 +297,429 @@ const ZerodhaDashboard = () => {
         }
     };
 
-    if (isLoading) {
+    if (isLoading && !isConnected && !needsConfig) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-                <Loader2 className="h-12 w-12 text-primary animate-spin" />
-                <p className="text-muted-foreground font-medium animate-pulse">Checking connection status...</p>
+            <div className="flex flex-col items-center justify-center min-h-[80vh] gap-6">
+                <div className="relative">
+                    <Loader2 className="h-14 w-14 text-primary animate-spin" />
+                    <div className="absolute inset-0 h-14 w-14 border-4 border-primary/20 rounded-full"></div>
+                </div>
+                <div className="space-y-2 text-center">
+                    <p className="text-xl font-black tracking-tight animate-pulse">Establishing Secure Connection</p>
+                    <p className="text-muted-foreground text-sm font-medium">Verifying credentials with Zerodha HQ...</p>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="container mx-auto px-4 md:px-8 pt-8 md:pt-16 pb-20">
-            {/* Hero Section */}
-            <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex flex-col items-center text-center mb-12"
-            >
-                <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm mb-6 border ${isConnected ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-primary/10 text-primary border-primary/20'}`}>
-                    {isConnected ? <CheckCircle2 className="h-4 w-4" /> : <Zap className="h-4 w-4" />}
-                    {isConnected ? 'Kite Connected' : 'Kite Connect Integration'}
-                </div>
+        <div className="min-h-screen bg-background pb-24 md:pb-12">
+            <div className="container mx-auto px-4 pt-6 md:pt-12">
 
-                <h1 className="text-3xl md:text-7xl font-black tracking-tighter mb-4 md:mb-6">
-                    {isConnected ? 'Welcome Back,' : 'Connect Your'} <span className="text-primary italic">{isConnected ? (zerodhaUser?.user_name || 'Trader') : 'Zerodha'}</span> {isConnected ? '' : 'Account'}
-                </h1>
+                <header className="flex flex-col items-center mb-8 md:mb-12 relative">
 
-                <p className="text-base md:text-xl text-muted-foreground max-w-2xl mb-8 md:mb-10 font-medium leading-relaxed">
-                    {isConnected
-                        ? `You are successfully connected to your Zerodha account (${zerodhaUser?.user_id || user?.email}). Enjoy advanced trading tools and real-time execution.`
-                        : 'Unlock advanced trading features, real-time portfolio tracking, and seamless execution by connecting your Zerodha account.'
-                    }
-                </p>
-
-                {/* Daily Re-authentication Notice */}
-                <div className="mb-8 md:mb-10 p-3 md:p-4 px-4 md:px-6 rounded-2xl bg-amber-500/10 border border-amber-500/20 max-w-xl mx-auto flex items-center gap-3 text-amber-500 text-xs md:text-sm font-bold text-left">
-                    <Zap className="h-4 w-4 shrink-0" />
-                    <span>Please Note: Per SEBI regulations, you must re-authenticate your Zerodha account every morning.</span>
-                </div>
-
-                {!isConnected && (
-                    <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={handleConnect}
-                        className="group relative flex items-center gap-3 px-6 md:px-8 py-3.5 md:py-4 bg-primary text-white text-base md:text-lg font-black rounded-2xl shadow-2xl shadow-primary/40 hover:shadow-primary/60 transition-all overflow-hidden"
-                    >
-                        <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-                        <span className="relative">Connect to Zerodha</span>
-                        <ExternalLink className="relative h-4 w-4 md:h-5 md:w-5 group-hover:rotate-45 transition-transform" />
-                    </motion.button>
-                )}
-            </motion.div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 max-w-6xl mx-auto">
-                {/* MTF Order Form - Only shown when connected */}
-                {isConnected && (
                     <motion.div
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="w-full"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className={`inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full font-black text-[10px] md:text-xs uppercase tracking-widest border transition-all duration-500 mb-6 ${isConnected
+                            ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 shadow-lg shadow-emerald-500/5'
+                            : 'bg-primary/10 text-primary border-primary/20 shadow-lg shadow-primary/5'
+                            }`}
                     >
-                        <div className="bg-card border border-border rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 shadow-2xl shadow-black/5 h-full transition-all">
-                            <div className="flex items-center justify-between mb-6 md:mb-8">
-                                <div className="flex items-center gap-3 md:gap-4">
-                                    <div className="h-10 w-10 md:h-12 md:w-12 rounded-xl md:rounded-2xl bg-primary/10 flex items-center justify-center">
-                                        {isEditing ? <Edit2 className="h-5 w-5 md:h-6 md:w-6 text-primary" /> : <Send className="h-5 w-5 md:h-6 md:w-6 text-primary" />}
-                                    </div>
-                                    <div>
-                                        <h2 className="text-lg md:text-2xl font-black tracking-tight">{isEditing ? 'Update MTF Order' : 'Place MTF Order'}</h2>
-                                        <p className="text-xs md:text-sm text-muted-foreground font-medium">Margin Trade Funding</p>
-                                    </div>
-                                </div>
-                                {isEditing && (
-                                    <button
-                                        onClick={resetForm}
-                                        className="p-2 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-foreground"
-                                        title="Cancel editing"
-                                    >
-                                        <X className="h-5 w-5" />
-                                    </button>
-                                )}
+                        {isConnected ? (
+                            <div className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                             </div>
-
-                            <StatusAlert success={orderSuccess} error={orderError} className="mb-6 md:mb-8" />
-
-                            <form onSubmit={handleOrderSubmit} className="space-y-5 md:space-y-6">
-                                <div className="space-y-2 relative" ref={dropdownRef}>
-                                    <label className="text-[10px] md:text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Search Symbol</label>
-                                    <div className="relative group">
-                                        <Search className={cn(
-                                            "absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-muted-foreground group-focus-within:text-primary transition-colors",
-                                            isEditing && "opacity-50"
-                                        )} />
-                                        <input
-                                            type="text"
-                                            required
-                                            placeholder={loadingMargins ? "Loading..." : "Stock name..."}
-                                            className={cn(
-                                                "input pl-10 md:pl-12 h-12 md:h-14 rounded-xl md:rounded-2xl bg-muted/30 border-border/50 focus:bg-background transition-all font-bold text-sm md:text-base",
-                                                isEditing && "opacity-60 cursor-not-allowed bg-muted/50"
-                                            )}
-                                            value={searchQuery}
-                                            onChange={(e) => {
-                                                if (isEditing) return;
-                                                setSearchQuery(e.target.value);
-                                                setFormData({ ...formData, symbol: e.target.value });
-                                                setShowDropdown(true);
-                                            }}
-                                            onFocus={() => !isEditing && setShowDropdown(true)}
-                                            disabled={loadingMargins || isEditing}
-                                        />
-                                    </div>
-
-                                    <AnimatePresence>
-                                        {showDropdown && searchQuery && !loadingMargins && !isEditing && (
-                                            <motion.div
-                                                initial={{ opacity: 0, y: -10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, y: -10 }}
-                                                className="absolute z-20 w-full mt-2 bg-card border border-border rounded-2xl shadow-xl overflow-hidden max-h-[250px] overflow-y-auto scrollbar-hide"
-                                            >
-                                                {filteredMargins.length > 0 ? (
-                                                    filteredMargins.map(m => (
-                                                        <button
-                                                            key={m.symbol}
-                                                            type="button"
-                                                            className="w-full text-left px-6 py-4 hover:bg-primary/10 transition-colors border-b border-border last:border-0 flex justify-between items-center"
-                                                            onClick={() => {
-                                                                setFormData({ ...formData, symbol: m.symbol });
-                                                                setSearchQuery(m.symbol);
-                                                                setShowDropdown(false);
-                                                            }}
-                                                        >
-                                                            <span className="font-bold">{m.symbol}</span>
-                                                            <span className="text-[10px] font-black bg-primary/10 text-primary px-2 py-1 rounded-lg uppercase tracking-tighter">Listed</span>
-                                                        </button>
-                                                    ))
-                                                ) : (
-                                                    <div className="px-6 py-4 text-center text-muted-foreground text-sm">
-                                                        No stocks found
-                                                    </div>
-                                                )}
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
-                                </div>
-
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-6">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] md:text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Quantity</label>
-                                        <div className="relative group">
-                                            <Hash className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                                            <input
-                                                type="number"
-                                                required
-                                                min="1"
-                                                placeholder="100"
-                                                className="input pl-10 md:pl-12 h-12 md:h-14 rounded-xl md:rounded-2xl bg-muted/30 border-border/50 focus:bg-background transition-all font-bold text-sm md:text-base"
-                                                value={formData.quantity}
-                                                onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] md:text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Date</label>
-                                        <div className="relative group">
-                                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                                            <input
-                                                type="date"
-                                                required
-                                                min={isEditing ? undefined : getISTDate()}
-                                                className="input pl-10 md:pl-12 h-12 md:h-14 rounded-xl md:rounded-2xl bg-muted/30 border-border/50 focus:bg-background transition-all font-bold text-sm md:text-base"
-                                                value={formData.date}
-                                                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <motion.button
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
-                                    disabled={orderLoading}
-                                    type="submit"
-                                    className="w-full h-14 md:h-16 bg-primary text-white font-black text-base md:text-lg rounded-xl md:rounded-2xl shadow-xl shadow-primary/20 hover:shadow-primary/40 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:pointer-events-none mt-2 md:mt-4"
-                                >
-                                    {orderLoading ? (
-                                        <Loader2 className="h-5 w-5 md:h-6 md:w-6 animate-spin" />
-                                    ) : (
-                                        <>
-                                            {isEditing ? <Save className="h-4 w-4 md:h-5 md:w-5" /> : <Send className="h-4 w-4 md:h-5 md:w-5" />}
-                                            {isEditing ? 'Update Order' : 'Place Order'}
-                                        </>
-                                    )}
-                                </motion.button>
-                            </form>
-
-                            {/* Trading Notice inside the card for better flow */}
-                            <div className="mt-6 md:mt-8 p-4 md:p-6 rounded-2xl md:rounded-3xl bg-muted/50 border border-border flex gap-3 md:gap-4 items-start">
-                                <AlertCircle className="h-5 w-5 md:h-6 md:w-6 text-primary shrink-0 mt-0.5 md:mt-1" />
-                                <div>
-                                    <h4 className="font-bold mb-0.5 md:mb-1 text-xs md:text-base">Trading Notice</h4>
-                                    <p className="text-[10px] md:text-sm text-muted-foreground leading-relaxed font-medium">
-                                        MTF orders are executed through your linked Zerodha account. Ensure sufficient margin is available.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+                        ) : <Zap className="h-3.5 w-3.5" />}
+                        {isConnected ? 'LIVE CONNECTION' : 'KITE INTEGRATION READY'}
                     </motion.div>
-                )}
 
-                {/* Orders List Section */}
-                {isConnected && (
-                    <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="w-full"
-                    >
-                        <div className="bg-card border border-border rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 shadow-2xl shadow-black/5 h-full flex flex-col">
-                            <div className="flex items-center justify-between mb-6 md:mb-8">
-                                <div className="flex items-center gap-3 md:gap-4">
-                                    <div className="h-10 w-10 md:h-12 md:w-12 rounded-xl md:rounded-2xl bg-primary/10 flex items-center justify-center">
-                                        <ShoppingBag className="h-5 w-5 md:h-6 md:w-6 text-primary" />
-                                    </div>
-                                    <div>
-                                        <h2 className="text-lg md:text-2xl font-black tracking-tight">Your Orders</h2>
-                                        <p className="text-xs md:text-sm text-muted-foreground font-medium">Recent execution history</p>
-                                    </div>
-                                </div>
-                                {loadingOrders && <Loader2 className="h-4 w-4 md:h-5 md:w-5 text-primary animate-spin" />}
-                            </div>
+                    <h1 className="text-3xl md:text-6xl font-black tracking-tightest text-center mb-4 leading-[1.1]">
+                        {isConnected ? 'Trader' : 'Trading'} <span className="text-primary italic">{isConnected ? (zerodhaUser?.user_shortname || zerodhaUser?.user_name || 'Terminal') : 'Terminal'}</span>
+                    </h1>
 
-                            <div className="flex-grow overflow-y-auto max-h-[500px] md:max-h-[600px] pr-2 scrollbar-hide">
-                                {loadingOrders && orders.length === 0 ? (
-                                    <div className="flex flex-col items-center justify-center py-10 md:py-20 grayscale opacity-50">
-                                        <Loader2 className="h-8 w-8 md:h-10 md:w-10 animate-spin mb-4" />
-                                        <span className="font-bold text-sm">Fetching history...</span>
-                                    </div>
-                                ) : orders.length > 0 ? (
-                                    <div className="space-y-3 md:space-y-4">
-                                        {orders.map((order, idx) => (
-                                            <motion.div
-                                                key={order.id || idx}
-                                                initial={{ opacity: 0, y: 10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{ delay: Math.min(idx * 0.05, 0.5) }}
-                                                className="group p-4 md:p-5 rounded-2xl md:rounded-3xl bg-muted/30 border border-border/50 hover:bg-muted/50 transition-all flex items-center justify-between"
+                    <p className="text-sm md:text-lg text-muted-foreground text-center max-w-xl font-medium px-4">
+                        {isConnected
+                            ? `Secured as ${zerodhaUser?.user_id}. Monitor execution flows and manage assets in real-time.`
+                            : 'Sync your Zerodha account to unlock professional execution tools and precision portfolio management.'
+                        }
+                    </p>
+                </header>
+
+                <AnimatePresence mode="wait">
+                    {needsConfig ? (
+                        <motion.div
+                            key="config-form"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            className="max-w-md mx-auto mb-12"
+                        >
+                            <div className="bg-card border border-border rounded-[2.5rem] p-8 md:p-10 shadow-3xl shadow-primary/5 transition-all">
+                                <div className="flex flex-col items-center text-center mb-8">
+                                    <div className="h-20 w-20 rounded-[2rem] bg-primary/10 flex items-center justify-center mb-6 relative overflow-hidden group">
+                                        <Shield className="h-10 w-10 text-primary relative z-10 group-hover:scale-110 transition-transform duration-500" />
+                                        <div className="absolute inset-0 bg-primary/5 animate-pulse"></div>
+                                        {isConnected && (
+                                            <button
+                                                onClick={() => setNeedsConfig(false)}
+                                                className="absolute top-2 right-2 p-1.5 bg-background border border-border rounded-full hover:bg-muted transition-colors z-20"
                                             >
-                                                <div className="flex items-center gap-3 md:gap-4 min-w-0">
-                                                    <div className="h-8 w-8 md:h-10 md:w-10 rounded-lg md:rounded-xl bg-background border border-border flex items-center justify-center font-black text-[10px] md:text-xs shrink-0">
-                                                        {order.symbol?.substring(0, 2).toUpperCase()}
-                                                    </div>
-                                                    <div className="min-w-0">
-                                                        <h4 className="font-black text-base md:text-lg group-hover:text-primary transition-colors truncate">{order.symbol}</h4>
-                                                        <div className="flex items-center gap-1 text-[10px] md:text-xs text-muted-foreground font-bold uppercase tracking-wider">
-                                                            <Clock className="h-3 w-3" />
-                                                            <span>{order.date?.split('T')[0]}</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <button
-                                                        onClick={() => handleEditOrder(order)}
-                                                        className="p-2 hover:bg-primary/20 rounded-xl transition-colors text-muted-foreground hover:text-primary"
-                                                        title="Edit Order"
-                                                    >
-                                                        <Edit2 className="h-4 w-4 md:h-5 md:w-5" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteClick(order.id)}
-                                                        className="p-2 hover:bg-red-500/20 rounded-xl transition-colors text-muted-foreground hover:text-red-500"
-                                                        title="Delete Order"
-                                                    >
-                                                        <Trash2 className="h-4 w-4 md:h-5 md:w-5" />
-                                                    </button>
-                                                </div>
-                                            </motion.div>
-                                        ))}
+                                                <X size={14} />
+                                            </button>
+                                        )}
                                     </div>
-                                ) : (
-                                    <div className="flex flex-col items-center justify-center py-12 md:py-20 text-center">
-                                        <div className="h-16 w-16 md:h-20 md:w-20 rounded-full bg-muted flex items-center justify-center mb-4 md:mb-6">
-                                            <ShoppingBag className="h-8 w-8 md:h-10 md:w-10 text-muted-foreground/30" />
+                                    <h2 className="text-3xl font-black tracking-tight mb-2">Zerodha Setup</h2>
+                                    <p className="text-muted-foreground font-medium px-4">Identify your credentials to initialize the gateway</p>
+                                </div>
+
+                                <StatusAlert success={orderSuccess} error={orderError} className="mb-6 rounded-2xl" />
+
+                                <form onSubmit={handleConfigSubmit} className="space-y-6">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-2">API Key</label>
+                                        <div className="relative group">
+                                            <Key className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                                            <input
+                                                type="text"
+                                                required
+                                                placeholder="Enter your API Key"
+                                                className="w-full pl-14 pr-5 h-16 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/20 focus:bg-background transition-all font-bold text-lg outline-none"
+                                                value={configData.apiKey}
+                                                onChange={(e) => setConfigData({ ...configData, apiKey: e.target.value })}
+                                            />
                                         </div>
-                                        <h3 className="text-lg md:text-xl font-bold mb-1 md:mb-2">No Orders</h3>
-                                        <p className="text-[10px] md:text-sm text-muted-foreground max-w-[180px] md:max-w-[200px] font-medium leading-relaxed">
-                                            Place your first MTF order to see them here.
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-2">API Secret</label>
+                                        <div className="relative group">
+                                            <Shield className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                                            <input
+                                                type="password"
+                                                required
+                                                placeholder="Enter your API Secret"
+                                                className="w-full pl-14 pr-5 h-16 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/20 focus:bg-background transition-all font-bold text-lg outline-none"
+                                                value={configData.apiSecret}
+                                                onChange={(e) => setConfigData({ ...configData, apiSecret: e.target.value })}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <motion.button
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        type="submit"
+                                        disabled={configSubmitting}
+                                        className="w-full h-16 bg-primary text-white font-black text-xl rounded-2xl shadow-xl shadow-primary/20 hover:shadow-primary/40 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                                    >
+                                        {configSubmitting ? (
+                                            <Loader2 className="h-7 w-7 animate-spin" />
+                                        ) : (
+                                            <>
+                                                <Save className="h-6 w-6" />
+                                                Save Credentials
+                                            </>
+                                        )}
+                                    </motion.button>
+                                </form>
+                            </div>
+                        </motion.div>
+                    ) : (
+                        !isConnected && (
+                            <motion.div
+                                key="connect-button"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                className="flex justify-center mb-12"
+                            >
+                                <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={handleConnect}
+                                    className="group relative flex items-center gap-4 px-10 py-5 bg-primary text-white text-lg md:text-xl font-black rounded-[2rem] shadow-2xl shadow-primary/40 transition-all overflow-hidden"
+                                >
+                                    <span className="relative z-10">Initialize Connection</span>
+                                    <ExternalLink className="relative z-10 h-5 w-5 md:h-6 md:w-6 transition-transform group-hover:rotate-12" />
+                                    <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                </motion.button>
+                            </motion.div>
+                        )
+                    )}
+                </AnimatePresence>
+
+                {isConnected && (
+                    <div className="max-w-5xl mx-auto">
+                        <div className="flex md:hidden bg-muted/30 p-1.5 rounded-2xl mb-6 backdrop-blur-xl border border-border/50">
+                            <button
+                                onClick={() => setActiveTab('trade')}
+                                className={cn(
+                                    "flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black text-xs transition-all duration-300",
+                                    activeTab === 'trade' ? "bg-background text-primary shadow-lg" : "text-muted-foreground"
+                                )}
+                            >
+                                <TrendingUp size={16} />
+                                EXECUTE
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('history')}
+                                className={cn(
+                                    "flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black text-xs transition-all duration-300",
+                                    activeTab === 'history' ? "bg-background text-primary shadow-lg" : "text-muted-foreground"
+                                )}
+                            >
+                                <History size={16} />
+                                HISTORY
+                            </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-10">
+                            <motion.div
+                                className={cn(
+                                    "lg:col-span-5 w-full",
+                                    activeTab === 'trade' ? "block" : "hidden md:block"
+                                )}
+                                layout
+                            >
+                                <div className="bg-card border border-border rounded-[2.5rem] p-6 md:p-8 shadow-3xl shadow-primary/5 sticky top-24">
+                                    <div className="flex items-center gap-4 mb-8">
+                                        <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+                                            {isEditing ? <Edit2 className="h-6 w-6 text-primary" /> : <TrendingUp className="h-6 w-6 text-primary" />}
+                                        </div>
+                                        <div>
+                                            <h2 className="text-xl md:text-2xl font-black tracking-tight">{isEditing ? 'Modify Position' : 'Quick Order'}</h2>
+                                            <p className="text-[10px] md:text-xs text-muted-foreground font-black uppercase tracking-widest">MTF EXECUTION GATEWAY</p>
+                                        </div>
+                                        {isEditing && (
+                                            <button onClick={resetForm} className="ml-auto p-2 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-foreground">
+                                                <X size={20} />
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    <StatusAlert success={orderSuccess} error={orderError} className="mb-6 rounded-2xl" />
+
+                                    <form onSubmit={handleOrderSubmit} className="space-y-6">
+                                        <div className="space-y-2 relative" ref={dropdownRef}>
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Digital Asset (Symbol)</label>
+                                            <div className="relative group">
+                                                <Search className={cn(
+                                                    "absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors",
+                                                    isEditing && "opacity-50"
+                                                )} />
+                                                <input
+                                                    type="text"
+                                                    required
+                                                    autoComplete="off"
+                                                    placeholder={loadingMargins ? "Connecting to NSE..." : "Search stocks..."}
+                                                    className={cn(
+                                                        "w-full pl-12 pr-4 h-14 md:h-16 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/20 focus:bg-background transition-all font-bold text-sm md:text-lg outline-none",
+                                                        isEditing && "opacity-60 cursor-not-allowed bg-muted/50"
+                                                    )}
+                                                    value={searchQuery}
+                                                    onChange={(e) => {
+                                                        if (isEditing) return;
+                                                        setSearchQuery(e.target.value);
+                                                        setFormData({ ...formData, symbol: e.target.value });
+                                                        setShowDropdown(true);
+                                                    }}
+                                                    onFocus={() => !isEditing && setShowDropdown(true)}
+                                                    disabled={loadingMargins || isEditing}
+                                                />
+                                            </div>
+
+                                            <AnimatePresence>
+                                                {showDropdown && searchQuery && !loadingMargins && !isEditing && (
+                                                    <motion.div
+                                                        initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                        exit={{ opacity: 0, y: 10, scale: 0.98 }}
+                                                        className="absolute z-50 w-full mt-3 bg-card/95 backdrop-blur-3xl border border-border rounded-3xl shadow-2xl overflow-hidden max-h-[300px] overflow-y-auto scrollbar-hide ring-1 ring-black/5"
+                                                    >
+                                                        {filteredMargins.length > 0 ? (
+                                                            filteredMargins.map(m => (
+                                                                <button
+                                                                    key={m.symbol}
+                                                                    type="button"
+                                                                    className="w-full text-left px-6 py-4.5 hover:bg-primary/5 transition-all border-b border-border last:border-0 flex justify-between items-center group"
+                                                                    onClick={() => {
+                                                                        setFormData({ ...formData, symbol: m.symbol });
+                                                                        setSearchQuery(m.symbol);
+                                                                        setShowDropdown(false);
+                                                                    }}
+                                                                >
+                                                                    <span className="font-black text-sm group-hover:text-primary transition-colors">{m.symbol}</span>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className="text-[9px] font-black bg-primary/10 text-primary px-2 py-1 rounded-md uppercase">
+                                                                            {m.margin}x Margin
+                                                                        </span>
+                                                                        <ArrowUpRight className="h-3 w-3 text-muted-foreground group-hover:text-primary" />
+                                                                    </div>
+                                                                </button>
+                                                            ))
+                                                        ) : (
+                                                            <div className="px-6 py-10 text-center flex flex-col items-center gap-2">
+                                                                <AlertCircle className="h-6 w-6 text-muted-foreground/30" />
+                                                                <span className="text-muted-foreground text-xs font-bold uppercase tracking-widest">No matching symbols</span>
+                                                            </div>
+                                                        )}
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Units</label>
+                                                <div className="relative group">
+                                                    <Hash className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                                                    <input
+                                                        type="number"
+                                                        required
+                                                        min="1"
+                                                        placeholder="0"
+                                                        className="w-full pl-12 pr-4 h-14 md:h-16 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/20 focus:bg-background transition-all font-black text-lg outline-none"
+                                                        value={formData.quantity}
+                                                        onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Target Date</label>
+                                                <div className="relative group">
+                                                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                                                    <input
+                                                        type="date"
+                                                        required
+                                                        min={isEditing ? undefined : getISTDate()}
+                                                        className="w-full pl-12 pr-3 h-14 md:h-16 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/20 focus:bg-background transition-all font-bold text-xs md:text-sm outline-none"
+                                                        value={formData.date}
+                                                        onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <motion.button
+                                            whileHover={{ scale: 1.02, y: -2 }}
+                                            whileTap={{ scale: 0.98 }}
+                                            disabled={orderLoading}
+                                            type="submit"
+                                            className="w-full h-16 md:h-18 bg-primary text-white font-black text-lg rounded-2xl shadow-xl shadow-primary/30 hover:shadow-primary/50 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:pointer-events-none"
+                                        >
+                                            {orderLoading ? (
+                                                <Loader2 className="h-7 w-7 animate-spin" />
+                                            ) : (
+                                                <>
+                                                    {isEditing ? <Save className="h-6 w-6" /> : <Send className="h-6 w-6" />}
+                                                    {isEditing ? 'UPDATE ORDER' : 'PLACE ORDER'}
+                                                </>
+                                            )}
+                                        </motion.button>
+                                    </form>
+
+                                    <div className="mt-8 p-5 rounded-3xl bg-amber-500/5 border border-amber-500/10 flex gap-4 items-center">
+                                        <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0">
+                                            <AlertCircle className="h-6 w-6 text-amber-500" />
+                                        </div>
+                                        <p className="text-[10px] text-amber-600/80 leading-relaxed font-bold uppercase tracking-wider">
+                                            Ensure sufficient equity before transmission.
                                         </p>
                                     </div>
+                                </div>
+                            </motion.div>
+
+                            <motion.div
+                                className={cn(
+                                    "lg:col-span-7 w-full",
+                                    activeTab === 'history' ? "block" : "hidden md:block"
                                 )}
-                            </div>
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                            >
+                                <div className="bg-card border border-border rounded-[2.5rem] p-6 md:p-10 shadow-3xl shadow-primary/5 min-h-[500px]">
+                                    <div className="flex items-center justify-between mb-8">
+                                        <div className="flex items-center gap-4">
+                                            <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+                                                <History className="h-6 w-6 text-primary" />
+                                            </div>
+                                            <div>
+                                                <h2 className="text-xl md:text-2xl font-black tracking-tight">Order History</h2>
+                                                <p className="text-[10px] md:text-xs text-muted-foreground font-black uppercase tracking-widest">REAL-TIME EXECUTION LOG</p>
+                                            </div>
+                                        </div>
+                                        {loadingOrders && <Loader2 className="h-5 w-5 text-primary animate-spin" />}
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        {loadingOrders && orders.length === 0 ? (
+                                            <div className="flex flex-col items-center justify-center py-24 grayscale opacity-40">
+                                                <Loader2 className="h-12 w-12 animate-spin mb-4 text-primary" />
+                                                <span className="font-black text-xs uppercase tracking-[0.3em]">Querying Orders</span>
+                                            </div>
+                                        ) : orders.length > 0 ? (
+                                            <div className="grid grid-cols-1 gap-4">
+                                                {orders.map((order, idx) => (
+                                                    <motion.div
+                                                        key={order.id || idx}
+                                                        initial={{ opacity: 0, x: 10 }}
+                                                        animate={{ opacity: 1, x: 0 }}
+                                                        transition={{ delay: idx * 0.05 }}
+                                                        className="group p-5 md:p-6 rounded-[2rem] bg-muted/20 border border-border/50 hover:border-primary/30 hover:bg-muted/40 transition-all duration-300 flex items-center justify-between"
+                                                    >
+                                                        <div className="flex items-center gap-5">
+                                                            <div className="h-12 w-12 md:h-14 md:w-14 rounded-2xl bg-background border-2 border-border flex items-center justify-center font-black text-sm md:text-lg text-primary shadow-sm">
+                                                                {order.symbol?.substring(0, 2).toUpperCase()}
+                                                            </div>
+                                                            <div>
+                                                                <h4 className="font-black text-lg md:text-xl tracking-tight group-hover:text-primary transition-colors">{order.symbol}</h4>
+                                                                <div className="flex items-center gap-3 mt-1">
+                                                                    <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-black uppercase tracking-widest">
+                                                                        <Clock size={12} className="text-primary" />
+                                                                        <span>{order.date?.split('T')[0]}</span>
+                                                                    </div>
+                                                                    <div className="h-1 w-1 rounded-full bg-border"></div>
+                                                                    <span className="text-[10px] font-black text-primary uppercase">{order.quantity} Units</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-1.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-300">
+                                                            <button
+                                                                onClick={() => handleEditOrder(order)}
+                                                                className="h-11 w-11 flex items-center justify-center rounded-2xl bg-background border border-border hover:border-primary/50 text-foreground hover:text-primary transition-all shadow-sm"
+                                                            >
+                                                                <Edit2 size={16} />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteClick(order.id)}
+                                                                className="h-11 w-11 flex items-center justify-center rounded-2xl bg-background border border-border hover:border-rose-500/50 text-foreground hover:text-rose-500 transition-all shadow-sm"
+                                                            >
+                                                                <Trash2 size={16} />
+                                                            </button>
+                                                        </div>
+                                                    </motion.div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="flex flex-col items-center justify-center py-20 text-center px-10">
+                                                <div className="h-24 w-24 rounded-full bg-muted/50 flex items-center justify-center mb-6 relative overflow-hidden group">
+                                                    <ShoppingBag className="h-10 w-10 text-muted-foreground/30 relative z-10 transition-transform duration-700 group-hover:scale-125 group-hover:rotate-12" />
+                                                    <div className="absolute inset-0 bg-primary/5 -translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
+                                                </div>
+                                                <h3 className="text-2xl font-black tracking-tight mb-2">No Orders</h3>
+                                                <p className="text-muted-foreground text-sm font-medium leading-relaxed uppercase tracking-widest">
+                                                    Your order history is empty.
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </motion.div>
                         </div>
-                    </motion.div>
+                    </div>
                 )}
             </div>
 
@@ -540,8 +728,46 @@ const ZerodhaDashboard = () => {
                 onClose={() => setIsDeleteModalOpen(false)}
                 onConfirm={handleDeleteConfirm}
                 title="Delete Order"
-                message="Are you sure you want to delete this MTF order? This action cannot be undone."
+                message="Are you sure you want to delete this order record? This action cannot be undone."
             />
+
+            <AnimatePresence>
+                {isConnected && (
+                    <motion.div
+                        initial={{ y: 100 }}
+                        animate={{ y: 0 }}
+                        className="fixed bottom-0 inset-x-0 z-40 md:hidden pb-safe"
+                    >
+                        <div className="bg-background/80 backdrop-blur-3xl border-t border-border px-8 pt-4 pb-8 flex items-center justify-between">
+                            <button
+                                onClick={() => setActiveTab('trade')}
+                                className={cn(
+                                    "flex flex-col items-center gap-1.5 transition-all duration-300",
+                                    activeTab === 'trade' ? "text-primary scale-110" : "text-muted-foreground opacity-50"
+                                )}
+                            >
+                                <TrendingUp size={24} strokeWidth={activeTab === 'trade' ? 3 : 2} />
+                                <span className="text-[10px] font-black tracking-widest uppercase">Trade</span>
+                            </button>
+
+                            <div className="h-16 w-16 -mt-10 rounded-full bg-primary flex items-center justify-center shadow-xl shadow-primary/40 border-4 border-background">
+                                <Zap className="text-white h-7 w-7" />
+                            </div>
+
+                            <button
+                                onClick={() => setActiveTab('history')}
+                                className={cn(
+                                    "flex flex-col items-center gap-1.5 transition-all duration-300",
+                                    activeTab === 'history' ? "text-primary scale-110" : "text-muted-foreground opacity-50"
+                                )}
+                            >
+                                <History size={24} strokeWidth={activeTab === 'history' ? 3 : 2} />
+                                <span className="text-[10px] font-black tracking-widest uppercase">History</span>
+                            </button>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };
