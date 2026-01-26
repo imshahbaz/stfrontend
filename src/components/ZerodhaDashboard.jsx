@@ -202,9 +202,8 @@ const ZerodhaDashboard = () => {
 
     const handleConnect = () => {
         const apiKey = backendApiKey || import.meta.env.VITE_ZERODHA_API_KEY;
-        const loginUrl = `kite.zerodha.com/connect/login?v=3&api_key=${apiKey}`;
-        const webUrl = `https://${loginUrl}`;
-        const androidIntent = `intent://${loginUrl}#Intent;scheme=https;package=com.zerodha.kiteconnect;end`;
+        const webUrl = `https://kite.zerodha.com/connect/login?v=3&api_key=${apiKey}`;
+        const appUrl = `kite-connect://kite.zerodha.com/connect/login?v=3&api_key=${apiKey}`;
 
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         if (!isMobile) {
@@ -213,17 +212,14 @@ const ZerodhaDashboard = () => {
         }
 
         let appOpened = false;
+
         const onBlur = () => {
             appOpened = true;
             window.removeEventListener('blur', onBlur);
         };
         window.addEventListener('blur', onBlur);
 
-        if (/Android/i.test(navigator.userAgent)) {
-            window.location.href = androidIntent;
-        } else {
-            window.location.href = webUrl;
-        }
+        window.location.href = appUrl;
 
         setTimeout(() => {
             window.removeEventListener('blur', onBlur);
