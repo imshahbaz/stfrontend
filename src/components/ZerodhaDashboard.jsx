@@ -729,36 +729,36 @@ const ZerodhaDashboard = () => {
                                                         initial={{ opacity: 0, x: 10 }}
                                                         animate={{ opacity: 1, x: 0 }}
                                                         transition={{ delay: idx * 0.05 }}
-                                                        className="group p-5 md:p-6 rounded-[2rem] bg-muted/20 border border-border/50 hover:border-primary/30 hover:bg-muted/40 transition-all duration-300 flex items-center justify-between"
+                                                        className="group p-4 md:p-6 rounded-3xl md:rounded-[2rem] bg-muted/20 border border-border/50 hover:border-primary/30 hover:bg-muted/40 transition-all duration-300 flex items-center justify-between gap-3"
                                                     >
-                                                        <div className="flex items-center gap-5">
-                                                            <div className="h-12 w-12 md:h-14 md:w-14 rounded-2xl bg-background border-2 border-border flex items-center justify-center font-black text-sm md:text-lg text-primary shadow-sm">
+                                                        <div className="flex items-center gap-3 md:gap-5 min-w-0">
+                                                            <div className="h-10 w-10 md:h-14 md:w-14 rounded-xl md:rounded-2xl bg-background border-2 border-border flex items-center justify-center font-black text-xs md:text-lg text-primary shadow-sm shrink-0">
                                                                 {order.symbol?.substring(0, 2).toUpperCase()}
                                                             </div>
-                                                            <div>
-                                                                <h4 className="font-black text-lg md:text-xl tracking-tight group-hover:text-primary transition-colors">{order.symbol}</h4>
-                                                                <div className="flex items-center gap-3 mt-1">
-                                                                    <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-black uppercase tracking-widest">
-                                                                        <Clock size={12} className="text-primary" />
+                                                            <div className="min-w-0">
+                                                                <h4 className="font-black text-sm md:text-xl tracking-tight group-hover:text-primary transition-colors truncate">{order.symbol}</h4>
+                                                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+                                                                    <div className="flex items-center gap-1.5 text-[9px] md:text-[10px] text-muted-foreground font-black uppercase tracking-widest whitespace-nowrap">
+                                                                        <Clock size={10} className="text-primary md:w-3 md:h-3" />
                                                                         <span>{order.date?.split('T')[0]}</span>
                                                                     </div>
-                                                                    <div className="h-1 w-1 rounded-full bg-border"></div>
-                                                                    <span className="text-[10px] font-black text-primary uppercase">{order.quantity} Units</span>
+                                                                    <div className="hidden xs:block h-1 w-1 rounded-full bg-border"></div>
+                                                                    <span className="text-[9px] md:text-[10px] font-black text-primary uppercase whitespace-nowrap">{order.quantity} Units</span>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div className="flex items-center gap-1.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-300">
+                                                        <div className="flex items-center gap-1.5 shrink-0">
                                                             <button
                                                                 onClick={() => handleEditOrder(order)}
-                                                                className="h-11 w-11 flex items-center justify-center rounded-2xl bg-background border border-border hover:border-primary/50 text-foreground hover:text-primary transition-all shadow-sm"
+                                                                className="h-9 w-9 md:h-11 md:w-11 flex items-center justify-center rounded-xl md:rounded-2xl bg-background border border-border hover:border-primary/50 text-foreground hover:text-primary transition-all shadow-sm"
                                                             >
-                                                                <Edit2 size={16} />
+                                                                <Edit2 size={14} className="md:w-4 md:h-4" />
                                                             </button>
                                                             <button
                                                                 onClick={() => handleDeleteClick(order.id)}
-                                                                className="h-11 w-11 flex items-center justify-center rounded-2xl bg-background border border-border hover:border-rose-500/50 text-foreground hover:text-rose-500 transition-all shadow-sm"
+                                                                className="h-9 w-9 md:h-11 md:w-11 flex items-center justify-center rounded-xl md:rounded-2xl bg-background border border-border hover:border-rose-500/50 text-foreground hover:text-rose-500 transition-all shadow-sm"
                                                             >
-                                                                <Trash2 size={16} />
+                                                                <Trash2 size={14} className="md:w-4 md:h-4" />
                                                             </button>
                                                         </div>
                                                     </motion.div>
