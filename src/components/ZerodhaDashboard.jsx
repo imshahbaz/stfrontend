@@ -202,32 +202,8 @@ const ZerodhaDashboard = () => {
 
     const handleConnect = () => {
         const apiKey = backendApiKey || import.meta.env.VITE_ZERODHA_API_KEY;
-        const webUrl = `https://kite.zerodha.com/connect/login?v=3&api_key=${apiKey}`;
-        const appUrl = `kite-connect://kite.zerodha.com/connect/login?v=3&api_key=${apiKey}`;
-
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        if (!isMobile) {
-            window.location.href = webUrl;
-            return;
-        }
-
-        let appOpened = false;
-
-        const onBlur = () => {
-            appOpened = true;
-            window.removeEventListener('blur', onBlur);
-        };
-        window.addEventListener('blur', onBlur);
-
-        window.location.href = appUrl;
-
-        setTimeout(() => {
-            window.removeEventListener('blur', onBlur);
-            if (!appOpened && !document.hidden) {
-                console.log("App not found, redirecting to Web...");
-                window.location.href = webUrl;
-            }
-        }, 2500);
+        const zerodhaLoginUrl = `https://kite.trade/connect/login?v=3&api_key=${apiKey}`;
+        window.location.href = zerodhaLoginUrl;
     };
 
     const resetForm = () => {
