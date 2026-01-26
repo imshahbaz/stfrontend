@@ -30,6 +30,7 @@ import ZerodhaCallback from './components/ZerodhaCallback';
 
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+const ADS_ENABLED = import.meta.env.VITE_ADS_ENABLED === 'true';
 
 const PageWrapper = ({ children }) => (
   <motion.div
@@ -112,11 +113,12 @@ function AppContent() {
           <div className="flex min-h-screen flex-col bg-background text-foreground relative">
             <Header toggleTheme={toggleTheme} theme={theme} />
 
-            <main className={`flex-grow flex flex-col min-h-0 pb-[100px] md:pb-0 ${import.meta.env.VITE_ENV === 'production' ? 'pt-[60px] md:pt-0' : ''}`}>
+            <main className={`flex-grow flex flex-col min-h-0 pb-[100px] md:pb-0 ${ADS_ENABLED ? 'pt-[60px] md:pt-0' : ''}`}>
+
               <AnimatedRoutes auth={authContext.appConfig.auth} />
             </main>
 
-            {import.meta.env.VITE_ENV === 'production' && (
+            {ADS_ENABLED && (
               <div className="fixed top-16 left-0 right-0 z-30 flex w-full justify-center px-4 py-2 bg-background/80 backdrop-blur-md border-b border-border/40 md:relative md:top-auto md:left-auto md:right-auto md:z-0 md:px-0 md:py-6 md:border-none md:bg-transparent">
                 <AdsterraBanner isMobile={isMobile} />
               </div>
