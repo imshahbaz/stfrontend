@@ -204,7 +204,7 @@ const ZerodhaDashboard = () => {
         const apiKey = backendApiKey || import.meta.env.VITE_ZERODHA_API_KEY;
         const loginUrl = `kite.zerodha.com/connect/login?v=3&api_key=${apiKey}`;
         const webUrl = `https://${loginUrl}`;
-        const androidIntent = `intent://${loginUrl}#Intent;scheme=https;package=com.zerodha.kiteconnect;end`;
+        const androidIntent = `intent://${loginUrl}#Intent;scheme=https;package=com.zerodha.kite3;end`;
 
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         if (!isMobile) {
