@@ -57,6 +57,7 @@ export const strategyAPI = {
 export const marginAPI = {
   getAllMargins: () => api.get('/api/margin/all'),
   loadFromCsv: (formData) => api.post('/api/margin/load-from-csv', formData),
+  getOptions: () => api.get('/api/margin/options'),
 };
 
 export const configAPI = {
@@ -113,6 +114,15 @@ export const zerodhaAPI = {
   updateOrder: (id, orderData) => api.put(`/api/order/${id}`, orderData),
   deleteOrder: (id) => api.delete(`/api/order/${id}`),
   saveConfig: (configData) => api.post('/api/zerodha/config', configData),
+}
+export const mstockAPI = {
+  login: (apiKey, password, username) => api.post('/api/mstock/login',
+    { apiKey: apiKey, password: password, username: username },
+  ),
+  getMe: () => api.get('/api/mstock/me'),
+  verifyOtp: (otp) => api.post('/api/mstock/verify', { otp: otp }),
+  placeOrder: (orderData) => api.post('/api/mstock/order', orderData),
+  refreshSession: () => api.post('/api/mstock/refresh'),
 }
 
 export default api;
