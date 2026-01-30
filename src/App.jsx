@@ -27,6 +27,7 @@ import PageNotFound from './components/PageNotFound';
 import GoogleCallback from './components/GoogleCallback';
 import ZerodhaDashboard from './components/ZerodhaDashboard';
 import ZerodhaCallback from './components/ZerodhaCallback';
+import MStockDashboard from './components/MStockDashboard';
 
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -156,6 +157,7 @@ function AnimatedRoutes({ auth }) {
           <Route path="/settings" element={<PageWrapper><Settings /></PageWrapper>} />
           <Route path="/zerodha/dashboard" element={<PageWrapper><ZerodhaDashboard /></PageWrapper>} />
           <Route path="/zerodha/redirect" element={<ZerodhaCallback />} />
+          <Route path="/mstock/dashboard" element={<PageWrapper><MStockDashboard /></PageWrapper>} />
         </Route>
 
         <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>

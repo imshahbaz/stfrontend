@@ -33,6 +33,12 @@ const Home = () => {
       description: 'Connect your Zerodha account for real-time tracking and execution.',
       icon: Zap,
       path: '/zerodha/dashboard'
+    },
+    {
+      title: 'mStock Dashboard',
+      description: 'Manage your mStock API connection and authentication status.',
+      icon: TrendingUp,
+      path: '/mstock/dashboard'
     }
   ];
 
