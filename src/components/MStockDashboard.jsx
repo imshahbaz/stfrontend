@@ -37,6 +37,7 @@ const MStockDashboard = () => {
     const [showOrderForm, setShowOrderForm] = useState(false);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [showLogoutConfirmModal, setShowLogoutConfirmModal] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [orderSubmitting, setOrderSubmitting] = useState(false);
     const [orderData, setOrderData] = useState({
         action: 'CALL',
@@ -257,7 +258,7 @@ const MStockDashboard = () => {
                 profit: parseFloat(orderData.profit)
             });
             if (response.data.success) {
-                setStatusSuccess('Order placed successfully!');
+                setShowSuccessModal(true);
             } else {
                 setStatusError(response.data.message || 'Failed to place order.');
             }
@@ -881,6 +882,58 @@ const MStockDashboard = () => {
                 confirmText="Logout"
                 onConfirm={handleLogout}
             />
+
+            <AnimatePresence>
+                {showSuccessModal && (
+                    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                            onClick={() => setShowSuccessModal(false)}
+                        />
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            className="bg-card border-2 border-emerald-500/20 rounded-[2.5rem] p-8 md:p-12 shadow-4xl max-w-sm w-full relative overflow-hidden text-center z-10"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-2 bg-emerald-500"></div>
+
+                            <div className="flex justify-center mb-8">
+                                <div className="h-24 w-24 rounded-full bg-emerald-500/10 flex items-center justify-center relative">
+                                    <motion.div
+                                        initial={{ scale: 0 }}
+                                        animate={{ scale: 1 }}
+                                        transition={{ type: "spring", damping: 12, delay: 0.2 }}
+                                        className="h-16 w-16 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/40"
+                                    >
+                                        <Check className="h-10 w-10 text-white stroke-[4]" />
+                                    </motion.div>
+                                    <motion.div
+                                        animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0, 0.3] }}
+                                        transition={{ duration: 2, repeat: Infinity }}
+                                        className="absolute inset-0 rounded-full border-2 border-emerald-500"
+                                    />
+                                </div>
+                            </div>
+
+                            <h3 className="text-3xl font-black tracking-tight mb-4 uppercase">Success!</h3>
+                            <p className="text-muted-foreground font-medium mb-8 leading-relaxed">
+                                Your order has been placed successfully.
+                            </p>
+
+                            <button
+                                onClick={() => setShowSuccessModal(false)}
+                                className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-black rounded-[1.25rem] shadow-xl shadow-emerald-500/20 transition-all active:scale-95"
+                            >
+                                GOT IT
+                            </button>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };
