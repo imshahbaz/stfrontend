@@ -152,7 +152,6 @@ const MStockDashboard = () => {
 
             // Trigger OTP if S002 or E001, otherwise if success open order form directly
             if (response.data.data === "S002" || response.data.data === "E001") {
-                setStatusSuccess('Credentials identified. Please enter the OTP.');
                 setShowOtpForm(true);
                 setShowLoginForm(false);
             } else if (response.data.success) {
