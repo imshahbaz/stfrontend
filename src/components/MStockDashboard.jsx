@@ -36,6 +36,7 @@ const MStockDashboard = () => {
 
     const [showOrderForm, setShowOrderForm] = useState(false);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [showLogoutConfirmModal, setShowLogoutConfirmModal] = useState(false);
     const [orderSubmitting, setOrderSubmitting] = useState(false);
     const [orderData, setOrderData] = useState({
         action: 'CALL',
@@ -391,7 +392,7 @@ const MStockDashboard = () => {
                                             <span className="text-xs font-black uppercase tracking-widest text-primary">Terminal Active</span>
                                         </div>
                                         <button
-                                            onClick={handleLogout}
+                                            onClick={() => setShowLogoutConfirmModal(true)}
                                             className="flex items-center justify-center gap-2 px-4 md:px-6 py-2.5 md:py-3 rounded-2xl bg-rose-500/10 text-rose-500 border border-rose-500/20 hover:bg-rose-500/20 transition-all group flex-1 sm:flex-initial"
                                         >
                                             <LogOut size={16} className="md:w-[18px] md:h-[18px] group-hover:translate-x-0.5 transition-transform" />
@@ -870,6 +871,15 @@ const MStockDashboard = () => {
                 message={`Are you sure you want to place this ${orderData.action} order for ${orderData.name} (${orderData.expiry}) at ${orderData.strike} strike with a target profit of ₹${orderData.profit}?`}
                 onConfirm={confirmOrderPlacement}
                 confirmText="Place Order"
+            />
+
+            <ConfirmationModal
+                open={showLogoutConfirmModal}
+                onClose={() => setShowLogoutConfirmModal(false)}
+                title="Logout Session"
+                message="Are you sure you want to logout from your mStock session? This will terminate your active trading connection."
+                confirmText="Logout"
+                onConfirm={handleLogout}
             />
         </div>
     );
