@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    ExternalLink, Zap, Loader2, Key, Shield, Check, X, AlertCircle, User, Search
+    ExternalLink, Zap, Loader2, Key, Shield, Check, X, AlertCircle, User, Search, LogOut
 } from 'lucide-react';
 import { mstockAPI, marginAPI } from '../api/axios';
 import StatusAlert from './shared/StatusAlert';
@@ -89,6 +89,15 @@ const MStockDashboard = () => {
         }
     }, [statusSuccess]);
 
+    useEffect(() => {
+        if (statusError) {
+            const timer = setTimeout(() => {
+                setStatusError('');
+            }, 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [statusError]);
+
     const checkConnection = async () => {
         try {
             setIsLoading(true);
@@ -143,7 +152,6 @@ const MStockDashboard = () => {
 
             // Trigger OTP if S002 or E001, otherwise if success open order form directly
             if (response.data.data === "S002" || response.data.data === "E001") {
-                setStatusSuccess('Credentials identified. Please enter the OTP.');
                 setShowOtpForm(true);
                 setShowLoginForm(false);
             } else if (response.data.success) {
@@ -181,28 +189,51 @@ const MStockDashboard = () => {
                     checkConnection();
                 }
             } else {
-                if (response.data.data === "E002") {
+                if (response.data.data === "E002" || response.data.data === "E001") {
                     setShowOtpForm(false);
-                    setStatusError('Invalid or expired OTP');
+                    setStatusError(response.data.data === "E001" ? "OTP Expired" : "Invalid or expired OTP");
                 } else {
                     setStatusError(response.data.message || 'OTP verification failed.');
                 }
             }
         } catch (err) {
             const data = err.response?.data;
-            if (data?.data === "E002") {
+            if (data?.data === "E002" || data?.data === "E001") {
                 setShowOtpForm(false);
-                setStatusError('Invalid or expired OTP');
+                setStatusError(data?.data === "E001" ? "OTP Expired" : "Invalid or expired OTP");
             } else {
                 setStatusError(err.response?.data?.message || 'OTP verification failed.');
             }
         } finally {
             setOtpSubmitting(false);
+            setOtp('');
         }
     };
 
     const handleOrderSubmit = async (e) => {
         if (e) e.preventDefault();
+
+        // Validation for mandatory fields
+        if (!orderData.name) {
+            setStatusError('Instrument Name is required');
+            return;
+        }
+        if (!orderData.strike) {
+            setStatusError('Strike Price is required');
+            return;
+        }
+        if (!orderData.expiry) {
+            setStatusError('Expiry Date is required');
+            return;
+        }
+        if (!orderData.lots || orderData.lots <= 0) {
+            setStatusError('Valid number of Lots is required');
+            return;
+        }
+        if (!orderData.profit) {
+            setStatusError('Target Profit is required');
+            return;
+        }
 
         const numericProfit = parseFloat(orderData.profit);
         if (isNaN(numericProfit) || numericProfit <= 0) {
@@ -210,6 +241,7 @@ const MStockDashboard = () => {
             return;
         }
 
+        setStatusError(''); // Clear any existing errors
         setShowConfirmModal(true);
     };
 
@@ -244,7 +276,6 @@ const MStockDashboard = () => {
             const response = await mstockAPI.refreshSession();
 
             if (response.data.data === "S002" || response.data.data === "E001") {
-                setStatusSuccess('Refresh session identified. Please enter the OTP.');
                 setShowOtpForm(true);
                 setShowRefreshButton(false);
             } else if (response.data.success) {
@@ -258,6 +289,29 @@ const MStockDashboard = () => {
             }
         } catch (err) {
             setStatusError(err.response?.data?.message || 'Session refresh failed.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleLogout = async () => {
+        setIsLoading(true);
+        setStatusError('');
+        setStatusSuccess('');
+
+        try {
+            const response = await mstockAPI.logout();
+            if (response.data.success) {
+                setStatusSuccess('Logged out from mStock successfully');
+                setIsConnected(false);
+                setMstockUser(null);
+                setShowOrderForm(false);
+                checkConnection();
+            } else {
+                setStatusError(response.data.message || 'Logout failed');
+            }
+        } catch (err) {
+            setStatusError(err.response?.data?.message || 'Logout request failed');
         } finally {
             setIsLoading(false);
         }
@@ -301,7 +355,7 @@ const MStockDashboard = () => {
                         {isConnected ? 'LIVE CONNECTION' : 'MSTOCK INTEGRATION READY'}
                     </motion.div>
 
-                    <h1 className="text-3xl md:text-6xl font-black tracking-tightest text-center mb-4 leading-[1.1]">
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tightest text-center mb-4 leading-[1.1]">
                         {isConnected ? 'Trader' : 'Trading'} <span className="text-primary italic">{isConnected ? (mstockUser?.user_shortname || mstockUser?.user_name || 'Terminal') : 'Terminal'}</span>
                     </h1>
 
@@ -320,20 +374,29 @@ const MStockDashboard = () => {
                             initial={{ opacity: 0, scale: 0.98 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.98 }}
-                            className="max-w-4xl mx-auto mb-24"
+                            className="max-w-4xl mx-auto mb-20 md:mb-24 px-2 md:px-0"
                         >
-                            <div className="bg-card border border-border rounded-[2.5rem] p-8 md:p-12 shadow-3xl shadow-primary/5">
-                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+                            <div className="bg-card border border-border rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-12 shadow-3xl shadow-primary/5">
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 md:mb-12">
                                     <div>
-                                        <h2 className="text-3xl font-black tracking-tight mb-2">Order Terminal</h2>
-                                        <p className="text-muted-foreground font-medium">Professional grade execution hub</p>
+                                        <h2 className="text-2xl md:text-3xl font-black tracking-tight mb-2">Order Terminal</h2>
+                                        <p className="text-xs md:text-sm text-muted-foreground font-medium">Professional grade execution hub</p>
                                     </div>
-                                    <div className="flex items-center gap-3 bg-primary/5 px-6 py-3 rounded-2xl border border-primary/10">
-                                        <span className="relative flex h-2.5 w-2.5">
-                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                                        </span>
-                                        <span className="text-xs font-black uppercase tracking-widest text-primary">Terminal Active</span>
+                                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 md:gap-4">
+                                        <div className="flex items-center justify-center gap-3 bg-primary/5 px-6 py-3 rounded-2xl border border-primary/10 flex-1 sm:flex-initial">
+                                            <span className="relative flex h-2.5 w-2.5">
+                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                                            </span>
+                                            <span className="text-xs font-black uppercase tracking-widest text-primary">Terminal Active</span>
+                                        </div>
+                                        <button
+                                            onClick={handleLogout}
+                                            className="flex items-center justify-center gap-2 px-4 md:px-6 py-2.5 md:py-3 rounded-2xl bg-rose-500/10 text-rose-500 border border-rose-500/20 hover:bg-rose-500/20 transition-all group flex-1 sm:flex-initial"
+                                        >
+                                            <LogOut size={16} className="md:w-[18px] md:h-[18px] group-hover:translate-x-0.5 transition-transform" />
+                                            <span className="text-[10px] md:text-xs font-black uppercase tracking-widest">Logout Session</span>
+                                        </button>
                                     </div>
                                 </div>
 
@@ -341,11 +404,11 @@ const MStockDashboard = () => {
 
                                 <form onSubmit={handleOrderSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div className="space-y-4">
-                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-2">Instrument Name</label>
+                                        <label className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-2">Instrument Name</label>
                                         <div className="relative">
                                             <select
                                                 required
-                                                className="w-full h-16 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/20 focus:bg-background transition-all font-bold text-lg px-6 outline-none appearance-none"
+                                                className="w-full h-14 md:h-16 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/20 focus:bg-background transition-all font-bold text-base md:text-lg px-4 md:px-6 outline-none appearance-none"
                                                 value={orderData.name}
                                                 onChange={(e) => {
                                                     setOrderData({
@@ -370,7 +433,7 @@ const MStockDashboard = () => {
                                     </div>
 
                                     <div className="space-y-4">
-                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-2">Action Type</label>
+                                        <label className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-2">Action Type</label>
                                         <div className="flex gap-4 p-1.5 bg-muted/30 rounded-2xl border border-border/50">
                                             {['CALL', 'PUT'].map((type) => (
                                                 <button
@@ -378,7 +441,7 @@ const MStockDashboard = () => {
                                                     type="button"
                                                     onClick={() => setOrderData({ ...orderData, action: type })}
                                                     className={cn(
-                                                        "flex-1 py-3.5 rounded-xl font-black text-sm uppercase tracking-widest transition-all",
+                                                        "flex-1 py-2.5 md:py-3.5 rounded-xl font-black text-xs md:text-sm uppercase tracking-widest transition-all",
                                                         orderData.action === type
                                                             ? type === 'CALL'
                                                                 ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/30"
@@ -393,12 +456,13 @@ const MStockDashboard = () => {
                                     </div>
 
                                     <div className="space-y-4 relative" ref={strikeRef}>
-                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-2">Strike Price</label>
+                                        <label className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-2">Strike Price</label>
                                         <div className="relative">
                                             <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                                             <input
                                                 type="text"
-                                                className="w-full pl-14 pr-5 h-16 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/20 focus:bg-background transition-all font-bold text-lg outline-none"
+                                                required
+                                                className="w-full pl-12 md:pl-14 pr-5 h-14 md:h-16 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/20 focus:bg-background transition-all font-bold text-base md:text-lg outline-none"
                                                 placeholder="Search Strike..."
                                                 value={orderData.strike || strikeQuery}
                                                 onChange={(e) => {
@@ -452,24 +516,25 @@ const MStockDashboard = () => {
                                     </div>
 
                                     <div className="space-y-4">
-                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-2">Lots</label>
+                                        <label className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-2">Lots</label>
                                         <input
                                             type="number"
                                             required
                                             min="1"
-                                            className="w-full h-16 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/20 focus:bg-background transition-all font-bold text-lg px-6 outline-none"
+                                            className="w-full h-14 md:h-16 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/20 focus:bg-background transition-all font-bold text-base md:text-lg px-4 md:px-6 outline-none"
                                             value={orderData.lots}
                                             onChange={(e) => setOrderData({ ...orderData, lots: parseInt(e.target.value) })}
                                         />
                                     </div>
 
                                     <div className="space-y-4 relative" ref={expiryRef}>
-                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-2">Expiry Date</label>
+                                        <label className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-2">Expiry Date</label>
                                         <div className="relative">
                                             <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                                             <input
                                                 type="text"
-                                                className="w-full pl-14 pr-5 h-16 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/20 focus:bg-background transition-all font-bold text-lg outline-none"
+                                                required
+                                                className="w-full pl-12 md:pl-14 pr-5 h-14 md:h-16 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/20 focus:bg-background transition-all font-bold text-base md:text-lg outline-none"
                                                 placeholder="Search Expiry..."
                                                 value={orderData.expiry || expiryQuery}
                                                 onChange={(e) => {
@@ -523,14 +588,14 @@ const MStockDashboard = () => {
                                     </div>
 
 
-                                    <div className="space-y-4 md:col-span-2">
-                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-2">Target Profit</label>
+                                    <div className="space-y-4">
+                                        <label className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-2">Target Profit</label>
                                         <input
                                             type="number"
                                             required
                                             min="0.01"
                                             step="0.01"
-                                            className="w-full h-16 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/20 focus:bg-background transition-all font-bold text-lg px-6 outline-none"
+                                            className="w-full h-14 md:h-16 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/20 focus:bg-background transition-all font-bold text-base md:text-lg px-4 md:px-6 outline-none"
                                             value={orderData.profit}
                                             onChange={(e) => setOrderData({ ...orderData, profit: e.target.value })}
                                         />
@@ -541,13 +606,13 @@ const MStockDashboard = () => {
                                         whileTap={{ scale: 0.98 }}
                                         type="submit"
                                         disabled={orderSubmitting}
-                                        className="md:col-span-2 w-full h-20 bg-primary text-white font-black text-2xl rounded-3xl shadow-2xl shadow-primary/30 hover:shadow-primary/50 transition-all flex items-center justify-center gap-4 disabled:opacity-50 mt-4"
+                                        className="md:col-span-2 w-full h-16 md:h-20 bg-primary text-white font-black text-xl md:text-2xl rounded-2xl md:rounded-3xl shadow-2xl shadow-primary/30 hover:shadow-primary/50 transition-all flex items-center justify-center gap-4 disabled:opacity-50 mt-4"
                                     >
                                         {orderSubmitting ? (
-                                            <Loader2 className="h-8 w-8 animate-spin" />
+                                            <Loader2 className="h-6 w-6 md:h-8 md:w-8 animate-spin" />
                                         ) : (
                                             <>
-                                                <Zap className="h-7 w-7 fill-current" />
+                                                <Zap className="h-5 w-5 md:h-7 md:w-7 fill-current" />
                                                 Place Order
                                             </>
                                         )}
@@ -566,7 +631,7 @@ const MStockDashboard = () => {
                             <motion.div
                                 initial={{ scale: 0.9, opacity: 0, y: 20 }}
                                 animate={{ scale: 1, opacity: 1, y: 0 }}
-                                className="bg-card border-2 border-primary/10 rounded-[3rem] p-10 shadow-4xl max-w-md w-full relative overflow-hidden"
+                                className="bg-card border-2 border-primary/10 rounded-[2.5rem] md:rounded-[3rem] p-6 md:p-10 shadow-4xl max-w-md w-full relative overflow-hidden"
                             >
                                 <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
 
@@ -578,12 +643,12 @@ const MStockDashboard = () => {
                                 </button>
 
                                 <div className="flex flex-col items-center text-center mb-8 pt-4">
-                                    <div className="h-20 w-20 rounded-[2.5rem] bg-amber-500/10 flex items-center justify-center mb-6 relative group">
-                                        <Shield className="h-10 w-10 text-amber-600 relative z-10 animate-pulse" />
-                                        <div className="absolute inset-0 bg-amber-500/5 rounded-[2.5rem] animate-ping opacity-20"></div>
+                                    <div className="h-16 w-16 md:h-20 md:w-20 rounded-2xl md:rounded-[2.5rem] bg-amber-500/10 flex items-center justify-center mb-4 md:mb-6 relative group">
+                                        <Shield className="h-8 w-8 md:h-10 md:w-10 text-amber-600 relative z-10 animate-pulse" />
+                                        <div className="absolute inset-0 bg-amber-500/5 rounded-2xl md:rounded-[2.5rem] animate-ping opacity-20"></div>
                                     </div>
-                                    <h2 className="text-3xl font-black tracking-tight mb-2">2FA Verification</h2>
-                                    <p className="text-muted-foreground font-medium px-4 leading-relaxed">
+
+                                    <p className="text-sm md:text-base text-muted-foreground font-medium px-2 md:px-4 leading-relaxed">
                                         Enter the verification code sent to your registered device.
                                     </p>
                                 </div>
@@ -591,21 +656,31 @@ const MStockDashboard = () => {
                                 <StatusAlert success={statusSuccess} error={statusError} className="mb-8 rounded-2xl border-none bg-muted/50" />
 
                                 <form onSubmit={handleOtpSubmit} className="space-y-8">
-                                    <div className="space-y-4">
-                                        <div className="flex justify-between items-center px-2">
-                                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Verification Code</label>
-                                            <span className="text-[10px] font-black text-primary animate-pulse uppercase tracking-widest">Awaiting Input...</span>
+                                    <div className="space-y-6">
+                                        <div className="relative h-24 bg-muted/20 rounded-3xl border-2 border-transparent focus-within:border-primary/30 focus-within:bg-background transition-all overflow-hidden flex items-center justify-center group shadow-inner">
+                                            <input
+                                                type="text"
+                                                required
+                                                autoFocus
+                                                maxLength={6}
+
+                                                className="w-full bg-transparent text-center font-black text-5xl md:text-6xl tracking-[0.3em] md:tracking-[0.4em] outline-none placeholder:text-muted-foreground/20 translate-x-[0.15em] md:translate-x-[0.2em] relative z-10"
+                                                value={otp}
+                                                onChange={(e) => {
+                                                    const val = e.target.value.replace(/[^0-9]/g, '');
+                                                    if (val.length <= 6) setOtp(val);
+                                                }}
+                                            />
+                                            {/* Progress indicator */}
+                                            <motion.div
+                                                className="absolute bottom-0 left-0 h-1.5 bg-primary shadow-[0_0_15px_rgba(var(--primary-rgb),0.5)]"
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${(otp.length / 6) * 100}%` }}
+                                                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                            />
+                                            <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
                                         </div>
-                                        <input
-                                            type="text"
-                                            required
-                                            autoFocus
-                                            maxLength={6}
-                                            placeholder="••••"
-                                            className="w-full text-center h-24 rounded-3xl bg-muted/30 border-2 border-transparent focus:border-primary/30 focus:bg-background transition-all font-black text-5xl tracking-[0.4em] outline-none shadow-inner"
-                                            value={otp}
-                                            onChange={(e) => setOtp(e.target.value)}
-                                        />
+
                                     </div>
 
                                     <motion.button
@@ -626,9 +701,7 @@ const MStockDashboard = () => {
                                     </motion.button>
                                 </form>
 
-                                <p className="mt-8 text-center text-xs text-muted-foreground font-medium italic">
-                                    Secured by mStock Multi-Factor Authentication
-                                </p>
+
                             </motion.div>
                         </motion.div>
                     ) : showLoginForm ? (
@@ -645,8 +718,8 @@ const MStockDashboard = () => {
                                         <Shield className="h-10 w-10 text-primary relative z-10 group-hover:scale-110 transition-transform duration-500" />
                                         <div className="absolute inset-0 bg-primary/5 animate-pulse"></div>
                                     </div>
-                                    <h2 className="text-3xl font-black tracking-tight mb-2">mStock Login</h2>
-                                    <p className="text-muted-foreground font-medium px-4">Provide your account details to continue</p>
+                                    <h2 className="text-2xl md:text-3xl font-black tracking-tight mb-2">mStock Login</h2>
+                                    <p className="text-xs md:text-sm text-muted-foreground font-medium px-4">Provide your account details to continue</p>
                                 </div>
 
                                 <StatusAlert success={statusSuccess} error={statusError} className="mb-6 rounded-2xl" />
@@ -660,7 +733,7 @@ const MStockDashboard = () => {
                                                 type="text"
                                                 required
                                                 placeholder="Enter API Key"
-                                                className="w-full pl-14 pr-5 h-16 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/20 focus:bg-background transition-all font-bold text-lg outline-none"
+                                                className="w-full pl-12 md:pl-14 pr-5 h-14 md:h-16 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/20 focus:bg-background transition-all font-bold text-base md:text-lg outline-none"
                                                 value={loginData.apiKey}
                                                 onChange={(e) => setLoginData({ ...loginData, apiKey: e.target.value })}
                                             />
@@ -675,7 +748,7 @@ const MStockDashboard = () => {
                                                 type="text"
                                                 required
                                                 placeholder="Enter Username"
-                                                className="w-full pl-14 pr-5 h-16 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/20 focus:bg-background transition-all font-bold text-lg outline-none"
+                                                className="w-full pl-12 md:pl-14 pr-5 h-14 md:h-16 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/20 focus:bg-background transition-all font-bold text-base md:text-lg outline-none"
                                                 value={loginData.username}
                                                 onChange={(e) => setLoginData({ ...loginData, username: e.target.value })}
                                             />
@@ -690,7 +763,7 @@ const MStockDashboard = () => {
                                                 type="password"
                                                 required
                                                 placeholder="Enter Password"
-                                                className="w-full pl-14 pr-5 h-16 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/20 focus:bg-background transition-all font-bold text-lg outline-none"
+                                                className="w-full pl-12 md:pl-14 pr-5 h-14 md:h-16 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/20 focus:bg-background transition-all font-bold text-base md:text-lg outline-none"
                                                 value={loginData.password}
                                                 onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                                             />
@@ -702,13 +775,13 @@ const MStockDashboard = () => {
                                         whileTap={{ scale: 0.98 }}
                                         type="submit"
                                         disabled={loginSubmitting}
-                                        className="w-full h-16 bg-primary text-white font-black text-xl rounded-2xl shadow-xl shadow-primary/20 hover:shadow-primary/40 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                                        className="w-full h-14 md:h-16 bg-primary text-white font-black text-lg md:text-xl rounded-2xl shadow-xl shadow-primary/20 hover:shadow-primary/40 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
                                     >
                                         {loginSubmitting ? (
-                                            <Loader2 className="h-7 w-7 animate-spin" />
+                                            <Loader2 className="h-6 w-6 md:h-7 md:w-7 animate-spin" />
                                         ) : (
                                             <>
-                                                <ExternalLink className="h-6 w-6" />
+                                                <ExternalLink className="h-5 w-5 md:h-6 md:w-6" />
                                                 Login Account
                                             </>
                                         )}
@@ -758,8 +831,8 @@ const MStockDashboard = () => {
                                     />
                                     <Check className="h-10 w-10 text-emerald-500 relative z-10" />
                                 </div>
-                                <h2 className="text-2xl font-black tracking-tight mb-2">Account Linked</h2>
-                                <p className="text-muted-foreground font-medium mb-8">
+                                <h2 className="text-xl md:text-2xl font-black tracking-tight mb-2">Account Linked</h2>
+                                <p className="text-sm md:text-base text-muted-foreground font-medium mb-8">
                                     Your mStock session is active and ready for operations.
                                 </p>
 
