@@ -123,6 +123,7 @@ export const mstockAPI = {
   verifyOtp: (otp) => api.post('/api/mstock/verify', { otp: otp }),
   placeOrder: (orderData) => api.post('/api/mstock/order', orderData),
   refreshSession: () => api.post('/api/mstock/refresh'),
+  logout: () => api.post('/api/mstock/logout'),
 }
 
 export default api;

@@ -10,28 +10,28 @@ const ConfirmationModal = ({ open, onClose, title, message, onConfirm, confirmTe
         <AlertDialog.Root open={open} onOpenChange={onClose}>
             <AlertDialog.Portal>
                 <AlertDialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in" />
-                <AlertDialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-3xl bg-background p-8 shadow-2xl border border-border animate-in zoom-in-95 duration-200">
+                <AlertDialog.Content className="fixed left-1/2 top-1/2 z-50 w-[95%] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-[2rem] md:rounded-3xl bg-background p-6 md:p-8 shadow-2xl border border-border animate-in zoom-in-95 duration-200">
                     <div className="flex items-center gap-3 mb-4">
                         <div className={cn(
-                            "flex h-10 w-10 items-center justify-center rounded-full",
+                            "flex h-10 w-10 items-center justify-center rounded-full shrink-0",
                             isDestructive ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"
                         )}>
-                            <AlertTriangle className="h-6 w-6" />
+                            <AlertTriangle className="h-5 w-5 md:h-6 md:w-6" />
                         </div>
-                        <AlertDialog.Title className="text-xl font-black tracking-tight">
+                        <AlertDialog.Title className="text-lg md:text-xl font-black tracking-tight">
                             {title}
                         </AlertDialog.Title>
                     </div>
 
-                    <AlertDialog.Description className="text-muted-foreground font-medium mb-8 leading-relaxed">
+                    <AlertDialog.Description className="text-sm md:text-base text-muted-foreground font-medium mb-8 leading-relaxed">
                         {message}
                     </AlertDialog.Description>
 
-                    <div className="flex justify-end gap-3">
+                    <div className="flex flex-row justify-end items-center gap-2 md:gap-3">
                         <AlertDialog.Cancel asChild>
                             <button
                                 onClick={onClose}
-                                className="px-6 py-2.5 text-sm font-bold rounded-xl hover:bg-muted transition-colors"
+                                className="flex-1 md:flex-initial px-4 md:px-6 py-2 md:py-2.5 text-xs md:text-sm font-bold rounded-xl hover:bg-muted transition-colors"
                             >
                                 Cancel
                             </button>
@@ -43,7 +43,7 @@ const ConfirmationModal = ({ open, onClose, title, message, onConfirm, confirmTe
                                     onClose();
                                 }}
                                 className={cn(
-                                    "px-8 py-2.5 text-sm font-black text-white rounded-xl transition-all active:scale-95",
+                                    "flex-1 md:flex-initial px-6 md:px-8 py-2 md:py-2.5 text-xs md:text-sm font-black text-white rounded-xl transition-all active:scale-95",
                                     isDestructive
                                         ? "bg-destructive hover:shadow-lg hover:shadow-destructive/20"
                                         : "bg-primary hover:shadow-lg hover:shadow-primary/20"
