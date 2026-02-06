@@ -7,40 +7,45 @@ import { useAuth } from '../context/AuthContext';
 
 const Home = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, appConfig } = useAuth();
 
   const actions = [
     {
       title: 'Screener',
       description: 'Scan and analyze the market with our advanced strategy tools.',
       icon: TrendingUp,
-      path: '/strategies'
+      path: '/strategies',
+      show: true
     },
     {
       title: 'Calculator',
       description: 'Calculate returns and analyze trades with our advanced calculator.',
       icon: Calculator,
-      path: '/calculator'
+      path: '/calculator',
+      show: true
     },
     {
       title: 'Market Heat Map',
       description: 'Visualize real-time performance of Nifty indices.',
       icon: Grid3X3,
-      path: '/heatmap'
+      path: '/heatmap',
+      show: appConfig?.components?.heatMap !== false
     },
     {
       title: 'Zerodha Dashboard',
       description: 'Connect your Zerodha account for real-time tracking and execution.',
       icon: Zap,
-      path: '/zerodha/dashboard'
+      path: '/zerodha/dashboard',
+      show: true
     },
     {
       title: 'mStock Dashboard',
       description: 'Manage your mStock API connection and authentication status.',
       icon: TrendingUp,
-      path: '/mstock/dashboard'
+      path: '/mstock/dashboard',
+      show: true
     }
-  ];
+  ].filter(action => action.show);
 
   const containerVariants = {
     hidden: { opacity: 0 },

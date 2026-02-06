@@ -24,7 +24,7 @@ import { cn } from '../lib/utils';
 
 const Header = ({ toggleTheme, theme }) => {
   const urlSet = new Set(["/login", "/google/callback"]);
-  const { user, logout } = useAuth();
+  const { user, logout, appConfig } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -40,13 +40,12 @@ const Header = ({ toggleTheme, theme }) => {
     { label: 'Admin Dashboard', icon: LayoutDashboard, path: '/admin/dashboard', show: user?.role === 'ADMIN' },
   ];
 
-
   const bottomNavItems = [
-    { label: 'Home', path: '/', icon: TrendingUp },
-    { label: 'Screener', path: '/strategies', icon: Grid3X3 },
-    { label: 'Calc', path: '/calculator', icon: Calculator },
-    { label: 'Heatmap', path: '/heatmap', icon: Search },
-  ];
+    { label: 'Home', path: '/', icon: TrendingUp, show: true },
+    { label: 'Screener', path: '/strategies', icon: Grid3X3, show: true },
+    { label: 'Calc', path: '/calculator', icon: Calculator, show: true },
+    { label: 'Heatmap', path: '/heatmap', icon: Search, show: appConfig?.components?.heatMap !== false },
+  ].filter(item => item.show);
 
   return (
     <>
