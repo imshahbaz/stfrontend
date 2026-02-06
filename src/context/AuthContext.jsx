@@ -9,7 +9,8 @@ const CACHE_EXPIRY = 300000;
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [appConfig, setAppConfig] = useState({
-        auth: { google: true, truecaller: true, email: true }
+        auth: { google: true, email: true, truecaller: true },
+        components: { heatMap: true }
     });
 
     const [appLoading, setAppLoading] = useState(true);

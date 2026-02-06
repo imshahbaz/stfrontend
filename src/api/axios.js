@@ -115,6 +115,13 @@ export const zerodhaAPI = {
   deleteOrder: (id) => api.delete(`/api/order/${id}`),
   saveConfig: (configData) => api.post('/api/zerodha/config', configData),
 }
+export const strategyOrderAPI = {
+  placeOrder: (orderData) => api.post('/api/strategy-order', orderData),
+  getMyOrders: () => api.get('/api/strategy-order/my'),
+  updateOrder: (id, orderData) => api.put(`/api/strategy-order/${id}`, orderData),
+  deleteOrder: (id) => api.delete(`/api/strategy-order/${id}`),
+}
+
 export const mstockAPI = {
   login: (apiKey, password, username) => api.post('/api/mstock/login',
     { apiKey: apiKey, password: password, username: username },

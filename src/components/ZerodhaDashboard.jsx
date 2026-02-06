@@ -5,13 +5,22 @@ import {
     ExternalLink, Zap, Loader2, CheckCircle2, Send, Calendar,
     Hash, Search, AlertCircle, ShoppingBag, Clock, ArrowUpRight,
     Edit2, X, Save, Trash2, Key, Shield, Settings, TrendingUp, History, User,
-    Copy, Check
+    Copy, Check, Layers, Target, Database
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { zerodhaAPI, marginAPI } from '../api/axios';
+import { zerodhaAPI, marginAPI, strategyAPI, strategyOrderAPI } from '../api/axios';
 import StatusAlert from './shared/StatusAlert';
 import ConfirmationModal from './admin/ConfirmationModal';
 import { cn } from '../lib/utils';
+
+const getISTDate = () => {
+    return new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Kolkata',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    }).format(new Date());
+};
 
 const ZerodhaDashboard = () => {
     const navigate = useNavigate();
@@ -20,23 +29,40 @@ const ZerodhaDashboard = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [zerodhaUser, setZerodhaUser] = useState(null);
     const [backendApiKey, setBackendApiKey] = useState('');
-    const [activeTab, setActiveTab] = useState('trade');
+    const [activeTab, setActiveTab] = useState('trade'); // trade, history, strategy
+    const [subTab, setSubTab] = useState('mtf'); // mtf, strategy
+    const [historySubTab, setHistorySubTab] = useState('mtf'); // mtf, strategy
 
     const [formData, setFormData] = useState({
         symbol: '',
         date: '',
         quantity: ''
     });
+
+    const [strategyFormData, setStrategyFormData] = useState({
+        strategyName: 'RSI15MIN',
+        amount: '',
+        date: getISTDate()
+    });
+
+    const [availableStrategies, setAvailableStrategies] = useState([]);
+    const [loadingStrategies, setLoadingStrategies] = useState(false);
+    const [strategyOrderLoading, setStrategyOrderLoading] = useState(false);
     const [orderLoading, setOrderLoading] = useState(false);
     const [orderSuccess, setOrderSuccess] = useState('');
     const [orderError, setOrderError] = useState('');
     const [isEditing, setIsEditing] = useState(false);
     const [editingOrder, setEditingOrder] = useState(null);
+    const [isEditingStrategy, setIsEditingStrategy] = useState(false);
+    const [editingStrategyOrder, setEditingStrategyOrder] = useState(null);
 
     const [orders, setOrders] = useState([]);
+    const [strategyOrders, setStrategyOrders] = useState([]);
     const [loadingOrders, setLoadingOrders] = useState(true);
+    const [loadingStrategyOrders, setLoadingStrategyOrders] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [orderToDelete, setOrderToDelete] = useState(null);
+    const [deleteType, setDeleteType] = useState('mtf'); // mtf, strategy
 
     const [needsConfig, setNeedsConfig] = useState(false);
     const [configData, setConfigData] = useState({
@@ -58,15 +84,6 @@ const ZerodhaDashboard = () => {
         setTimeout(() => setCopiedField(""), 2000);
     };
 
-    const getISTDate = () => {
-        return new Intl.DateTimeFormat('en-CA', {
-            timeZone: 'Asia/Kolkata',
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit'
-        }).format(new Date());
-    };
-
     useEffect(() => {
         setFormData(prev => ({ ...prev, date: getISTDate() }));
         checkConnection();
@@ -82,8 +99,19 @@ const ZerodhaDashboard = () => {
     }, []);
 
     useEffect(() => {
+        if (orderSuccess || orderError) {
+            const timer = setTimeout(() => {
+                setOrderSuccess('');
+                setOrderError('');
+            }, 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [orderSuccess, orderError]);
+
+    useEffect(() => {
         if (user) {
             fetchOrders();
+            fetchStrategyOrders();
         }
     }, [user]);
 
@@ -115,6 +143,22 @@ const ZerodhaDashboard = () => {
             console.error("Error fetching orders:", error);
         } finally {
             setLoadingOrders(false);
+        }
+    };
+
+    const fetchStrategyOrders = async () => {
+        setLoadingStrategyOrders(true);
+        try {
+            const response = await strategyOrderAPI.getMyOrders();
+            if (response.data && Array.isArray(response.data)) {
+                setStrategyOrders(response.data);
+            } else if (response.data?.data && Array.isArray(response.data.data)) {
+                setStrategyOrders(response.data.data);
+            }
+        } catch (error) {
+            console.error("Error fetching strategy orders:", error);
+        } finally {
+            setLoadingStrategyOrders(false);
         }
     };
 
@@ -217,6 +261,16 @@ const ZerodhaDashboard = () => {
         setEditingOrder(null);
     };
 
+    const resetStrategyForm = () => {
+        setStrategyFormData({
+            strategyName: 'RSI15MIN',
+            amount: '',
+            date: getISTDate()
+        });
+        setIsEditingStrategy(false);
+        setEditingStrategyOrder(null);
+    };
+
     const handleEditOrder = (order) => {
         setIsEditing(true);
         setEditingOrder(order);
@@ -230,37 +284,63 @@ const ZerodhaDashboard = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    const handleDeleteClick = (id) => {
+    const handleEditStrategyOrder = (order) => {
+        setIsEditingStrategy(true);
+        setEditingStrategyOrder(order);
+        setStrategyFormData({
+            strategyName: order.strategyName || 'RSI15MIN',
+            amount: (order.amount || '').toString(),
+            date: order.date?.split('T')[0] || getISTDate()
+        });
+        setActiveTab('strategy');
+        setSubTab('strategy');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const handleDeleteClick = (id, type = 'mtf') => {
         setOrderToDelete(id);
+        setDeleteType(type);
         setIsDeleteModalOpen(true);
     };
 
     const handleDeleteConfirm = async () => {
         if (!orderToDelete) return;
 
-        setLoadingOrders(true);
+        const isLoadingSetter = deleteType === 'mtf' ? setLoadingOrders : setLoadingStrategyOrders;
+        isLoadingSetter(true);
         setOrderSuccess('');
         setOrderError('');
 
         try {
-            const response = await zerodhaAPI.deleteOrder(orderToDelete);
-            if (response.status === 200) {
-                setOrderSuccess('Order deleted successfully!');
+            let response;
+            if (deleteType === 'mtf') {
+                response = await zerodhaAPI.deleteOrder(orderToDelete);
+            } else {
+                response = await strategyOrderAPI.deleteOrder(orderToDelete);
+            }
 
-                if (isEditing && editingOrder?.id === orderToDelete) {
-                    resetForm();
+            if (response.status === 200) {
+                setOrderSuccess(`${deleteType === 'mtf' ? 'Order' : 'Strategy'} deleted successfully!`);
+
+                if (deleteType === 'mtf') {
+                    if (isEditing && editingOrder?.id === orderToDelete) {
+                        resetForm();
+                    }
+                    fetchOrders();
+                } else {
+                    if (isEditingStrategy && editingStrategyOrder?.id === orderToDelete) {
+                        resetStrategyForm();
+                    }
+                    setHistorySubTab('strategy');
+                    fetchStrategyOrders();
                 }
 
-                fetchOrders();
-
-                setTimeout(() => {
-                    setOrderSuccess('');
-                }, 3000);
             }
         } catch (err) {
-            setOrderError(err.response?.data?.message || 'Failed to delete order.');
+            setOrderError(err.response?.data?.message || `Failed to delete ${deleteType === 'mtf' ? 'order' : 'strategy'}.`);
         } finally {
-            setLoadingOrders(false);
+            isLoadingSetter(false);
+            setIsDeleteModalOpen(false);
             setOrderToDelete(null);
         }
     };
@@ -275,7 +355,7 @@ const ZerodhaDashboard = () => {
             date: formData.date,
             quantity: parseInt(formData.quantity),
             symbol: formData.symbol.toUpperCase(),
-            userId: parseInt(user?.userId || user?.id || 0),
+            userId: 0,
             id: isEditing ? editingOrder.id : ""
         };
 
@@ -288,20 +368,78 @@ const ZerodhaDashboard = () => {
             }
 
             if (response.status === 200 || response.status === 201) {
+                if (response.data?.success === false) {
+                    setOrderError(response.data.error || 'Failed to process order.');
+                    return;
+                }
                 setOrderSuccess(isEditing ? 'Order updated successfully!' : 'Order placed successfully!');
                 resetForm();
                 fetchOrders();
 
-                setTimeout(() => {
-                    setOrderSuccess('');
-                }, 3000);
-
-                if (!isEditing) setActiveTab('history');
+                if (!isEditing) {
+                    setActiveTab('history');
+                    setHistorySubTab('mtf');
+                }
             }
         } catch (err) {
-            setOrderError(err.response?.data?.message || `Failed to ${isEditing ? 'update' : 'place'} order. Please check your connection.`);
+            console.log(err.response);
+            const errorData = err.response?.data;
+            const message = typeof errorData === 'string' ? errorData : (errorData?.message || errorData?.error || `Failed to ${isEditing ? 'update' : 'place'} order.`);
+            setOrderError(message);
         } finally {
             setOrderLoading(false);
+        }
+    };
+
+    const handleStrategyOrderSubmit = async (e) => {
+        e.preventDefault();
+        setStrategyOrderLoading(true);
+        setOrderSuccess('');
+        setOrderError('');
+
+        const payload = {
+            strategyName: 'RSI15MIN',
+            amount: parseFloat(strategyFormData.amount),
+            date: strategyFormData.date,
+            userId: 0,
+            id: isEditingStrategy ? editingStrategyOrder.id : ""
+        };
+
+        try {
+            let response;
+            if (isEditingStrategy) {
+                response = await strategyOrderAPI.updateOrder(editingStrategyOrder.id, payload);
+            } else {
+                response = await strategyOrderAPI.placeOrder(payload);
+            }
+
+            if (response.status === 200 || response.status === 201) {
+                if (response.data?.success === false) {
+                    setOrderError(response.data.error || 'Failed to process strategy order.');
+                    return;
+                }
+                setOrderSuccess(isEditingStrategy ? 'Strategy order updated successfully!' : 'Strategy order placed successfully!');
+                resetStrategyForm();
+
+                setActiveTab('history');
+                setHistorySubTab('strategy');
+                fetchStrategyOrders();
+            }
+        } catch (err) {
+            const errorData = err.response?.data;
+            let message = typeof errorData === 'string' ? errorData : (errorData?.message || errorData?.error);
+
+            if (!message) {
+                message = `Failed to ${isEditingStrategy ? 'update' : 'place'} strategy order.`;
+            }
+
+            if (message.toLowerCase().includes("already exists")) {
+                setOrderError("⚠️ Strategy order already exists for this date. You can only have one order per strategy per day.");
+            } else {
+                setOrderError(message);
+            }
+        } finally {
+            setStrategyOrderLoading(false);
         }
     };
 
@@ -525,6 +663,16 @@ const ZerodhaDashboard = () => {
                                 EXECUTE
                             </button>
                             <button
+                                onClick={() => setActiveTab('strategy')}
+                                className={cn(
+                                    "flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black text-xs transition-all duration-300",
+                                    activeTab === 'strategy' ? "bg-background text-primary shadow-lg" : "text-muted-foreground"
+                                )}
+                            >
+                                <Layers size={16} />
+                                STRATEGY
+                            </button>
+                            <button
                                 onClick={() => setActiveTab('history')}
                                 className={cn(
                                     "flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black text-xs transition-all duration-300",
@@ -540,21 +688,48 @@ const ZerodhaDashboard = () => {
                             <motion.div
                                 className={cn(
                                     "lg:col-span-5 w-full",
-                                    activeTab === 'trade' ? "block" : "hidden md:block"
+                                    (activeTab === 'trade' || activeTab === 'strategy') ? "block" : "hidden md:block"
                                 )}
                                 layout
                             >
                                 <div className="bg-card border border-border rounded-[2.5rem] p-6 md:p-8 shadow-3xl shadow-primary/5 sticky top-24">
+                                    <div className="hidden md:flex bg-muted/30 p-1 rounded-xl mb-8">
+                                        <button
+                                            type="button"
+                                            onClick={() => { setSubTab('mtf'); setActiveTab('trade'); }}
+                                            className={cn(
+                                                "flex-1 py-2 px-4 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all duration-300",
+                                                (subTab === 'mtf' && activeTab !== 'strategy') ? "bg-background text-primary shadow-sm" : "text-muted-foreground"
+                                            )}
+                                        >
+                                            MTF Order
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setSubTab('strategy'); setActiveTab('strategy'); }}
+                                            className={cn(
+                                                "flex-1 py-2 px-4 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all duration-300",
+                                                (subTab === 'strategy' || activeTab === 'strategy') ? "bg-background text-primary shadow-sm" : "text-muted-foreground"
+                                            )}
+                                        >
+                                            Algo Strategy
+                                        </button>
+                                    </div>
+
                                     <div className="flex items-center gap-4 mb-8">
                                         <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-                                            {isEditing ? <Edit2 className="h-6 w-6 text-primary" /> : <TrendingUp className="h-6 w-6 text-primary" />}
+                                            {activeTab === 'strategy' ? <Target className="h-6 w-6 text-primary" /> : (isEditing ? <Edit2 className="h-6 w-6 text-primary" /> : <TrendingUp className="h-6 w-6 text-primary" />)}
                                         </div>
                                         <div>
-                                            <h2 className="text-xl md:text-2xl font-black tracking-tight">{isEditing ? 'Modify Position' : 'Quick Order'}</h2>
-                                            <p className="text-[10px] md:text-xs text-muted-foreground font-black uppercase tracking-widest">MTF EXECUTION GATEWAY</p>
+                                            <h2 className="text-xl md:text-2xl font-black tracking-tight">
+                                                {activeTab === 'strategy' ? (isEditingStrategy ? 'Modify Strategy' : 'Strategy Order') : (isEditing ? 'Modify Position' : 'Quick Order')}
+                                            </h2>
+                                            <p className="text-[10px] md:text-xs text-muted-foreground font-black uppercase tracking-widest">
+                                                {activeTab === 'strategy' ? 'AUTOMATED ALGO SYSTEM' : 'MTF EXECUTION GATEWAY'}
+                                            </p>
                                         </div>
-                                        {isEditing && (
-                                            <button onClick={resetForm} className="ml-auto p-2 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-foreground">
+                                        {(isEditing || isEditingStrategy) && (
+                                            <button onClick={isEditingStrategy ? resetStrategyForm : resetForm} className="ml-auto p-2 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-foreground">
                                                 <X size={20} />
                                             </button>
                                         )}
@@ -562,125 +737,180 @@ const ZerodhaDashboard = () => {
 
                                     <StatusAlert success={orderSuccess} error={orderError} className="mb-6 rounded-2xl" />
 
-                                    <form onSubmit={handleOrderSubmit} className="space-y-6">
-                                        <div className="space-y-2 relative" ref={dropdownRef}>
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Digital Asset (Symbol)</label>
-                                            <div className="relative group">
-                                                <Search className={cn(
-                                                    "absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors",
-                                                    isEditing && "opacity-50"
-                                                )} />
-                                                <input
-                                                    type="text"
-                                                    required
-                                                    autoComplete="off"
-                                                    placeholder={loadingMargins ? "Connecting to NSE..." : "Search stocks..."}
-                                                    className={cn(
-                                                        "w-full pl-12 pr-4 h-14 md:h-16 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/20 focus:bg-background transition-all font-bold text-sm md:text-lg outline-none",
-                                                        isEditing && "opacity-60 cursor-not-allowed bg-muted/50"
-                                                    )}
-                                                    value={searchQuery}
-                                                    onChange={(e) => {
-                                                        if (isEditing) return;
-                                                        setSearchQuery(e.target.value);
-                                                        setFormData({ ...formData, symbol: e.target.value });
-                                                        setShowDropdown(true);
-                                                    }}
-                                                    onFocus={() => !isEditing && setShowDropdown(true)}
-                                                    disabled={loadingMargins || isEditing}
-                                                />
-                                            </div>
-
-                                            <AnimatePresence>
-                                                {showDropdown && searchQuery && !loadingMargins && !isEditing && (
-                                                    <motion.div
-                                                        initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                                                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                                                        exit={{ opacity: 0, y: 10, scale: 0.98 }}
-                                                        className="absolute z-50 w-full mt-3 bg-card/95 backdrop-blur-3xl border border-border rounded-3xl shadow-2xl overflow-hidden max-h-[300px] overflow-y-auto scrollbar-hide ring-1 ring-black/5"
-                                                    >
-                                                        {filteredMargins.length > 0 ? (
-                                                            filteredMargins.map(m => (
-                                                                <button
-                                                                    key={m.symbol}
-                                                                    type="button"
-                                                                    className="w-full text-left px-6 py-4.5 hover:bg-primary/5 transition-all border-b border-border last:border-0 flex justify-between items-center group"
-                                                                    onClick={() => {
-                                                                        setFormData({ ...formData, symbol: m.symbol });
-                                                                        setSearchQuery(m.symbol);
-                                                                        setShowDropdown(false);
-                                                                    }}
-                                                                >
-                                                                    <span className="font-black text-sm group-hover:text-primary transition-colors">{m.symbol}</span>
-                                                                    <div className="flex items-center gap-2">
-                                                                        <span className="text-[9px] font-black bg-primary/10 text-primary px-2 py-1 rounded-md uppercase">
-                                                                            {m.margin}x Margin
-                                                                        </span>
-                                                                        <ArrowUpRight className="h-3 w-3 text-muted-foreground group-hover:text-primary" />
-                                                                    </div>
-                                                                </button>
-                                                            ))
-                                                        ) : (
-                                                            <div className="px-6 py-10 text-center flex flex-col items-center gap-2">
-                                                                <AlertCircle className="h-6 w-6 text-muted-foreground/30" />
-                                                                <span className="text-muted-foreground text-xs font-bold uppercase tracking-widest">No matching symbols</span>
-                                                            </div>
+                                    {(subTab === 'mtf' && activeTab !== 'strategy') ? (
+                                        <form onSubmit={handleOrderSubmit} className="space-y-6">
+                                            <div className="space-y-2 relative" ref={dropdownRef}>
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Digital Asset (Symbol)</label>
+                                                <div className="relative group">
+                                                    <Search className={cn(
+                                                        "absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors",
+                                                        isEditing && "opacity-50"
+                                                    )} />
+                                                    <input
+                                                        type="text"
+                                                        required
+                                                        autoComplete="off"
+                                                        placeholder={loadingMargins ? "Connecting to NSE..." : "Search stocks..."}
+                                                        className={cn(
+                                                            "w-full pl-12 pr-4 h-14 md:h-16 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/20 focus:bg-background transition-all font-bold text-sm md:text-lg outline-none",
+                                                            isEditing && "opacity-60 cursor-not-allowed bg-muted/50"
                                                         )}
-                                                    </motion.div>
+                                                        value={searchQuery}
+                                                        onChange={(e) => {
+                                                            if (isEditing) return;
+                                                            setSearchQuery(e.target.value);
+                                                            setFormData({ ...formData, symbol: e.target.value });
+                                                            setShowDropdown(true);
+                                                        }}
+                                                        onFocus={() => !isEditing && setShowDropdown(true)}
+                                                        disabled={loadingMargins || isEditing}
+                                                    />
+                                                </div>
+
+                                                <AnimatePresence>
+                                                    {showDropdown && searchQuery && !loadingMargins && !isEditing && (
+                                                        <motion.div
+                                                            initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                                                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                            exit={{ opacity: 0, y: 10, scale: 0.98 }}
+                                                            className="absolute z-50 w-full mt-3 bg-card/95 backdrop-blur-3xl border border-border rounded-3xl shadow-2xl overflow-hidden max-h-[300px] overflow-y-auto scrollbar-hide ring-1 ring-black/5"
+                                                        >
+                                                            {filteredMargins.length > 0 ? (
+                                                                filteredMargins.map(m => (
+                                                                    <button
+                                                                        key={m.symbol}
+                                                                        type="button"
+                                                                        className="w-full text-left px-6 py-4.5 hover:bg-primary/5 transition-all border-b border-border last:border-0 flex justify-between items-center group"
+                                                                        onClick={() => {
+                                                                            setFormData({ ...formData, symbol: m.symbol });
+                                                                            setSearchQuery(m.symbol);
+                                                                            setShowDropdown(false);
+                                                                        }}
+                                                                    >
+                                                                        <span className="font-black text-sm group-hover:text-primary transition-colors">{m.symbol}</span>
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="text-[9px] font-black bg-primary/10 text-primary px-2 py-1 rounded-md uppercase">
+                                                                                {m.margin}x Margin
+                                                                            </span>
+                                                                            <ArrowUpRight className="h-3 w-3 text-muted-foreground group-hover:text-primary" />
+                                                                        </div>
+                                                                    </button>
+                                                                ))
+                                                            ) : (
+                                                                <div className="px-6 py-10 text-center flex flex-col items-center gap-2">
+                                                                    <AlertCircle className="h-6 w-6 text-muted-foreground/30" />
+                                                                    <span className="text-muted-foreground text-xs font-bold uppercase tracking-widest">No matching symbols</span>
+                                                                </div>
+                                                            )}
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Units</label>
+                                                    <div className="relative group">
+                                                        <Hash className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                                                        <input
+                                                            type="number"
+                                                            required
+                                                            min="1"
+                                                            placeholder="0"
+                                                            className="w-full pl-12 pr-4 h-14 md:h-16 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/20 focus:bg-background transition-all font-black text-lg outline-none"
+                                                            value={formData.quantity}
+                                                            onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Target Date</label>
+                                                    <div className="relative group">
+                                                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                                                        <input
+                                                            type="date"
+                                                            required
+                                                            min={isEditing ? undefined : getISTDate()}
+                                                            className="w-full pl-12 pr-3 h-14 md:h-16 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/20 focus:bg-background transition-all font-bold text-xs md:text-sm outline-none"
+                                                            value={formData.date}
+                                                            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <motion.button
+                                                whileHover={{ scale: 1.02, y: -2 }}
+                                                whileTap={{ scale: 0.98 }}
+                                                disabled={orderLoading}
+                                                type="submit"
+                                                className="w-full h-16 md:h-18 bg-primary text-white font-black text-lg rounded-2xl shadow-xl shadow-primary/30 hover:shadow-primary/50 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:pointer-events-none"
+                                            >
+                                                {orderLoading ? (
+                                                    <Loader2 className="h-7 w-7 animate-spin" />
+                                                ) : (
+                                                    <>
+                                                        {isEditing ? <Save className="h-6 w-6" /> : <Send className="h-6 w-6" />}
+                                                        {isEditing ? 'UPDATE ORDER' : 'PLACE ORDER'}
+                                                    </>
                                                 )}
-                                            </AnimatePresence>
-                                        </div>
+                                            </motion.button>
+                                        </form>
+                                    ) : (
+                                        <form onSubmit={handleStrategyOrderSubmit} className="space-y-6">
+                                            {/* Strategy is hardcoded to RSI15MIN */}
 
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Units</label>
-                                                <div className="relative group">
-                                                    <Hash className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                                                    <input
-                                                        type="number"
-                                                        required
-                                                        min="1"
-                                                        placeholder="0"
-                                                        className="w-full pl-12 pr-4 h-14 md:h-16 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/20 focus:bg-background transition-all font-black text-lg outline-none"
-                                                        value={formData.quantity}
-                                                        onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                                                    />
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Investment</label>
+                                                    <div className="relative group">
+                                                        <Database className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                                                        <input
+                                                            type="number"
+                                                            required
+                                                            min="1"
+                                                            placeholder="0"
+                                                            className="w-full pl-12 pr-4 h-14 md:h-16 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/20 focus:bg-background transition-all font-black text-lg outline-none"
+                                                            value={strategyFormData.amount}
+                                                            onChange={(e) => setStrategyFormData({ ...strategyFormData, amount: e.target.value })}
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Execute Date</label>
+                                                    <div className="relative group">
+                                                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                                                        <input
+                                                            type="date"
+                                                            required
+                                                            className="w-full pl-12 pr-3 h-14 md:h-16 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/20 focus:bg-background transition-all font-bold text-xs md:text-sm outline-none"
+                                                            value={strategyFormData.date}
+                                                            onChange={(e) => setStrategyFormData({ ...strategyFormData, date: e.target.value })}
+                                                        />
+                                                    </div>
                                                 </div>
                                             </div>
 
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Target Date</label>
-                                                <div className="relative group">
-                                                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                                                    <input
-                                                        type="date"
-                                                        required
-                                                        min={isEditing ? undefined : getISTDate()}
-                                                        className="w-full pl-12 pr-3 h-14 md:h-16 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/20 focus:bg-background transition-all font-bold text-xs md:text-sm outline-none"
-                                                        value={formData.date}
-                                                        onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <motion.button
-                                            whileHover={{ scale: 1.02, y: -2 }}
-                                            whileTap={{ scale: 0.98 }}
-                                            disabled={orderLoading}
-                                            type="submit"
-                                            className="w-full h-16 md:h-18 bg-primary text-white font-black text-lg rounded-2xl shadow-xl shadow-primary/30 hover:shadow-primary/50 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:pointer-events-none"
-                                        >
-                                            {orderLoading ? (
-                                                <Loader2 className="h-7 w-7 animate-spin" />
-                                            ) : (
-                                                <>
-                                                    {isEditing ? <Save className="h-6 w-6" /> : <Send className="h-6 w-6" />}
-                                                    {isEditing ? 'UPDATE ORDER' : 'PLACE ORDER'}
-                                                </>
-                                            )}
-                                        </motion.button>
-                                    </form>
+                                            <motion.button
+                                                whileHover={{ scale: 1.02, y: -2 }}
+                                                whileTap={{ scale: 0.98 }}
+                                                disabled={strategyOrderLoading}
+                                                type="submit"
+                                                className="w-full h-16 md:h-18 bg-primary text-white font-black text-lg rounded-2xl shadow-xl shadow-primary/30 hover:shadow-primary/50 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:pointer-events-none"
+                                            >
+                                                {strategyOrderLoading ? (
+                                                    <Loader2 className="h-7 w-7 animate-spin" />
+                                                ) : (
+                                                    <>
+                                                        {isEditingStrategy ? <Save className="h-6 w-6" /> : <Zap className="h-6 w-6" />}
+                                                        {isEditingStrategy ? 'UPDATE ALGO' : 'START ALGO'}
+                                                    </>
+                                                )}
+                                            </motion.button>
+                                        </form>
+                                    )}
 
                                     <div className="mt-8 p-5 rounded-3xl bg-amber-500/5 border border-amber-500/10 flex gap-4 items-center">
                                         <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0">
@@ -708,73 +938,157 @@ const ZerodhaDashboard = () => {
                                                 <History className="h-6 w-6 text-primary" />
                                             </div>
                                             <div>
-                                                <h2 className="text-xl md:text-2xl font-black tracking-tight">Order History</h2>
-                                                <p className="text-[10px] md:text-xs text-muted-foreground font-black uppercase tracking-widest">REAL-TIME EXECUTION LOG</p>
+                                                <h2 className="text-xl md:text-2xl font-black tracking-tight">Execution Log</h2>
+                                                <p className="text-[10px] md:text-xs text-muted-foreground font-black uppercase tracking-widest">REAL-TIME ORDER STREAM</p>
                                             </div>
                                         </div>
-                                        {loadingOrders && <Loader2 className="h-5 w-5 text-primary animate-spin" />}
+                                        {(loadingOrders || loadingStrategyOrders) && <Loader2 className="h-5 w-5 text-primary animate-spin" />}
+                                    </div>
+
+                                    <div className="flex bg-muted/30 p-1 rounded-xl mb-8">
+                                        <button
+                                            onClick={() => setHistorySubTab('mtf')}
+                                            className={cn(
+                                                "flex-1 py-2 px-4 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all duration-300",
+                                                historySubTab === 'mtf' ? "bg-background text-primary shadow-sm" : "text-muted-foreground"
+                                            )}
+                                        >
+                                            MTF History
+                                        </button>
+                                        <button
+                                            onClick={() => setHistorySubTab('strategy')}
+                                            className={cn(
+                                                "flex-1 py-2 px-4 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all duration-300",
+                                                historySubTab === 'strategy' ? "bg-background text-primary shadow-sm" : "text-muted-foreground"
+                                            )}
+                                        >
+                                            Strategy History
+                                        </button>
                                     </div>
 
                                     <div className="space-y-4">
-                                        {loadingOrders && orders.length === 0 ? (
-                                            <div className="flex flex-col items-center justify-center py-24 grayscale opacity-40">
-                                                <Loader2 className="h-12 w-12 animate-spin mb-4 text-primary" />
-                                                <span className="font-black text-xs uppercase tracking-[0.3em]">Querying Orders</span>
-                                            </div>
-                                        ) : orders.length > 0 ? (
-                                            <div className="grid grid-cols-1 gap-4">
-                                                {orders.map((order, idx) => (
-                                                    <motion.div
-                                                        key={order.id || idx}
-                                                        initial={{ opacity: 0, x: 10 }}
-                                                        animate={{ opacity: 1, x: 0 }}
-                                                        transition={{ delay: idx * 0.05 }}
-                                                        className="group p-4 md:p-6 rounded-3xl md:rounded-[2rem] bg-muted/20 border border-border/50 hover:border-primary/30 hover:bg-muted/40 transition-all duration-300 flex items-center justify-between gap-3"
-                                                    >
-                                                        <div className="flex items-center gap-3 md:gap-5 min-w-0">
-                                                            <div className="h-10 w-10 md:h-14 md:w-14 rounded-xl md:rounded-2xl bg-background border-2 border-border flex items-center justify-center font-black text-xs md:text-lg text-primary shadow-sm shrink-0">
-                                                                {order.symbol?.substring(0, 2).toUpperCase()}
-                                                            </div>
-                                                            <div className="min-w-0">
-                                                                <h4 className="font-black text-sm md:text-xl tracking-tight group-hover:text-primary transition-colors truncate">{order.symbol}</h4>
-                                                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
-                                                                    <div className="flex items-center gap-1.5 text-[9px] md:text-[10px] text-muted-foreground font-black uppercase tracking-widest whitespace-nowrap">
-                                                                        <Clock size={10} className="text-primary md:w-3 md:h-3" />
-                                                                        <span>{order.date?.split('T')[0]}</span>
+                                        {historySubTab === 'mtf' ? (
+                                            loadingOrders && orders.length === 0 ? (
+                                                <div className="flex flex-col items-center justify-center py-24 grayscale opacity-40">
+                                                    <Loader2 className="h-12 w-12 animate-spin mb-4 text-primary" />
+                                                    <span className="font-black text-xs uppercase tracking-[0.3em]">Querying MTF</span>
+                                                </div>
+                                            ) : orders.length > 0 ? (
+                                                <div className="grid grid-cols-1 gap-4">
+                                                    {orders.map((order, idx) => (
+                                                        <motion.div
+                                                            key={order.id || idx}
+                                                            initial={{ opacity: 0, x: 10 }}
+                                                            animate={{ opacity: 1, x: 0 }}
+                                                            transition={{ delay: idx * 0.05 }}
+                                                            className="group p-4 md:p-6 rounded-3xl md:rounded-[2rem] bg-muted/20 border border-border/50 hover:border-primary/30 hover:bg-muted/40 transition-all duration-300 flex items-center justify-between gap-3"
+                                                        >
+                                                            <div className="flex items-center gap-3 md:gap-5 min-w-0">
+                                                                <div className="h-10 w-10 md:h-14 md:w-14 rounded-xl md:rounded-2xl bg-background border-2 border-border flex items-center justify-center font-black text-xs md:text-lg text-primary shadow-sm shrink-0">
+                                                                    {order.symbol?.substring(0, 2).toUpperCase()}
+                                                                </div>
+                                                                <div className="min-w-0">
+                                                                    <h4 className="font-black text-sm md:text-xl tracking-tight group-hover:text-primary transition-colors truncate">{order.symbol}</h4>
+                                                                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+                                                                        <div className="flex items-center gap-1.5 text-[9px] md:text-[10px] text-muted-foreground font-black uppercase tracking-widest whitespace-nowrap">
+                                                                            <Clock size={10} className="text-primary md:w-3 md:h-3" />
+                                                                            <span>{order.date?.split('T')[0]}</span>
+                                                                        </div>
+                                                                        <div className="hidden xs:block h-1 w-1 rounded-full bg-border"></div>
+                                                                        <span className="text-[9px] md:text-[10px] font-black text-primary uppercase whitespace-nowrap">{order.quantity} Units</span>
                                                                     </div>
-                                                                    <div className="hidden xs:block h-1 w-1 rounded-full bg-border"></div>
-                                                                    <span className="text-[9px] md:text-[10px] font-black text-primary uppercase whitespace-nowrap">{order.quantity} Units</span>
                                                                 </div>
                                                             </div>
-                                                        </div>
-                                                        <div className="flex items-center gap-1.5 shrink-0">
-                                                            <button
-                                                                onClick={() => handleEditOrder(order)}
-                                                                className="h-9 w-9 md:h-11 md:w-11 flex items-center justify-center rounded-xl md:rounded-2xl bg-background border border-border hover:border-primary/50 text-foreground hover:text-primary transition-all shadow-sm"
-                                                            >
-                                                                <Edit2 size={14} className="md:w-4 md:h-4" />
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleDeleteClick(order.id)}
-                                                                className="h-9 w-9 md:h-11 md:w-11 flex items-center justify-center rounded-xl md:rounded-2xl bg-background border border-border hover:border-rose-500/50 text-foreground hover:text-rose-500 transition-all shadow-sm"
-                                                            >
-                                                                <Trash2 size={14} className="md:w-4 md:h-4" />
-                                                            </button>
-                                                        </div>
-                                                    </motion.div>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <div className="flex flex-col items-center justify-center py-20 text-center px-10">
-                                                <div className="h-24 w-24 rounded-full bg-muted/50 flex items-center justify-center mb-6 relative overflow-hidden group">
-                                                    <ShoppingBag className="h-10 w-10 text-muted-foreground/30 relative z-10 transition-transform duration-700 group-hover:scale-125 group-hover:rotate-12" />
-                                                    <div className="absolute inset-0 bg-primary/5 -translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
+                                                            <div className="flex items-center gap-1.5 shrink-0">
+                                                                <button
+                                                                    onClick={() => handleEditOrder(order)}
+                                                                    className="h-9 w-9 md:h-11 md:w-11 flex items-center justify-center rounded-xl md:rounded-2xl bg-background border border-border hover:border-primary/50 text-foreground hover:text-primary transition-all shadow-sm"
+                                                                >
+                                                                    <Edit2 size={14} className="md:w-4 md:h-4" />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDeleteClick(order.id)}
+                                                                    className="h-9 w-9 md:h-11 md:w-11 flex items-center justify-center rounded-xl md:rounded-2xl bg-background border border-border hover:border-rose-500/50 text-foreground hover:text-rose-500 transition-all shadow-sm"
+                                                                >
+                                                                    <Trash2 size={14} className="md:w-4 md:h-4" />
+                                                                </button>
+                                                            </div>
+                                                        </motion.div>
+                                                    ))}
                                                 </div>
-                                                <h3 className="text-2xl font-black tracking-tight mb-2">No Orders</h3>
-                                                <p className="text-muted-foreground text-sm font-medium leading-relaxed uppercase tracking-widest">
-                                                    Your order history is empty.
-                                                </p>
-                                            </div>
+                                            ) : (
+                                                <div className="flex flex-col items-center justify-center py-20 text-center px-10">
+                                                    <div className="h-24 w-24 rounded-full bg-muted/50 flex items-center justify-center mb-6 relative overflow-hidden group">
+                                                        <ShoppingBag className="h-10 w-10 text-muted-foreground/30 relative z-10 transition-transform duration-700 group-hover:scale-125 group-hover:rotate-12" />
+                                                        <div className="absolute inset-0 bg-primary/5 -translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
+                                                    </div>
+                                                    <h3 className="text-2xl font-black tracking-tight mb-2">No MTF Orders</h3>
+                                                    <p className="text-muted-foreground text-sm font-medium leading-relaxed uppercase tracking-widest">
+                                                        Your MTF history is empty.
+                                                    </p>
+                                                </div>
+                                            )
+                                        ) : (
+                                            loadingStrategyOrders && strategyOrders.length === 0 ? (
+                                                <div className="flex flex-col items-center justify-center py-24 grayscale opacity-40">
+                                                    <Loader2 className="h-12 w-12 animate-spin mb-4 text-primary" />
+                                                    <span className="font-black text-xs uppercase tracking-[0.3em]">Querying Algo</span>
+                                                </div>
+                                            ) : strategyOrders.length > 0 ? (
+                                                <div className="grid grid-cols-1 gap-4">
+                                                    {strategyOrders.map((order, idx) => (
+                                                        <motion.div
+                                                            key={order.id || idx}
+                                                            initial={{ opacity: 0, x: 10 }}
+                                                            animate={{ opacity: 1, x: 0 }}
+                                                            transition={{ delay: idx * 0.05 }}
+                                                            className="group p-4 md:p-6 rounded-3xl md:rounded-[2rem] bg-muted/20 border border-border/50 hover:border-primary/30 hover:bg-muted/40 transition-all duration-300 flex items-center justify-between gap-3"
+                                                        >
+                                                            <div className="flex items-center gap-3 md:gap-5 min-w-0">
+                                                                <div className="h-10 w-10 md:h-14 md:w-14 rounded-xl md:rounded-2xl bg-background border-2 border-border flex items-center justify-center font-black text-xs md:text-lg text-primary shadow-sm shrink-0">
+                                                                    <Target className="md:h-6 md:w-6" />
+                                                                </div>
+                                                                <div className="min-w-0">
+                                                                    <h4 className="font-black text-sm md:text-xl tracking-tight group-hover:text-primary transition-colors truncate">{order.strategyName}</h4>
+                                                                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+                                                                        <div className="flex items-center gap-1.5 text-[9px] md:text-[10px] text-muted-foreground font-black uppercase tracking-widest whitespace-nowrap">
+                                                                            <Clock size={10} className="text-primary md:w-3 md:h-3" />
+                                                                            <span>{order.date?.split('T')[0]}</span>
+                                                                        </div>
+                                                                        <div className="hidden xs:block h-1 w-1 rounded-full bg-border"></div>
+                                                                        <span className="text-[9px] md:text-[10px] font-black text-primary uppercase whitespace-nowrap">₹{order.amount} Capital</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex items-center gap-1.5 shrink-0">
+                                                                <button
+                                                                    onClick={() => handleEditStrategyOrder(order)}
+                                                                    className="h-9 w-9 md:h-11 md:w-11 flex items-center justify-center rounded-xl md:rounded-2xl bg-background border border-border hover:border-primary/50 text-foreground hover:text-primary transition-all shadow-sm"
+                                                                >
+                                                                    <Edit2 size={14} className="md:w-4 md:h-4" />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDeleteClick(order.id, 'strategy')}
+                                                                    className="h-9 w-9 md:h-11 md:w-11 flex items-center justify-center rounded-xl md:rounded-2xl bg-background border border-border hover:border-rose-500/50 text-foreground hover:text-rose-500 transition-all shadow-sm"
+                                                                >
+                                                                    <Trash2 size={14} className="md:w-4 md:h-4" />
+                                                                </button>
+                                                            </div>
+                                                        </motion.div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="flex flex-col items-center justify-center py-20 text-center px-10">
+                                                    <div className="h-24 w-24 rounded-full bg-muted/50 flex items-center justify-center mb-6 relative overflow-hidden group">
+                                                        <Zap className="h-10 w-10 text-muted-foreground/30 relative z-10 transition-transform duration-700 group-hover:scale-125 group-hover:rotate-12" />
+                                                        <div className="absolute inset-0 bg-primary/5 -translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
+                                                    </div>
+                                                    <h3 className="text-2xl font-black tracking-tight mb-2">No Strategy Orders</h3>
+                                                    <p className="text-muted-foreground text-sm font-medium leading-relaxed uppercase tracking-widest">
+                                                        Your strategy history is empty.
+                                                    </p>
+                                                </div>
+                                            )
                                         )}
                                     </div>
                                 </div>

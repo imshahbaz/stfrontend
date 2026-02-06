@@ -116,7 +116,7 @@ function AppContent() {
 
             <main className={`flex-grow flex flex-col min-h-0 pb-[100px] md:pb-0 ${ADS_ENABLED ? 'pt-[60px] md:pt-0' : ''}`}>
 
-              <AnimatedRoutes auth={authContext.appConfig.auth} />
+              <AnimatedRoutes config={authContext.appConfig} />
             </main>
 
             {ADS_ENABLED && (
@@ -135,10 +135,12 @@ function AppContent() {
   );
 }
 
-function AnimatedRoutes({ auth }) {
+function AnimatedRoutes({ config }) {
   const location = useLocation();
 
-  if (!auth) return null;
+  if (!config) return null;
+  const { auth, components } = config;
+  const heatmap = components?.heatMap ?? true;
 
   return (
     <AnimatePresence mode="wait">
@@ -151,7 +153,9 @@ function AnimatedRoutes({ auth }) {
         )}
         <Route path="/strategies" element={<PageWrapper><Strategies /></PageWrapper>} />
         <Route path="/calculator" element={<PageWrapper><Calculator /></PageWrapper>} />
-        <Route path="/heatmap" element={<PageWrapper><Heatmap /></PageWrapper>} />
+        {heatmap !== false && (
+          <Route path="/heatmap" element={<PageWrapper><Heatmap /></PageWrapper>} />
+        )}
         <Route path="/chart/:symbol" element={<PageWrapper><ChartPage /></PageWrapper>} />
         <Route element={<ProtectedRoute />}>
           <Route path="/settings" element={<PageWrapper><Settings /></PageWrapper>} />
