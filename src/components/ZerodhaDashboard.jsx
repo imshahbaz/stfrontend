@@ -351,11 +351,12 @@ const ZerodhaDashboard = () => {
         setOrderSuccess('');
         setOrderError('');
 
+        const userId = user?.userId || user?.id;
         const payload = {
             date: formData.date,
             quantity: parseInt(formData.quantity),
             symbol: formData.symbol.toUpperCase(),
-            userId: 0,
+            userId: userId,
             id: isEditing ? editingOrder.id : ""
         };
 
