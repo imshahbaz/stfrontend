@@ -2,6 +2,10 @@
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
 
+// Lifecycle: Force immediate activation
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', (event) => event.waitUntil(clients.claim()));
+
 const urlParams = new URL(location).searchParams;
 
 firebase.initializeApp({
@@ -15,38 +19,59 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Foreground/Background handler
-messaging.onBackgroundMessage((payload) => {
-    console.log('[firebase-messaging-sw.js] Received background message ', payload);
+function getNotificationData(payload) {
+    const title = payload.notification?.title || payload.data?.title || 'New Signal';
+    const body = payload.notification?.body || payload.data?.body || 'Check the app for updates';
 
-    // Check if we have notification or data
-    const title = payload.notification?.title || payload.data?.title || 'New Message';
-    const body = payload.notification?.body || payload.data?.body || '';
-
-    const notificationOptions = {
-        body: body,
-        icon: '/logo192.png',
-        badge: '/logo192.png', // Small icon for top bar on Android
-        vibrate: [100, 50, 100],
-        data: {
-            url: '/' // Home page URL
+    return {
+        title,
+        options: {
+            body: body,
+            icon: '/logo192.png',
+            badge: '/logo192.png',
+            vibrate: [200, 100, 200],
+            tag: 'shahbaz-trades-signal',
+            renotify: true,
+            data: {
+                url: payload.data?.url || '/'
+            }
         }
     };
+}
 
-    self.registration.showNotification(title, notificationOptions);
+// Handler for Firebase library
+messaging.onBackgroundMessage((payload) => {
+    console.log('[SW] Background Message:', payload);
+    const { title, options } = getNotificationData(payload);
+    return self.registration.showNotification(title, options);
+});
+
+// Native push listener for maximum stability on Android
+self.addEventListener('push', (event) => {
+    console.log('[SW] Push Received');
+    let payload = {};
+    if (event.data) {
+        try {
+            payload = event.data.json();
+        } catch (e) {
+            console.warn('[SW] Push data was not JSON');
+        }
+    }
+
+    const { title, options } = getNotificationData(payload);
+    event.waitUntil(
+        self.registration.showNotification(title, options)
+    );
 });
 
 // Handle notification click
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
-
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-            // If a window is already open, focus it
             for (const client of clientList) {
-                if (client.url === '/' && 'focus' in client) return client.focus();
+                if ('focus' in client) return client.focus();
             }
-            // Otherwise open a new window
             if (clients.openWindow) return clients.openWindow('/');
         })
     );

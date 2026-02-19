@@ -58,7 +58,17 @@ export const requestNotificationPermission = async () => {
 // Handle foreground messages
 onMessage(messaging, (payload) => {
     console.log('Foreground message received: ', payload);
-    // You could show a custom toast here if needed
+
+    // Show a browser notification even if the app is open
+    const title = payload.notification?.title || payload.data?.title || 'New Signal';
+    const body = payload.notification?.body || payload.data?.body || 'Check your signals';
+
+    if (Notification.permission === 'granted') {
+        new Notification(title, {
+            body: body,
+            icon: '/logo192.png'
+        });
+    }
 });
 
 export { messaging };
