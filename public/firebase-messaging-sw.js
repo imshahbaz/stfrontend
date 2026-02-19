@@ -28,7 +28,6 @@ function getNotificationData(payload) {
         options: {
             body: body,
             icon: '/logo192.png',
-            badge: '/logo192.png',
             vibrate: [200, 100, 200],
             tag: 'shahbaz-trades-signal',
             renotify: true,
