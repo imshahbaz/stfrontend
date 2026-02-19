@@ -12,10 +12,13 @@ import {
   ShieldCheck,
   Fingerprint,
   Loader2,
-  ChevronLeft
+  ChevronLeft,
+  Bell,
+  BellOff
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { userPreferenceAPI, userAPI } from '../api/axios';
+import { requestNotificationPermission } from '../firebase';
 import StatusAlert from './shared/StatusAlert';
 import { cn } from '../lib/utils';
 
@@ -31,12 +34,28 @@ const Settings = () => {
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
 
+  const [notificationPermission, setNotificationPermission] = useState(
+    'Notification' in window ? Notification.permission : 'unsupported'
+  );
+
   const [profileSuccess, setProfileSuccess] = useState('');
   const [profileError, setProfileError] = useState('');
   const [securitySuccess, setSecuritySuccess] = useState('');
   const [securityError, setSecurityError] = useState('');
 
   const [loading, setLoading] = useState(false);
+
+  const handleEnableNotifications = async () => {
+    setLoading(true);
+    const token = await requestNotificationPermission();
+    if (token) {
+      setNotificationPermission('granted');
+      setProfileSuccess('Notifications enabled successfully');
+    } else {
+      setProfileError('Failed to enable notifications. Please check your browser settings.');
+    }
+    setLoading(false);
+  };
 
   useEffect(() => {
     if (user) {
@@ -327,6 +346,53 @@ const Settings = () => {
                 </form>
               </div>
             )}
+            {/* NOTIFICATIONS SECTION */}
+            <div className="p-8 rounded-[2.5rem] bg-card border border-border shadow-xl shadow-black/5">
+              <div className="flex items-center gap-3 mb-8">
+                <Bell className="text-primary h-6 w-6" />
+                <h2 className="text-xl font-black tracking-tight">Push Notifications</h2>
+              </div>
+
+              <div className="space-y-6 text-center">
+                <div className={cn(
+                  "p-6 rounded-3xl border-2 transition-all",
+                  notificationPermission === 'granted'
+                    ? "bg-green-500/10 border-green-500/20 text-green-500"
+                    : "bg-muted/30 border-border/50 text-muted-foreground"
+                )}>
+                  {notificationPermission === 'granted' ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <ShieldCheck size={32} />
+                      <p className="font-bold">Notifications Active</p>
+                      <p className="text-xs opacity-70">You will receive real-time updates on this device</p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2">
+                      <BellOff size={32} />
+                      <p className="font-bold">Notifications Inactive</p>
+                      <p className="text-xs opacity-70">Turn on to stay updated with trading signals</p>
+                    </div>
+                  )}
+                </div>
+
+                {notificationPermission !== 'granted' && notificationPermission !== 'unsupported' && (
+                  <button
+                    onClick={handleEnableNotifications}
+                    disabled={loading}
+                    className="btn btn-primary w-full h-14 rounded-2xl font-black text-lg shadow-xl shadow-primary/20"
+                  >
+                    {loading ? <Loader2 className="animate-spin mr-2" /> : <Bell className="mr-2" />}
+                    Enable Notifications
+                  </button>
+                )}
+
+                {notificationPermission === 'unsupported' && (
+                  <p className="text-sm font-bold text-destructive">
+                    Your browser does not support push notifications.
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
         </motion.div>
       </div>

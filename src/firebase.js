@@ -15,24 +15,35 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const messaging = getMessaging(app);
 
+import { onMessage } from "firebase/messaging";
+
 export const requestNotificationPermission = async () => {
     try {
+        if (!('serviceWorker' in navigator) || !('Notification' in window)) {
+            console.error('Browser does not support service workers or notifications');
+            return null;
+        }
+
         const permission = await Notification.requestPermission();
         if (permission === 'granted') {
-            // Register service worker with config parameters
             const swConfig = new URLSearchParams({
                 apiKey: firebaseConfig.apiKey,
+                authDomain: firebaseConfig.authDomain,
                 projectId: firebaseConfig.projectId,
+                storageBucket: firebaseConfig.storageBucket,
                 messagingSenderId: firebaseConfig.messagingSenderId,
                 appId: firebaseConfig.appId,
             }).toString();
 
-            const registration = await navigator.serviceWorker.register(`/firebase-messaging-sw.js?${swConfig}`);
+            const registration = await navigator.serviceWorker.register(`/firebase-messaging-sw.js?${swConfig}`, {
+                scope: '/'
+            });
 
             const token = await getToken(messaging, {
                 serviceWorkerRegistration: registration,
-                vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY || 'YOUR_PUBLIC_VAPID_KEY'
+                vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY
             });
+
             if (token) {
                 await notificationAPI.saveToken(token);
                 return token;
@@ -43,5 +54,11 @@ export const requestNotificationPermission = async () => {
     }
     return null;
 };
+
+// Handle foreground messages
+onMessage(messaging, (payload) => {
+    console.log('Foreground message received: ', payload);
+    // You could show a custom toast here if needed
+});
 
 export { messaging };

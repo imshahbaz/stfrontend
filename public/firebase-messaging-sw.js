@@ -6,7 +6,9 @@ const urlParams = new URL(location).searchParams;
 
 firebase.initializeApp({
     apiKey: urlParams.get('apiKey'),
+    authDomain: urlParams.get('authDomain'),
     projectId: urlParams.get('projectId'),
+    storageBucket: urlParams.get('storageBucket'),
     messagingSenderId: urlParams.get('messagingSenderId'),
     appId: urlParams.get('appId')
 });
