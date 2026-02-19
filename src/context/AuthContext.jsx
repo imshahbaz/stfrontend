@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect, useContext, useRef } from 'react';
 import { authAPI } from '../api/axios';
 import { googleLogout } from '@react-oauth/google';
+import { requestNotificationPermission } from '../firebase';
 
 const AuthContext = createContext(null);
 const CONFIG_CACHE_KEY = 'app_global_config';
@@ -85,6 +86,13 @@ export const AuthProvider = ({ children }) => {
             window.removeEventListener('auth-expired', handleExpiry);
         };
     }, []);
+
+    // Trigger FCM token registration on successful login
+    useEffect(() => {
+        if (user) {
+            requestNotificationPermission();
+        }
+    }, [user]);
 
     const login = (userData, showLoading = true) => {
         if (showLoading) { setAuthLoading(true) }

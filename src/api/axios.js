@@ -122,6 +122,10 @@ export const strategyOrderAPI = {
   deleteOrder: (id) => api.delete(`/api/strategy-order/${id}`),
 }
 
+export const notificationAPI = {
+  saveToken: (token) => api.patch('/api/user/fcm-token', { token: token }),
+};
+
 export const mstockAPI = {
   login: (apiKey, password, username) => api.post('/api/mstock/login',
     { apiKey: apiKey, password: password, username: username },
