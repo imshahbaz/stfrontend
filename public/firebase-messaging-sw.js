@@ -22,6 +22,7 @@ const messaging = firebase.messaging();
 function getNotificationData(payload) {
     const title = payload.notification?.title || payload.data?.title || 'New Signal';
     const body = payload.notification?.body || payload.data?.body || 'Check the app for updates';
+    const tag = Date.now().toString();
 
     return {
         title,
@@ -30,7 +31,7 @@ function getNotificationData(payload) {
             icon: '/logo192.png',
             badge: '/badge.png',
             vibrate: [200, 100, 200],
-            tag: 'shahbaz-trades-signal',
+            tag: tag,
             renotify: true,
             data: {
                 url: payload.data?.url || '/'
