@@ -17,8 +17,6 @@ firebase.initializeApp({
     appId: urlParams.get('appId')
 });
 
-const messaging = firebase.messaging();
-
 function getNotificationData(payload) {
     const title = payload.notification?.title || payload.data?.title || 'New Signal';
     const body = payload.notification?.body || payload.data?.body || 'Check the app for updates';
@@ -39,12 +37,6 @@ function getNotificationData(payload) {
         }
     };
 }
-
-// Handler for Firebase library
-// messaging.onBackgroundMessage((payload) => {
-//     const { title, options } = getNotificationData(payload);
-//     return self.registration.showNotification(title, options);
-// });
 
 // Native push listener for maximum stability on Android
 self.addEventListener('push', (event) => {
