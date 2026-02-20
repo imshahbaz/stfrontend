@@ -28,6 +28,7 @@ function getNotificationData(payload) {
         options: {
             body: body,
             icon: '/logo192.png',
+            badge: '/badge.png',
             vibrate: [200, 100, 200],
             tag: 'shahbaz-trades-signal',
             renotify: true,
@@ -40,14 +41,12 @@ function getNotificationData(payload) {
 
 // Handler for Firebase library
 messaging.onBackgroundMessage((payload) => {
-    console.log('[SW] Background Message:', payload);
     const { title, options } = getNotificationData(payload);
     return self.registration.showNotification(title, options);
 });
 
 // Native push listener for maximum stability on Android
 self.addEventListener('push', (event) => {
-    console.log('[SW] Push Received');
     let payload = {};
     if (event.data) {
         try {
