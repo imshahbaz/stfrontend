@@ -22,7 +22,7 @@ const messaging = firebase.messaging();
 function getNotificationData(payload) {
     const title = payload.notification?.title || payload.data?.title || 'New Signal';
     const body = payload.notification?.body || payload.data?.body || 'Check the app for updates';
-    const tag = Date.now().toString();
+    const tag = payload.data?.tag || 'shahbaz-trades-signal';
 
     return {
         title,
@@ -46,22 +46,22 @@ messaging.onBackgroundMessage((payload) => {
     return self.registration.showNotification(title, options);
 });
 
-// Native push listener for maximum stability on Android
-self.addEventListener('push', (event) => {
-    let payload = {};
-    if (event.data) {
-        try {
-            payload = event.data.json();
-        } catch (e) {
-            console.warn('[SW] Push data was not JSON');
-        }
-    }
+// // Native push listener for maximum stability on Android
+// self.addEventListener('push', (event) => {
+//     let payload = {};
+//     if (event.data) {
+//         try {
+//             payload = event.data.json();
+//         } catch (e) {
+//             console.warn('[SW] Push data was not JSON');
+//         }
+//     }
 
-    const { title, options } = getNotificationData(payload);
-    event.waitUntil(
-        self.registration.showNotification(title, options)
-    );
-});
+//     const { title, options } = getNotificationData(payload);
+//     event.waitUntil(
+//         self.registration.showNotification(title, options)
+//     );
+// });
 
 // Handle notification click
 self.addEventListener('notificationclick', (event) => {
