@@ -41,27 +41,27 @@ function getNotificationData(payload) {
 }
 
 // Handler for Firebase library
-messaging.onBackgroundMessage((payload) => {
-    const { title, options } = getNotificationData(payload);
-    return self.registration.showNotification(title, options);
-});
-
-// // Native push listener for maximum stability on Android
-// self.addEventListener('push', (event) => {
-//     let payload = {};
-//     if (event.data) {
-//         try {
-//             payload = event.data.json();
-//         } catch (e) {
-//             console.warn('[SW] Push data was not JSON');
-//         }
-//     }
-
+// messaging.onBackgroundMessage((payload) => {
 //     const { title, options } = getNotificationData(payload);
-//     event.waitUntil(
-//         self.registration.showNotification(title, options)
-//     );
+//     return self.registration.showNotification(title, options);
 // });
+
+// Native push listener for maximum stability on Android
+self.addEventListener('push', (event) => {
+    let payload = {};
+    if (event.data) {
+        try {
+            payload = event.data.json();
+        } catch (e) {
+            console.warn('[SW] Push data was not JSON');
+        }
+    }
+
+    const { title, options } = getNotificationData(payload);
+    event.waitUntil(
+        self.registration.showNotification(title, options)
+    );
+});
 
 // Handle notification click
 self.addEventListener('notificationclick', (event) => {
