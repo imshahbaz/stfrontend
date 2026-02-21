@@ -319,22 +319,25 @@ const ZerodhaDashboard = () => {
                 response = await strategyOrderAPI.deleteOrder(orderToDelete);
             }
 
-            if (response.status === 200) {
+            if (response.status >= 200 && response.status < 300) {
                 setOrderSuccess(`${deleteType === 'mtf' ? 'Order' : 'Strategy'} deleted successfully!`);
 
                 if (deleteType === 'mtf') {
-                    if (isEditing && editingOrder?.id === orderToDelete) {
+                    setOrders(prev => prev.filter(order => (order.id || order._id) !== orderToDelete));
+
+                    if (isEditing && (editingOrder?.id === orderToDelete || editingOrder?._id === orderToDelete)) {
                         resetForm();
                     }
-                    fetchOrders();
+                    await fetchOrders();
                 } else {
-                    if (isEditingStrategy && editingStrategyOrder?.id === orderToDelete) {
+                    setStrategyOrders(prev => prev.filter(order => (order.id || order._id) !== orderToDelete));
+
+                    if (isEditingStrategy && (editingStrategyOrder?.id === orderToDelete || editingStrategyOrder?._id === orderToDelete)) {
                         resetStrategyForm();
                     }
                     setHistorySubTab('strategy');
-                    fetchStrategyOrders();
+                    await fetchStrategyOrders();
                 }
-
             }
         } catch (err) {
             setOrderError(err.response?.data?.message || `Failed to delete ${deleteType === 'mtf' ? 'order' : 'strategy'}.`);
