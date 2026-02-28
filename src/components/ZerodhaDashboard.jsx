@@ -402,7 +402,7 @@ const ZerodhaDashboard = () => {
         setOrderError('');
 
         const payload = {
-            strategyName: 'RSI15MIN',
+            strategyName: strategyFormData.strategyName,
             amount: parseFloat(strategyFormData.amount),
             date: strategyFormData.date,
             userId: 0,
@@ -863,7 +863,24 @@ const ZerodhaDashboard = () => {
                                         </form>
                                     ) : (
                                         <form onSubmit={handleStrategyOrderSubmit} className="space-y-6">
-                                            {/* Strategy is hardcoded to RSI15MIN */}
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Select Strategy</label>
+                                                <div className="relative group">
+                                                    <Layers className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                                                    <select
+                                                        required
+                                                        className="w-full pl-12 pr-10 h-14 md:h-16 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/20 focus:bg-background transition-all font-black text-sm md:text-lg outline-none appearance-none cursor-pointer"
+                                                        value={strategyFormData.strategyName}
+                                                        onChange={(e) => setStrategyFormData({ ...strategyFormData, strategyName: e.target.value })}
+                                                    >
+                                                        <option value="RSI15MIN" className="bg-background text-foreground font-black">RSI15MIN</option>
+                                                        <option value="MACD15MIN" className="bg-background text-foreground font-black">MACD15MIN</option>
+                                                    </select>
+                                                    <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                        <Settings className="h-4 w-4 text-muted-foreground" />
+                                                    </div>
+                                                </div>
+                                            </div>
 
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                 <div className="space-y-2">
