@@ -29,7 +29,7 @@ const SystemConfigTab = () => {
         setConfigError('');
         try {
             const response = await configAPI.getConfig();
-            setConfigJson(JSON.stringify(response.data, null, 2));
+            setConfigJson(JSON.stringify(response.data.data, null, 2));
             setConfigSuccess('Configuration loaded');
         } catch (error) {
             setConfigError('Failed to load system config');

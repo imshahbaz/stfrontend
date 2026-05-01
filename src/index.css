@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -23,11 +23,11 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --color-primary-dark: #A78BFA;
+  --color-primary-dark: #6366f1;
 
-  --radius-xl: 16px;
-  --radius-lg: 12px;
-  --radius-md: 10px;
+  --radius-xl: 20px;
+  --radius-lg: 16px;
+  --radius-md: 12px;
 
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
@@ -36,7 +36,6 @@
     from {
       height: 0;
     }
-
     to {
       height: var(--radix-accordion-content-height);
     }
@@ -46,13 +45,13 @@
     from {
       height: var(--radix-accordion-content-height);
     }
-
     to {
       height: 0;
     }
   }
 
-  --shadow-primary-glow: 0px 4px 12px rgba(124, 58, 237, 0.3);
+  --shadow-primary-glow: 0px 0px 20px rgba(0, 240, 255, 0.4);
+  --shadow-card-hover: 0px 10px 40px rgba(0, 0, 0, 0.5);
 }
 
 @layer base {
@@ -66,6 +65,10 @@
     @apply bg-background text-foreground font-sans antialiased;
     -ms-overflow-style: none;
     scrollbar-width: none;
+    background-image: 
+      radial-gradient(circle at 15% 50%, rgba(0, 240, 255, 0.05), transparent 25%),
+      radial-gradient(circle at 85% 30%, rgba(124, 58, 237, 0.05), transparent 25%);
+    background-attachment: fixed;
   }
 
   body::-webkit-scrollbar {
@@ -75,18 +78,21 @@
 
 @layer components {
   .card {
-    @apply bg-card text-card-foreground border border-border rounded-xl shadow-none;
+    @apply bg-card text-card-foreground border border-border rounded-xl shadow-none backdrop-blur-xl;
+  }
+
+  .glass-card {
+    @apply bg-card/60 backdrop-blur-2xl border border-white/10 rounded-[20px] shadow-2xl;
   }
 
   .btn {
-    @apply inline-flex items-center justify-center rounded-md px-6 py-2.5 font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 disabled:opacity-50 disabled:pointer-events-none cursor-pointer;
+    @apply inline-flex items-center justify-center rounded-lg px-6 py-3 font-bold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 disabled:opacity-50 disabled:pointer-events-none cursor-pointer;
   }
 
   .btn-primary {
-    @apply bg-primary text-white shadow-primary-glow hover:bg-primary/90 focus-visible:ring-primary;
+    @apply bg-gradient-to-r from-[#00F0FF] to-[#0080FF] text-black shadow-primary-glow hover:scale-[1.02] focus-visible:ring-primary;
   }
 
-  /* Custom Date Picker Styling */
   input[type="date"]::-webkit-calendar-picker-indicator {
     background: transparent;
     bottom: 0;
@@ -103,7 +109,6 @@
   input[type="date"] {
     position: relative;
     color-scheme: dark;
-    /* Force dark mode calendar popup if using dark theme */
   }
 
   .dark input[type="date"] {
@@ -115,7 +120,7 @@
   }
 
   .input {
-    @apply flex h-12 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply flex h-12 w-full rounded-xl border border-border bg-background/50 backdrop-blur-md px-4 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all;
   }
 
   .scrollbar-hide {
@@ -129,45 +134,45 @@
 }
 
 :root {
-  --background: #FFFFFF;
-  --foreground: #111827;
-  --card: #F9FAFB;
-  --card-foreground: #111827;
+  --background: #F8FAFC;
+  --foreground: #0F172A;
+  --card: #FFFFFF;
+  --card-foreground: #0F172A;
   --popover: #FFFFFF;
-  --popover-foreground: #111827;
-  --primary: #7C3AED;
+  --popover-foreground: #0F172A;
+  --primary: #0080FF;
   --primary-foreground: #FFFFFF;
-  --secondary: #111827;
-  --secondary-foreground: #FFFFFF;
-  --muted: #F3F4F6;
-  --muted-foreground: #4B5563;
-  --accent: #F3F4F6;
-  --accent-foreground: #111827;
+  --secondary: #E2E8F0;
+  --secondary-foreground: #0F172A;
+  --muted: #F1F5F9;
+  --muted-foreground: #64748B;
+  --accent: #F1F5F9;
+  --accent-foreground: #0F172A;
   --destructive: #EF4444;
-  --destructive-foreground: #F9FAFB;
-  --border: #E5E7EB;
-  --input: #E5E7EB;
-  --ring: #7C3AED;
+  --destructive-foreground: #FFFFFF;
+  --border: #E2E8F0;
+  --input: #E2E8F0;
+  --ring: #0080FF;
 }
 
 .dark {
-  --background: #000000;
-  --foreground: #FFFFFF;
-  --card: #111827;
-  --card-foreground: #FFFFFF;
-  --popover: #111827;
-  --popover-foreground: #FFFFFF;
-  --primary: #A78BFA;
-  --primary-foreground: #000000;
-  --secondary: #F3F4F6;
-  --secondary-foreground: #111827;
-  --muted: #1F2937;
-  --muted-foreground: #9CA3AF;
-  --accent: #1F2937;
-  --accent-foreground: #FFFFFF;
-  --destructive: #F87171;
-  --destructive-foreground: #F9FAFB;
-  --border: #1F2937;
-  --input: #1F2937;
-  --ring: #A78BFA;
+  --background: #0B0E14;
+  --foreground: #F8FAFC;
+  --card: rgba(21, 26, 34, 0.7);
+  --card-foreground: #F8FAFC;
+  --popover: #151A22;
+  --popover-foreground: #F8FAFC;
+  --primary: #00F0FF;
+  --primary-foreground: #0B0E14;
+  --secondary: #1E293B;
+  --secondary-foreground: #F8FAFC;
+  --muted: #1E2430;
+  --muted-foreground: #94A3B8;
+  --accent: #1E293B;
+  --accent-foreground: #F8FAFC;
+  --destructive: #FF3366;
+  --destructive-foreground: #FFFFFF;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.05);
+  --ring: #00F0FF;
 }
