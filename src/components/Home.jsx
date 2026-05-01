@@ -43,7 +43,7 @@ const Home = () => {
       description: 'Manage your mStock API connection and authentication status.',
       icon: TrendingUp,
       path: '/mstock/dashboard',
-      show: true
+      show: false
     }
   ].filter(action => action.show);
 
