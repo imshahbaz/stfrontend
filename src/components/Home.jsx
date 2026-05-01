@@ -15,7 +15,7 @@ const Home = () => {
       description: 'Scan and analyze the market with our advanced strategy tools.',
       icon: TrendingUp,
       path: '/strategies',
-      show: true
+      show: false
     },
     {
       title: 'Calculator',
@@ -67,28 +67,13 @@ const Home = () => {
           className="lg:col-span-2 glass-card p-8 relative overflow-hidden flex flex-col justify-center"
         >
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -mr-20 -mt-20"></div>
-          
+
           <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-2 text-foreground relative z-10">
-            {user ? `Welcome back, ${user.name || user.email.split('@')[0]}` : 'Welcome to Shahbaz Trades'}
+            {user ? `Welcome back, ${user.name || user.email.split('@')[0]}` : 'Welcome to 1Klik'}
           </h1>
           <p className="text-muted-foreground text-lg mb-8 relative z-10">
             Your comprehensive crypto and trading dashboard.
           </p>
-
-          <div className="flex flex-col md:flex-row gap-6 relative z-10">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground mb-1">Total Balance</p>
-              <div className="flex items-baseline gap-3">
-                <span className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary to-[#0080FF]">
-                  $124,592.50
-                </span>
-                <span className="flex items-center text-sm font-bold text-[#00FF9D] bg-[#00FF9D]/10 px-2 py-1 rounded-full">
-                  <ArrowUpRight className="h-4 w-4 mr-1" />
-                  +2.45%
-                </span>
-              </div>
-            </div>
-          </div>
         </motion.div>
 
         {/* Quick Stats */}
@@ -107,13 +92,14 @@ const Home = () => {
             <p className="text-3xl font-bold mb-1 text-foreground">Bullish</p>
             <p className="text-sm text-[#00FF9D]">Global Volume +12.4%</p>
           </div>
-          
+
           <div className="mt-6">
-            <button 
+            <button
               onClick={() => navigate('/strategies')}
-              className="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl font-bold text-foreground transition-all flex justify-center items-center gap-2"
+              className="w-full py-3 bg-white/5 hover:bg-primary/10 border border-white/10 hover:border-primary/50 rounded-xl font-bold text-foreground transition-all duration-300 flex justify-center items-center gap-2 hover:shadow-[0_0_20px_rgba(0,240,255,0.3)] hover:text-primary group overflow-hidden relative"
             >
-              View Screener <ArrowUpRight size={16} />
+              <span className="relative z-10 flex items-center gap-2">View Screener <ArrowUpRight size={16} className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" /></span>
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/10 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-md"></div>
             </button>
           </div>
         </motion.div>

@@ -56,7 +56,7 @@ const Header = ({ toggleTheme, theme }) => {
               <TrendingUp className="h-5 w-5 text-white" />
             </div>
             <span className="text-xl font-black tracking-tighter md:text-2xl">
-              SHAHBAZ<span className="text-primary">TRADES</span>
+              1<span className="text-primary">Klik</span>
             </span>
           </Link>
 
@@ -153,7 +153,7 @@ const Header = ({ toggleTheme, theme }) => {
                         {user ? (user.name || user.email.split('@')[0]) : 'Guest'}
                       </Dialog.Title>
                       <Dialog.Description className="text-sm text-muted-foreground mt-1">
-                        {user ? user.role : 'Welcome to Shahbaz Trades'}
+                        {user ? user.role : 'Welcome to 1Klik'}
                       </Dialog.Description>
                     </div>
 

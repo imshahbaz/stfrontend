@@ -20,7 +20,7 @@ firebase.initializeApp({
 function getNotificationData(payload) {
     const title = payload.notification?.title || payload.data?.title || 'New Signal';
     const body = payload.notification?.body || payload.data?.body || 'Check the app for updates';
-    const tag = payload.data?.tag || 'shahbaz-trades-signal';
+    const tag = payload.data?.tag || '1klik-signal';
 
     return {
         title,
