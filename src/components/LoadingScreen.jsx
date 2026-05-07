@@ -28,17 +28,17 @@ const LoadingScreen = () => {
               "drop-shadow(0 0 15px rgba(124, 58, 237, 0.3))"
             ]
           }}
-          transition={{ 
+          transition={{
             opacity: { duration: 1, ease: "easeOut" },
-            scale: { 
-              duration: 5, 
-              repeat: Infinity, 
-              ease: "easeInOut" 
+            scale: {
+              duration: 5,
+              repeat: Infinity,
+              ease: "easeInOut"
             },
-            filter: { 
-              duration: 5, 
-              repeat: Infinity, 
-              ease: "easeInOut" 
+            filter: {
+              duration: 5,
+              repeat: Infinity,
+              ease: "easeInOut"
             }
           }}
           className="flex h-32 w-32 items-center justify-center"
@@ -58,7 +58,7 @@ const LoadingScreen = () => {
             transition={{ delay: 0.2 }}
             className="text-4xl font-black tracking-tight"
           >
-            SHAHBAZ<span className="text-primary">TRADES</span>
+            1<span className="text-primary">Klik</span>
           </motion.h1>
           <motion.p
             initial={{ y: 10, opacity: 0 }}

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const APP_KEY = import.meta.env.VITE_TRUECALLER_APP_KEY;
-const APP_NAME = "Shahbaz Trades";
+const APP_NAME = "1Klik";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_BACKEND_URL,

@@ -117,7 +117,7 @@ const Login = () => {
 
       <div className="text-center mt-8">
         <p className="text-sm font-semibold text-muted-foreground">
-          New to Shahbaz Trades?{' '}
+          New to 1Klik?{' '}
           <Link to="/signup" className="text-primary font-black hover:underline underline-offset-4 transition-colors">
             Create Account
           </Link>

@@ -594,10 +594,10 @@ const ZerodhaDashboard = () => {
                                                     <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">App Name</span>
                                                     <div className="flex items-center gap-2">
                                                         <div className="flex-1 p-3 rounded-xl bg-muted/50 border border-border/50 font-mono text-[10px] select-all">
-                                                            Shahbaz Trades
+                                                            1Klik
                                                         </div>
                                                         <button
-                                                            onClick={() => handleCopy("Shahbaz Trades", "app")}
+                                                            onClick={() => handleCopy("1Klik", "app")}
                                                             className="p-3 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all shrink-0"
                                                         >
                                                             {copiedField === "app" ? <Check size={14} /> : <Copy size={14} />}

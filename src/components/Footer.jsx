@@ -8,7 +8,7 @@ const Footer = () => {
       <p className="text-sm text-muted-foreground">
         &copy; {currentYear}{' '}
         <Link to="/" className="text-foreground hover:text-primary underline-offset-4 hover:underline transition-colors font-medium">
-          Shahbaz Trades Application
+          1Klik by Shahbaz
         </Link>
         . All rights reserved.
       </p>
