@@ -137,4 +137,8 @@ export const mstockAPI = {
   logout: () => api.post('/api/mstock/logout'),
 }
 
+export const angelOneApi = {
+  getLtp: (token) => api.get(`/api/angelone/ltp?token=${token}`),
+}
+
 export default api;
