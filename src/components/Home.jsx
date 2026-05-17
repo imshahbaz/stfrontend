@@ -1,13 +1,59 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TrendingUp, Calculator, Grid3X3, Zap, ArrowUpRight, Activity } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ActionCard from './shared/ActionCard';
 import { useAuth } from '../context/AuthContext';
+import { angelOneApi } from '../api/axios';
 
 const Home = () => {
   const navigate = useNavigate();
   const { user, appConfig } = useAuth();
+
+  const [marketStatus, setMarketStatus] = useState({
+    status: 'Loading...',
+    color: 'text-muted-foreground',
+    details: 'Fetching data...'
+  });
+
+  useEffect(() => {
+    const fetchMarketStatus = async () => {
+      try {
+        const response = await angelOneApi.getLtp("99926033");
+        if (response.data && response.data.success && response.data.data) {
+          const { ltp, close, tradingSymbol } = response.data.data;
+          const change = ltp - close;
+          const percentChange = ((change / close) * 100).toFixed(2);
+
+          if (change >= 0) {
+            setMarketStatus({
+              status: 'Bullish',
+              color: 'text-[#00FF9D]',
+              details: `${tradingSymbol} +${percentChange}%`
+            });
+          } else {
+            setMarketStatus({
+              status: 'Bearish',
+              color: 'text-[#FF0055]',
+              details: `${tradingSymbol} ${percentChange}%`
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch market status", error);
+        setMarketStatus({
+          status: 'Unknown',
+          color: 'text-muted-foreground',
+          details: 'Data unavailable'
+        });
+      }
+    };
+
+    fetchMarketStatus();
+    const intervalId = setInterval(fetchMarketStatus, 30000);
+
+    return () => clearInterval(intervalId);
+  }, []);
 
   const actions = [
     {
@@ -89,8 +135,8 @@ const Home = () => {
                 <Activity size={20} />
               </div>
             </div>
-            <p className="text-3xl font-bold mb-1 text-foreground">Bullish</p>
-            <p className="text-sm text-[#00FF9D]">Global Volume +12.4%</p>
+            <p className="text-3xl font-bold mb-1 text-foreground">{marketStatus.status}</p>
+            <p className={`text-sm ${marketStatus.color}`}>{marketStatus.details}</p>
           </div>
 
           <div className="mt-6">
