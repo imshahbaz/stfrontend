@@ -1,10 +1,8 @@
 import { createContext, useContext, useCallback, useEffect, useState } from 'react';
 import apiClient from '../api/client';
-import { mockLogin } from '../api/mockAuth';
 
 const AuthContext = createContext(null);
 
-const USE_MOCK_AUTH = import.meta.env.VITE_USE_MOCK_AUTH === 'true';
 const LOGIN_ENDPOINT = import.meta.env.VITE_LOGIN_ENDPOINT || '/api/auth/login';
 const ME_ENDPOINT = import.meta.env.VITE_ME_ENDPOINT || '/api/auth/me';
 
@@ -38,10 +36,6 @@ export function AuthProvider({ children }) {
     let active = true;
 
     async function restoreSession() {
-      if (USE_MOCK_AUTH) {
-        if (active) setInitializing(false);
-        return;
-      }
       try {
         const { data } = await apiClient.get(ME_ENDPOINT);
         if (!active) return;
@@ -69,15 +63,6 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(
     async (email, password) => {
-      if (USE_MOCK_AUTH) {
-        const mock = await mockLogin(email, password);
-        if (mock.data.role !== 'ADMIN') {
-          throw new Error('Only admin users can access this panel');
-        }
-        applySession(mock.data);
-        return mock;
-      }
-
       const { data } = await apiClient.post(LOGIN_ENDPOINT, { email, password });
       if (!data.success || !data.data) {
         throw new Error(data.message || data.error || 'Login failed');

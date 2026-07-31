@@ -80,9 +80,6 @@ export default function Login() {
               placeholder="••••••••"
             />
           </div>
-          <p className="mb-6 rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-center text-sm text-slate-400">
-            Demo credentials: <span className="font-medium text-slate-200">admin</span> / <span className="font-medium text-slate-200">pass</span>
-          </p>
           {error && (
             <p className="mb-4 rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-400">
               {error}
