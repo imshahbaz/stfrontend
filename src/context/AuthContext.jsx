@@ -1,0 +1,112 @@
+import { createContext, useContext, useCallback, useEffect, useState } from 'react';
+import apiClient from '../api/client';
+import { mockLogin } from '../api/mockAuth';
+
+const AuthContext = createContext(null);
+
+const USE_MOCK_AUTH = import.meta.env.VITE_USE_MOCK_AUTH === 'true';
+const LOGIN_ENDPOINT = import.meta.env.VITE_LOGIN_ENDPOINT || '/api/auth/login';
+const ME_ENDPOINT = import.meta.env.VITE_ME_ENDPOINT || '/api/auth/me';
+
+function toStoredUser(data) {
+  return {
+    userId: data.userId,
+    email: data.email,
+    username: data.username,
+    name: data.name,
+    role: data.role,
+    theme: data.theme,
+    mobile: data.mobile,
+    profile: data.profile,
+  };
+}
+
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(() => {
+    const stored = localStorage.getItem('klikpanel_user');
+    return stored ? JSON.parse(stored) : null;
+  });
+  const [initializing, setInitializing] = useState(true);
+
+  const applySession = useCallback((data) => {
+    const normalized = toStoredUser(data);
+    setUser(normalized);
+    localStorage.setItem('klikpanel_user', JSON.stringify(normalized));
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    async function restoreSession() {
+      if (USE_MOCK_AUTH) {
+        if (active) setInitializing(false);
+        return;
+      }
+      try {
+        const { data } = await apiClient.get(ME_ENDPOINT);
+        if (!active) return;
+        if (data.success && data.data && data.data.role === 'ADMIN') {
+          applySession(data.data);
+        } else {
+          setUser(null);
+          localStorage.removeItem('klikpanel_user');
+        }
+      } catch {
+        if (active) {
+          setUser(null);
+          localStorage.removeItem('klikpanel_user');
+        }
+      } finally {
+        if (active) setInitializing(false);
+      }
+    }
+
+    restoreSession();
+    return () => {
+      active = false;
+    };
+  }, [applySession]);
+
+  const login = useCallback(
+    async (email, password) => {
+      if (USE_MOCK_AUTH) {
+        const mock = await mockLogin(email, password);
+        if (mock.data.role !== 'ADMIN') {
+          throw new Error('Only admin users can access this panel');
+        }
+        applySession(mock.data);
+        return mock;
+      }
+
+      const { data } = await apiClient.post(LOGIN_ENDPOINT, { email, password });
+      if (!data.success || !data.data) {
+        throw new Error(data.message || data.error || 'Login failed');
+      }
+      if (data.data.role !== 'ADMIN') {
+        throw new Error('Only admin users can access this panel');
+      }
+      applySession(data.data);
+      return data;
+    },
+    [applySession]
+  );
+
+  const logout = useCallback(() => {
+    setUser(null);
+    localStorage.removeItem('klikpanel_user');
+  }, []);
+
+  return (
+    <AuthContext.Provider value={{ user, initializing, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}
