@@ -1,11 +1,11 @@
 import { createContext, useContext, useCallback, useEffect, useState } from 'react';
-import apiClient from '../api/client';
+import { login as loginRequest, fetchCurrentUser } from '../api/service';
 
 const AuthContext = createContext(null);
 
-const LOGIN_ENDPOINT = import.meta.env.VITE_LOGIN_ENDPOINT || '/api/auth/login';
-const ME_ENDPOINT = import.meta.env.VITE_ME_ENDPOINT || '/api/auth/me';
-
+/**
+ * @param {import('../api/types').User} data
+ */
 function toStoredUser(data) {
   return {
     userId: data.userId,
@@ -37,10 +37,10 @@ export function AuthProvider({ children }) {
 
     async function restoreSession() {
       try {
-        const { data } = await apiClient.get(ME_ENDPOINT);
+        const userData = await fetchCurrentUser();
         if (!active) return;
-        if (data.success && data.data && data.data.role === 'ADMIN') {
-          applySession(data.data);
+        if (userData.role === 'ADMIN') {
+          applySession(userData);
         } else {
           setUser(null);
           localStorage.removeItem('klikpanel_user');
@@ -63,15 +63,12 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(
     async (email, password) => {
-      const { data } = await apiClient.post(LOGIN_ENDPOINT, { email, password });
-      if (!data.success || !data.data) {
-        throw new Error(data.message || data.error || 'Login failed');
-      }
-      if (data.data.role !== 'ADMIN') {
+      const userData = await loginRequest({ email, password });
+      if (userData.role !== 'ADMIN') {
         throw new Error('Only admin users can access this panel');
       }
-      applySession(data.data);
-      return data;
+      applySession(userData);
+      return userData;
     },
     [applySession]
   );
