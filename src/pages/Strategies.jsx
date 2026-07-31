@@ -267,38 +267,19 @@ export default function Strategies() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="mb-1 block text-sm text-slate-400">Time Frame</label>
-                  <select
-                    value={form.timeFrame}
-                    onChange={(e) => setForm({ ...form, timeFrame: e.target.value })}
-                    className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white outline-none transition focus:border-indigo-500"
-                  >
-                    {TIMEFRAMES.map((tf) => (
-                      <option key={tf} value={tf}>
-                        {tf}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="mb-1 block text-sm text-slate-400">
-                    Success Rate ({form.successRate != null ? (form.successRate * 100).toFixed(1) : 0}%)
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="1"
-                    step="0.01"
-                    value={form.successRate}
-                    onChange={(e) =>
-                      setForm({ ...form, successRate: Number(e.target.value) })
-                    }
-                    className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white outline-none transition focus:border-indigo-500"
-                  />
-                </div>
+              <div>
+                <label className="mb-1 block text-sm text-slate-400">Time Frame</label>
+                <select
+                  value={form.timeFrame}
+                  onChange={(e) => setForm({ ...form, timeFrame: e.target.value })}
+                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white outline-none transition focus:border-indigo-500"
+                >
+                  {TIMEFRAMES.map((tf) => (
+                    <option key={tf} value={tf}>
+                      {tf}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <label className="flex items-center gap-2 text-sm text-slate-300">

@@ -5,6 +5,9 @@ export const ENDPOINTS = {
   ME: '/api/auth/me',
   STRATEGIES: '/api/strategy/admin',
   STRATEGY: '/api/strategy',
+  CLIENT_CONFIG: '/api/config/client/active',
+  BACKEND_CONFIG: '/api/config/active',
+  CONFIG_RELOAD: '/api/config/reload',
 };
 
 /**
@@ -12,6 +15,7 @@ export const ENDPOINTS = {
  * @typedef {import('./types').LoginRequest} LoginRequest
  * @typedef {import('./types').User} User
  * @typedef {import('./types').Strategy} Strategy
+ * @typedef {import('./types').AppConfig} AppConfig
  */
 
 /**
@@ -82,5 +86,32 @@ export async function updateStrategy(payload) {
  */
 export async function deleteStrategy(id) {
   const response = await apiClient.delete(ENDPOINTS.STRATEGY, { params: { id } });
+  return unwrapData(response);
+}
+
+/**
+ * GET /api/config/client/active
+ * @returns {Promise<AppConfig>}
+ */
+export async function fetchClientConfig() {
+  const response = await apiClient.get(ENDPOINTS.CLIENT_CONFIG);
+  return unwrapData(response);
+}
+
+/**
+ * GET /api/config/active
+ * @returns {Promise<AppConfig>}
+ */
+export async function fetchBackendConfig() {
+  const response = await apiClient.get(ENDPOINTS.BACKEND_CONFIG);
+  return unwrapData(response);
+}
+
+/**
+ * POST /api/config/reload
+ * @returns {Promise<string>}
+ */
+export async function reloadConfig() {
+  const response = await apiClient.post(ENDPOINTS.CONFIG_RELOAD);
   return unwrapData(response);
 }

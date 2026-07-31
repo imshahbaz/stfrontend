@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
 import Home from './pages/Home';
 import Strategies from './pages/Strategies';
+import Config from './pages/Config';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 
@@ -13,6 +14,7 @@ export default function App() {
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
           <Route path="/strategies" element={<Strategies />} />
+          <Route path="/config" element={<Config />} />
         </Route>
       </Route>
     </Routes>
