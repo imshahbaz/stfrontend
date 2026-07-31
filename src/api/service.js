@@ -4,6 +4,7 @@ export const ENDPOINTS = {
   LOGIN: '/api/auth/login',
   ME: '/api/auth/me',
   STRATEGIES: '/api/strategy/admin',
+  STRATEGY: '/api/strategy',
 };
 
 /**
@@ -51,5 +52,35 @@ export async function fetchCurrentUser() {
  */
 export async function fetchStrategies() {
   const response = await apiClient.get(ENDPOINTS.STRATEGIES);
+  return unwrapData(response);
+}
+
+/**
+ * POST /api/strategy
+ * @param {StrategyInput} payload
+ * @returns {Promise<Strategy>}
+ */
+export async function createStrategy(payload) {
+  const response = await apiClient.post(ENDPOINTS.STRATEGY, payload);
+  return unwrapData(response);
+}
+
+/**
+ * PUT /api/strategy
+ * @param {StrategyInput} payload
+ * @returns {Promise<Strategy>}
+ */
+export async function updateStrategy(payload) {
+  const response = await apiClient.put(ENDPOINTS.STRATEGY, payload);
+  return unwrapData(response);
+}
+
+/**
+ * DELETE /api/strategy?id=<id>
+ * @param {string} id
+ * @returns {Promise<string>}
+ */
+export async function deleteStrategy(id) {
+  const response = await apiClient.delete(ENDPOINTS.STRATEGY, { params: { id } });
   return unwrapData(response);
 }

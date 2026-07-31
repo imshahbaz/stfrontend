@@ -12,7 +12,14 @@ export interface LoginRequest {
 
 export type Role = 'ADMIN' | (string & {});
 export type Theme = 'LIGHT' | 'DARK' | (string & {});
-export type TimeFrame = 'DAILY' | 'WEEKLY' | 'MONTHLY' | (string & {});
+export type TimeFrame =
+  | 'FIVE_MINUTE'
+  | 'FIFTEEN_MINUTE'
+  | 'HOURLY'
+  | 'DAILY'
+  | 'WEEKLY'
+  | 'MONTHLY'
+  | (string & {});
 
 export interface User {
   userId: number;
@@ -33,3 +40,5 @@ export interface Strategy {
   successRate: number;
   timeFrame: TimeFrame;
 }
+
+export type StrategyInput = Strategy;
