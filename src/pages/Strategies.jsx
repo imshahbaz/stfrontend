@@ -39,6 +39,7 @@ export default function Strategies() {
   const [form, setForm] = useState(null);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const [deletingName, setDeletingName] = useState(null);
 
   useEffect(() => {
@@ -87,6 +88,31 @@ export default function Strategies() {
     setFormError('');
   }
 
+  function openDelete(strategy) {
+    setDeleteTarget(strategy);
+    setDeletingName(null);
+  }
+
+  function closeDelete() {
+    setDeleteTarget(null);
+    setDeletingName(null);
+  }
+
+  async function handleDelete() {
+    if (!deleteTarget) return;
+    setDeletingName(deleteTarget.name);
+    try {
+      await deleteStrategy(deleteTarget.name);
+      setStrategies((prev) => prev.filter((s) => s.name !== deleteTarget.name));
+      closeDelete();
+    } catch (err) {
+      setError(err.response?.data?.message || err.response?.data?.error || 'Failed to delete strategy');
+      closeDelete();
+    } finally {
+      setDeletingName(null);
+    }
+  }
+
   async function handleSubmit(event) {
     event.preventDefault();
     setSaving(true);
@@ -104,18 +130,6 @@ export default function Strategies() {
       setFormError(err.response?.data?.message || err.response?.data?.error || 'Failed to save strategy');
     } finally {
       setSaving(false);
-    }
-  }
-
-  async function handleDelete(strategy) {
-    setDeletingName(strategy.name);
-    try {
-      await deleteStrategy(strategy.name);
-      setStrategies((prev) => prev.filter((s) => s.name !== strategy.name));
-    } catch (err) {
-      setError(err.response?.data?.message || err.response?.data?.error || 'Failed to delete strategy');
-    } finally {
-      setDeletingName(null);
     }
   }
 
@@ -215,11 +229,10 @@ export default function Strategies() {
                               </button>
                               <button
                                 type="button"
-                                onClick={() => handleDelete(strategy)}
-                                disabled={deletingName === strategy.name}
-                                className="rounded-md border border-red-800/60 px-2.5 py-1 text-xs font-medium text-red-400 transition hover:border-red-600 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50"
+                                onClick={() => openDelete(strategy)}
+                                className="rounded-md border border-red-800/60 px-2.5 py-1 text-xs font-medium text-red-400 transition hover:border-red-600 hover:text-red-300"
                               >
-                                {deletingName === strategy.name ? 'Deleting...' : 'Delete'}
+                                Delete
                               </button>
                             </div>
                           </td>
@@ -315,6 +328,69 @@ export default function Strategies() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="w-full max-w-md rounded-xl border border-slate-800 bg-slate-900 p-6">
+            <div className="flex items-start gap-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-500/15">
+                <svg
+                  className="h-5 w-5 text-red-400"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                </svg>
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-lg font-semibold">Delete Strategy?</h3>
+                <p className="mt-1 text-sm text-slate-400">
+                  This will permanently remove the strategy.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5 space-y-3 rounded-lg border border-slate-800 bg-slate-950/50 p-4">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-slate-400">Name</span>
+                <span className="font-medium text-white">{deleteTarget.name}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-slate-400">Time Frame</span>
+                <span className="font-medium text-white">
+                  {TIMEFRAME_LABELS[deleteTarget.timeFrame] || deleteTarget.timeFrame}
+                </span>
+              </div>
+            </div>
+
+            {error && (
+              <p className="mt-4 rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-400">
+                {error}
+              </p>
+            )}
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={closeDelete}
+                className="rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-slate-500 hover:text-white"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={deletingName === deleteTarget.name}
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {deletingName === deleteTarget.name ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
           </div>
         </div>
       )}
