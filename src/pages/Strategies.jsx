@@ -199,7 +199,7 @@ export default function Strategies() {
                           <td className="px-4 py-3 text-slate-400">{strategy.scanClause}</td>
                           <td className="px-4 py-3">
                             {strategy.successRate != null
-                              ? `${(strategy.successRate * 100).toFixed(1)}%`
+                              ? `${Number(strategy.successRate).toFixed(2)}%`
                               : '—'}
                           </td>
                           <td className="px-4 py-3">

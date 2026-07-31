@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function Home() {
@@ -8,6 +9,25 @@ export default function Home() {
     .slice(0, 2)
     .join('')
     .toUpperCase();
+
+  const cards = [
+    {
+      label: 'Strategies',
+      value: '—',
+      hint: 'Manage trading setups',
+      to: '/strategies',
+      accent: 'from-emerald-500/20 to-emerald-500/0',
+      ring: 'ring-emerald-500/30',
+    },
+    {
+      label: 'Active Config',
+      value: '—',
+      hint: 'Client & backend',
+      to: '/config',
+      accent: 'from-indigo-500/20 to-indigo-500/0',
+      ring: 'ring-indigo-500/30',
+    },
+  ];
 
   return (
     <div>
@@ -29,38 +49,22 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
-        {[
-          {
-            label: 'Strategies',
-            value: '—',
-            hint: 'Active trading setups',
-            accent: 'from-emerald-500/20 to-emerald-500/0',
-            ring: 'ring-emerald-500/30',
-          },
-          {
-            label: 'Active Config',
-            value: '—',
-            hint: 'Client & backend',
-            accent: 'from-indigo-500/20 to-indigo-500/0',
-            ring: 'ring-indigo-500/30',
-          },
-          {
-            label: 'Success Rate',
-            value: '—',
-            hint: 'Average across strategies',
-            accent: 'from-purple-500/20 to-purple-500/0',
-            ring: 'ring-purple-500/30',
-          },
-        ].map((stat) => (
-          <div
+      <div className="mt-8 grid gap-4 sm:grid-cols-2">
+        {cards.map((stat) => (
+          <Link
             key={stat.label}
-            className={`rounded-xl border border-slate-800 bg-gradient-to-br ${stat.accent} p-6 ring-1 ${stat.ring}`}
+            to={stat.to}
+            className={`group rounded-xl border border-slate-800 bg-gradient-to-br ${stat.accent} p-6 ring-1 ${stat.ring} transition hover:border-slate-600 hover:ring-2`}
           >
-            <p className="text-sm text-slate-400">{stat.label}</p>
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-slate-400">{stat.label}</p>
+              <span className="text-slate-500 transition group-hover:translate-x-0.5 group-hover:text-white">
+                →
+              </span>
+            </div>
             <p className="mt-2 text-3xl font-bold">{stat.value}</p>
             <p className="mt-1 text-xs text-slate-500">{stat.hint}</p>
-          </div>
+          </Link>
         ))}
       </div>
     </div>
