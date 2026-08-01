@@ -50,12 +50,22 @@ function MarketIcon() {
   );
 }
 
+function SchedulerIcon() {
+  return (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 3" />
+    </svg>
+  );
+}
+
 const navItems = [
   { to: '/', label: 'Dashboard', icon: <DashboardIcon />, end: true },
   { to: '/strategies', label: 'Strategy Management', icon: <StrategyIcon /> },
   { to: '/config', label: 'Config Management', icon: <ConfigIcon /> },
   { to: '/server-monitoring', label: 'Server Monitoring', icon: <ServerIcon /> },
   { to: '/market-data', label: 'Market Data', icon: <MarketIcon /> },
+  { to: '/scheduler-tasks', label: 'Scheduler Tasks', icon: <SchedulerIcon /> },
 ];
 
 export default function Layout() {

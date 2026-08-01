@@ -12,6 +12,7 @@ export const ENDPOINTS = {
   SERVER_STATS: '/api/admin/server/stats',
   MARGIN_ALL: '/api/margin/all',
   MARKET_BAR_SERIES: '/api/market/bar-series',
+  SCHEDULE_ALL: '/api/schedule/all',
 };
 
 /**
@@ -22,6 +23,7 @@ export const ENDPOINTS = {
  * @typedef {import('./types').AppConfig} AppConfig
  * @typedef {import('./types').ServerStats} ServerStats
  * @typedef {import('./types').MarginData} MarginData
+ * @typedef {import('./types').ScheduleTask} ScheduleTask
  */
 
 /**
@@ -156,6 +158,16 @@ export async function fetchMarginData() {
  */
 export async function fetchMarketBarSeries(symbol) {
   const response = await apiClient.get(`${ENDPOINTS.MARKET_BAR_SERIES}/${encodeURIComponent(symbol)}`);
+  return unwrapData(response);
+}
+
+/**
+ * GET /api/schedule/all?tasktType={type}
+ * @param {string} taskType
+ * @returns {Promise<ScheduleTask[]>}
+ */
+export async function fetchScheduleTasks(taskType) {
+  const response = await apiClient.get(ENDPOINTS.SCHEDULE_ALL, { params: { tasktType: taskType } });
   return unwrapData(response);
 }
 

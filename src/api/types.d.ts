@@ -182,6 +182,20 @@ export interface MarginData {
   rupeezyMargin: number;
 }
 
+export interface ScheduleCallback {
+  url: string;
+  httpMethod: string;
+  body: string | null;
+  headers: Record<string, string> | null;
+}
+
+export interface ScheduleTask {
+  cronId: string;
+  callBack: ScheduleCallback | null;
+  cronExpression: string;
+  type: 'CRON' | 'TASK' | (string & {});
+}
+
 export interface ServerStats {
   memory: ServerMemoryStats;
   cpu: ServerCpuStats;

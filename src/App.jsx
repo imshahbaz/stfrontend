@@ -5,6 +5,7 @@ import Strategies from './pages/Strategies';
 import Config from './pages/Config';
 import ServerMonitoring from './pages/ServerMonitoring';
 import MarketData from './pages/MarketData';
+import SchedulerTasks from './pages/SchedulerTasks';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 
@@ -19,6 +20,7 @@ export default function App() {
           <Route path="/config" element={<Config />} />
           <Route path="/server-monitoring" element={<ServerMonitoring />} />
           <Route path="/market-data" element={<MarketData />} />
+          <Route path="/scheduler-tasks" element={<SchedulerTasks />} />
         </Route>
       </Route>
     </Routes>
