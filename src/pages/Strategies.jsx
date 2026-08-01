@@ -473,7 +473,7 @@ export default function Strategies() {
       {/* Add / Edit Form Modal */}
       {form && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm animate-fadeIn">
-          <div className="w-full max-w-lg overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
+          <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
             <div className="flex items-center justify-between pb-4 border-b border-slate-800">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
@@ -513,41 +513,26 @@ export default function Strategies() {
                   required
                   value={form.scanClause}
                   onChange={(e) => setForm({ ...form, scanClause: e.target.value })}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3.5 py-2 text-xs text-cyan-300 font-mono placeholder-slate-500 outline-none transition focus:border-indigo-500"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3.5 py-3 text-xs text-cyan-300 font-mono placeholder-slate-500 outline-none transition focus:border-indigo-500 min-h-[160px] leading-relaxed resize-y"
                   placeholder="e.g. close > sma(20) AND volume > 100000"
-                  rows={3}
+                  rows={6}
                 />
                 <p className="mt-1 text-[10px] text-slate-500">Scan condition logic evaluated against market feeds.</p>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="mb-1 block text-xs font-semibold text-slate-300">Time Frame</label>
-                  <select
-                    value={form.timeFrame}
-                    onChange={(e) => setForm({ ...form, timeFrame: e.target.value })}
-                    className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-white outline-none transition focus:border-indigo-500"
-                  >
-                    {TIMEFRAMES.map((tf) => (
-                      <option key={tf} value={tf}>
-                        {tf} ({TIMEFRAME_LABELS[tf] || tf})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="mb-1 block text-xs font-semibold text-slate-300">Success Rate (%)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    max="100"
-                    value={form.successRate}
-                    onChange={(e) => setForm({ ...form, successRate: parseFloat(e.target.value) || 0 })}
-                    className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-white outline-none transition focus:border-indigo-500 font-mono"
-                  />
-                </div>
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-slate-300">Time Frame</label>
+                <select
+                  value={form.timeFrame}
+                  onChange={(e) => setForm({ ...form, timeFrame: e.target.value })}
+                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-white outline-none transition focus:border-indigo-500"
+                >
+                  {TIMEFRAMES.map((tf) => (
+                    <option key={tf} value={tf}>
+                      {tf} ({TIMEFRAME_LABELS[tf] || tf})
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="pt-2">

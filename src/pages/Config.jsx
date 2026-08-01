@@ -5,6 +5,22 @@ import {
   reloadConfig,
 } from '../api/service';
 
+function flattenEntries(obj, prefix = '') {
+  let items = [];
+  if (!obj || typeof obj !== 'object') return items;
+
+  for (const [k, v] of Object.entries(obj)) {
+    if (v == null) continue;
+    const keyName = prefix ? `${prefix}.${k}` : k;
+    if (typeof v === 'object' && !Array.isArray(v)) {
+      items = items.concat(flattenEntries(v, keyName));
+    } else {
+      items.push([keyName, v]);
+    }
+  }
+  return items;
+}
+
 function ValueCell({ value, isSecret = false }) {
   const [revealed, setRevealed] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -41,29 +57,27 @@ function ValueCell({ value, isSecret = false }) {
     );
   }
 
-  // Object
+  // Object (Rendered as clean sub-key rows just like Google Auth)
   if (typeof value === 'object') {
-    const entries = Object.entries(value).filter(([, v]) => v != null);
-    if (entries.length === 0) return <span className="text-slate-500 font-mono text-xs">—</span>;
+    const flatItems = flattenEntries(value);
+    if (flatItems.length === 0) return <span className="text-slate-500 font-mono text-xs">—</span>;
 
     return (
-      <div className="space-y-1.5 py-1 min-w-0 max-w-full overflow-hidden">
-        {entries.map(([k, v]) => (
-          <div key={k} className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 text-xs font-mono rounded bg-slate-950/80 p-2 border border-slate-800/80 min-w-0 overflow-hidden">
-            <span className="text-indigo-300 font-semibold shrink-0">{k}:</span>
-            <div className="text-slate-200 min-w-0 break-all overflow-hidden">
-              {typeof v === 'boolean' ? (
-                <span className="text-purple-400 font-bold">{v ? 'true' : 'false'}</span>
-              ) : typeof v === 'object' ? (
-                <pre className="text-[11px] text-cyan-300 font-mono whitespace-pre-wrap break-all max-h-48 overflow-y-auto bg-slate-900/90 p-2.5 rounded border border-slate-800 mt-1 leading-relaxed">
-                  {JSON.stringify(v, null, 2)}
-                </pre>
-              ) : (
-                <span className="break-all">{String(v)}</span>
-              )}
+      <div className="space-y-2 py-1 min-w-0 max-w-full overflow-hidden">
+        {flatItems.map(([k, v]) => {
+          const secretKey = isSecret || /key|secret|seed|password|token/i.test(k);
+          return (
+            <div
+              key={k}
+              className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-mono rounded-xl bg-slate-950/80 px-3.5 py-2.5 border border-slate-800/80 min-w-0 overflow-hidden"
+            >
+              <span className="text-indigo-300 font-semibold shrink-0">{k}:</span>
+              <div className="text-slate-200 min-w-0 break-all overflow-hidden">
+                <ValueCell value={v} isSecret={secretKey} />
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     );
   }
