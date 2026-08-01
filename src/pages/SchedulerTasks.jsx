@@ -3,6 +3,58 @@ import { fetchScheduleTasks, createCronSchedule, createOneTimeSchedule } from '.
 
 const TASK_TYPES = ['CRON', 'TASK'];
 
+const DAYS_OF_WEEK = [
+  { key: 'MON', label: 'Mon' },
+  { key: 'TUE', label: 'Tue' },
+  { key: 'WED', label: 'Wed' },
+  { key: 'THU', label: 'Thu' },
+  { key: 'FRI', label: 'Fri' },
+  { key: 'SAT', label: 'Sat' },
+  { key: 'SUN', label: 'Sun' },
+];
+
+function getCronDescription(expr) {
+  if (!expr || !expr.trim()) return '';
+  const trimmed = expr.trim();
+  const parts = trimmed.split(/\s+/);
+
+  if (parts.length === 5 || parts.length === 6) {
+    const minStr = parts.length === 6 ? parts[1] : parts[0];
+    const hourStr = parts.length === 6 ? parts[2] : parts[1];
+    const dowStr = parts.length === 6 ? parts[5] : parts[4];
+
+    if (minStr.startsWith('*/')) {
+      return `Runs every ${minStr.replace('*/', '')} minutes`;
+    }
+
+    const min = parseInt(minStr, 10);
+    const hour = parseInt(hourStr, 10);
+
+    let timeText = '';
+    if (!isNaN(hour) && !isNaN(min)) {
+      const h12 = hour % 12 || 12;
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const mTwo = String(min).padStart(2, '0');
+      timeText = `at ${String(h12).padStart(2, '0')}:${mTwo} ${ampm}`;
+    }
+
+    let daysText = 'every day';
+    if (dowStr === '1-5' || dowStr === 'MON-FRI' || dowStr === 'MON,TUE,WED,THU,FRI') {
+      daysText = 'Monday through Friday';
+    } else if (dowStr === '6,7' || dowStr === 'SAT,SUN') {
+      daysText = 'on Weekends (Sat-Sun)';
+    } else if (dowStr !== '*' && dowStr !== '?') {
+      daysText = `on ${dowStr}`;
+    }
+
+    if (timeText) {
+      return `Runs ${daysText} ${timeText}`;
+    }
+  }
+
+  return 'Custom cron schedule';
+}
+
 function formatExecutionTime(timeMs) {
   if (!timeMs) return '—';
   const date = new Date(Number(timeMs));
@@ -65,7 +117,7 @@ export default function SchedulerTasks() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [createType, setCreateType] = useState('CRON');
   const [cronId, setCronId] = useState('');
-  const [cronExpression, setCronExpression] = useState('');
+  const [cronExpression, setCronExpression] = useState('0 15 9 * * MON,TUE,WED,THU,FRI');
   const [taskId, setTaskId] = useState('');
   const [executionTime, setExecutionTime] = useState('');
   const [httpMethod, setHttpMethod] = useState('GET');
@@ -75,6 +127,46 @@ export default function SchedulerTasks() {
   const [createLoading, setCreateLoading] = useState(false);
   const [createError, setCreateError] = useState(null);
   const [createSuccess, setCreateSuccess] = useState(null);
+
+  // Visual CRON Days & Time builder state
+  const [cronTime, setCronTime] = useState('09:15');
+  const [selectedDays, setSelectedDays] = useState(['MON', 'TUE', 'WED', 'THU', 'FRI']);
+
+  const updateCronFromDaysAndTime = (days, time) => {
+    if (!time) return;
+    const [hStr, mStr] = time.split(':');
+    const h = parseInt(hStr, 10) || 0;
+    const m = parseInt(mStr, 10) || 0;
+    const dow = days.length === 0 || days.length === 7 ? '*' : days.join(',');
+    const expr = `0 ${m} ${h} * * ${dow}`;
+    setCronExpression(expr);
+  };
+
+  const handleDayToggle = (dayKey) => {
+    const nextDays = selectedDays.includes(dayKey)
+      ? selectedDays.filter((d) => d !== dayKey)
+      : [...selectedDays, dayKey];
+    const ordered = DAYS_OF_WEEK.map((d) => d.key).filter((k) => nextDays.includes(k));
+    setSelectedDays(ordered);
+    updateCronFromDaysAndTime(ordered, cronTime);
+  };
+
+  const handleTimeChange = (newTime) => {
+    setCronTime(newTime);
+    updateCronFromDaysAndTime(selectedDays, newTime);
+  };
+
+  const handleSelectAllDays = () => {
+    const all = DAYS_OF_WEEK.map((d) => d.key);
+    setSelectedDays(all);
+    updateCronFromDaysAndTime(all, cronTime);
+  };
+
+  const handleSelectWeekdays = () => {
+    const weekdays = ['MON', 'TUE', 'WED', 'THU', 'FRI'];
+    setSelectedDays(weekdays);
+    updateCronFromDaysAndTime(weekdays, cronTime);
+  };
 
   const handleSearch = async () => {
     if (!selectedType) return;
@@ -354,7 +446,7 @@ export default function SchedulerTasks() {
           onClick={() => setIsCreateOpen(false)}
         >
           <div
-            className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl space-y-5"
+            className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl space-y-5"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -416,7 +508,7 @@ export default function SchedulerTasks() {
 
               {/* Conditional Fields: CRON vs TASK */}
               {createType === 'CRON' ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-4">
                   <div>
                     <label className="block text-xs font-medium text-slate-300 mb-1">
                       Cron ID <span className="text-red-400">*</span>
@@ -427,22 +519,98 @@ export default function SchedulerTasks() {
                       onChange={(e) => setCronId(e.target.value)}
                       placeholder="e.g. daily_market_sync"
                       required
-                      className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-mono"
+                      className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-blue-500 font-mono"
                     />
                   </div>
 
+                  {/* Visual Days & Time Picker Card */}
+                  <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-4 space-y-4">
+                    <div className="flex items-center justify-between border-b border-slate-800/80 pb-2.5">
+                      <span className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+                        Schedule Builder (Days & Time)
+                      </span>
+                      <span className="text-[11px] text-slate-500 font-mono">IST (+05:30)</span>
+                    </div>
+
+                    {/* Time Picker */}
+                    <div>
+                      <label className="block text-xs font-medium text-slate-400 mb-1">
+                        Select Execution Time
+                      </label>
+                      <input
+                        type="time"
+                        value={cronTime}
+                        onChange={(e) => handleTimeChange(e.target.value)}
+                        className="w-full sm:w-48 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-blue-500 font-mono font-semibold cursor-pointer"
+                      />
+                    </div>
+
+                    {/* Days Selection */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="block text-xs font-medium text-slate-400">
+                          Select Days of Week
+                        </label>
+                        <div className="flex items-center gap-2 text-xs">
+                          <button
+                            type="button"
+                            onClick={handleSelectWeekdays}
+                            className="text-indigo-400 hover:text-indigo-300 transition hover:underline font-medium text-[11px]"
+                          >
+                            Mon-Fri (Weekdays)
+                          </button>
+                          <span className="text-slate-700">•</span>
+                          <button
+                            type="button"
+                            onClick={handleSelectAllDays}
+                            className="text-indigo-400 hover:text-indigo-300 transition hover:underline font-medium text-[11px]"
+                          >
+                            All Days
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-7 gap-1.5">
+                        {DAYS_OF_WEEK.map((day) => {
+                          const isSelected = selectedDays.includes(day.key);
+                          return (
+                            <button
+                              key={day.key}
+                              type="button"
+                              onClick={() => handleDayToggle(day.key)}
+                              className={`rounded-lg border py-2 text-xs font-bold transition ${
+                                isSelected
+                                  ? 'border-blue-500 bg-blue-600 text-white shadow-md'
+                                  : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700 hover:text-slate-200'
+                              }`}
+                            >
+                              {day.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Expression Input & Live Explanation */}
                   <div>
                     <label className="block text-xs font-medium text-slate-300 mb-1">
-                      Cron Expression <span className="text-red-400">*</span>
+                      Generated Cron Expression <span className="text-red-400">*</span>
                     </label>
                     <input
                       type="text"
                       value={cronExpression}
                       onChange={(e) => setCronExpression(e.target.value)}
-                      placeholder="e.g. 0 0 9 * * *"
+                      placeholder="e.g. 0 15 9 * * MON,TUE,WED,THU,FRI"
                       required
-                      className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-mono text-amber-300"
+                      className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-blue-500 font-mono text-amber-300 font-semibold"
                     />
+                    {cronExpression && (
+                      <p className="mt-1.5 text-xs font-medium text-emerald-400 flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-2">
+                        <span>⚡</span>
+                        <span>{getCronDescription(cronExpression)}</span>
+                      </p>
+                    )}
                   </div>
                 </div>
               ) : (
@@ -583,7 +751,7 @@ export default function SchedulerTasks() {
           onClick={() => setSelectedTask(null)}
         >
           <div
-            className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl space-y-5"
+            className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl space-y-5"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
@@ -652,7 +820,7 @@ export default function SchedulerTasks() {
                   {selectedTask.callBack.headers && Object.keys(selectedTask.callBack.headers).length > 0 && (
                     <div>
                       <span className="text-slate-500 font-medium">Headers:</span>
-                      <pre className="mt-1 max-h-36 overflow-y-auto rounded-lg border border-slate-800 bg-slate-950 p-2.5 font-mono text-[11px] text-slate-300">
+                      <pre className="mt-1 max-h-36 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden rounded-lg border border-slate-800 bg-slate-950 p-2.5 font-mono text-[11px] text-slate-300">
                         {JSON.stringify(selectedTask.callBack.headers, null, 2)}
                       </pre>
                     </div>
@@ -661,7 +829,7 @@ export default function SchedulerTasks() {
                   {selectedTask.callBack.body && (
                     <div>
                       <span className="text-slate-500 font-medium">Body / Payload:</span>
-                      <pre className="mt-1 max-h-40 overflow-y-auto rounded-lg border border-slate-800 bg-slate-950 p-2.5 font-mono text-[11px] text-indigo-300">
+                      <pre className="mt-1 max-h-40 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden rounded-lg border border-slate-800 bg-slate-950 p-2.5 font-mono text-[11px] text-indigo-300">
                         {typeof selectedTask.callBack.body === 'object'
                           ? JSON.stringify(selectedTask.callBack.body, null, 2)
                           : selectedTask.callBack.body}
