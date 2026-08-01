@@ -174,6 +174,14 @@ export interface ServerDomainStats {
   webSocket: WebSocketDomainStats;
 }
 
+export interface MarginData {
+  symbol: string;
+  name: string;
+  requiredMargin: number;
+  token: string;
+  rupeezyMargin: number;
+}
+
 export interface ServerStats {
   memory: ServerMemoryStats;
   cpu: ServerCpuStats;

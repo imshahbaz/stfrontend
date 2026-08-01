@@ -10,6 +10,8 @@ export const ENDPOINTS = {
   BACKEND_CONFIG: '/api/admin/config/active',
   CONFIG_RELOAD: '/api/admin/config/reload',
   SERVER_STATS: '/api/admin/server/stats',
+  MARGIN_ALL: '/api/margin/all',
+  MARKET_BAR_SERIES: '/api/market/bar-series',
 };
 
 /**
@@ -19,6 +21,7 @@ export const ENDPOINTS = {
  * @typedef {import('./types').Strategy} Strategy
  * @typedef {import('./types').AppConfig} AppConfig
  * @typedef {import('./types').ServerStats} ServerStats
+ * @typedef {import('./types').MarginData} MarginData
  */
 
 /**
@@ -134,6 +137,25 @@ export async function reloadConfig() {
  */
 export async function fetchServerStats() {
   const response = await apiClient.get(ENDPOINTS.SERVER_STATS);
+  return unwrapData(response);
+}
+
+/**
+ * GET /api/margin/all
+ * @returns {Promise<MarginData[]>}
+ */
+export async function fetchMarginData() {
+  const response = await apiClient.get(ENDPOINTS.MARGIN_ALL);
+  return unwrapData(response);
+}
+
+/**
+ * GET /api/market/bar-series/{symbol}
+ * @param {string} symbol
+ * @returns {Promise<unknown>}
+ */
+export async function fetchMarketBarSeries(symbol) {
+  const response = await apiClient.get(`${ENDPOINTS.MARKET_BAR_SERIES}/${encodeURIComponent(symbol)}`);
   return unwrapData(response);
 }
 

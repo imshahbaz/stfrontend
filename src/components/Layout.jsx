@@ -41,11 +41,21 @@ function ServerIcon() {
   );
 }
 
+function MarketIcon() {
+  return (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M3 17l6-6 4 4 8-8" />
+      <path d="M15 7h6v6" />
+    </svg>
+  );
+}
+
 const navItems = [
   { to: '/', label: 'Dashboard', icon: <DashboardIcon />, end: true },
   { to: '/strategies', label: 'Strategy Management', icon: <StrategyIcon /> },
   { to: '/config', label: 'Config Management', icon: <ConfigIcon /> },
   { to: '/server-monitoring', label: 'Server Monitoring', icon: <ServerIcon /> },
+  { to: '/market-data', label: 'Market Data', icon: <MarketIcon /> },
 ];
 
 export default function Layout() {
