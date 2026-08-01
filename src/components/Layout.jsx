@@ -30,10 +30,22 @@ function ConfigIcon() {
   );
 }
 
+function ServerIcon() {
+  return (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <rect x="2" y="2" width="20" height="8" rx="2" />
+      <rect x="2" y="14" width="20" height="8" rx="2" />
+      <line x1="6" y1="6" x2="6.01" y2="6" strokeWidth="2.5" strokeLinecap="round" />
+      <line x1="6" y1="18" x2="6.01" y2="18" strokeWidth="2.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 const navItems = [
   { to: '/', label: 'Dashboard', icon: <DashboardIcon />, end: true },
   { to: '/strategies', label: 'Strategy Management', icon: <StrategyIcon /> },
   { to: '/config', label: 'Config Management', icon: <ConfigIcon /> },
+  { to: '/server-monitoring', label: 'Server Monitoring', icon: <ServerIcon /> },
 ];
 
 export default function Layout() {

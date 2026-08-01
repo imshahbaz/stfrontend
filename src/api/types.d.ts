@@ -93,3 +93,96 @@ export interface AppConfig {
   auth: AuthFlags | null;
   components: ComponentFlags | null;
 }
+
+export interface ServerMemoryStats {
+  heapUsedMb: number;
+  heapCommittedMb: number;
+  heapMaxMb: number;
+  heapUsedPercent: number;
+  nonHeapUsedMb: number;
+  nonHeapCommittedMb: number;
+}
+
+export interface ServerCpuStats {
+  processCpuPercent: number;
+  systemCpuPercent: number;
+  systemLoadAverage: number;
+  availableProcessors: number;
+}
+
+export interface ServerThreadStats {
+  live: number;
+  daemon: number;
+  peak: number;
+  totalStarted: number;
+}
+
+export interface ServerRuntimeStats {
+  uptimeMs: number;
+  startTimeEpochMs: number;
+}
+
+export interface ServerFileDescriptorStats {
+  open: number;
+  max: number;
+}
+
+export interface ServerGcStats {
+  name: string;
+  collectionCount: number;
+  collectionTimeMs: number;
+}
+
+export interface ServerMemoryPoolStats {
+  name: string;
+  usedMb: number;
+  committedMb: number;
+  maxMb: number;
+}
+
+export interface ServerBufferPoolStats {
+  name: string;
+  count: number;
+  memoryUsedMb: number;
+  totalCapacityMb: number;
+}
+
+export interface PipelineDomainStats {
+  ringBufferSize: number;
+  shardCount: number;
+  ringRemainingCapacity: number;
+  ringUsedSlots: number;
+}
+
+export interface WatchdogDomainStats {
+  watchedTokens: number;
+  watchedTrades: number;
+  mtfWatchedTokens: number;
+  mtfWatchedTrades: number;
+  inFlightTriggers: number;
+  inFlightMtfTriggers: number;
+}
+
+export interface WebSocketDomainStats {
+  connected: boolean;
+  reconnectAttempts: number;
+}
+
+export interface ServerDomainStats {
+  pipeline: PipelineDomainStats;
+  watchdog: WatchdogDomainStats;
+  webSocket: WebSocketDomainStats;
+}
+
+export interface ServerStats {
+  memory: ServerMemoryStats;
+  cpu: ServerCpuStats;
+  threads: ServerThreadStats;
+  runtime: ServerRuntimeStats;
+  fileDescriptors: ServerFileDescriptorStats;
+  gc: ServerGcStats[];
+  memoryPools: ServerMemoryPoolStats[];
+  bufferPools: ServerBufferPoolStats[];
+  domain: ServerDomainStats;
+}
+

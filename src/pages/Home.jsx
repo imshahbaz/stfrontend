@@ -27,6 +27,14 @@ export default function Home() {
       accent: 'from-indigo-500/20 to-indigo-500/0',
       ring: 'ring-indigo-500/30',
     },
+    {
+      label: 'Server Monitoring',
+      value: 'Live',
+      hint: 'CPU, Memory, Threads & Pipeline health',
+      to: '/server-monitoring',
+      accent: 'from-sky-500/20 to-cyan-500/0',
+      ring: 'ring-cyan-500/30',
+    },
   ];
 
   return (
@@ -43,13 +51,13 @@ export default function Home() {
               Welcome back{user?.name ? `, ${user.name}` : ''}
             </h2>
             <p className="mt-1 text-slate-400">
-              Manage strategies and configuration from your admin console.
+              Manage strategies, system configurations, and real-time server health from your console.
             </p>
           </div>
         </div>
       </div>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2">
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map((stat) => (
           <Link
             key={stat.label}

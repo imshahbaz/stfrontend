@@ -3,6 +3,7 @@ import Login from './pages/Login';
 import Home from './pages/Home';
 import Strategies from './pages/Strategies';
 import Config from './pages/Config';
+import ServerMonitoring from './pages/ServerMonitoring';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 
@@ -15,6 +16,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/strategies" element={<Strategies />} />
           <Route path="/config" element={<Config />} />
+          <Route path="/server-monitoring" element={<ServerMonitoring />} />
         </Route>
       </Route>
     </Routes>

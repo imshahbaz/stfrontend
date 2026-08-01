@@ -2,12 +2,14 @@ import apiClient from './client';
 
 export const ENDPOINTS = {
   LOGIN: '/api/auth/login',
+  LOGOUT: '/api/auth/logout',
   ME: '/api/auth/me',
   STRATEGIES: '/api/admin/strategy/admin',
   STRATEGY: '/api/admin/strategy',
   CLIENT_CONFIG: '/api/config/client/active',
   BACKEND_CONFIG: '/api/admin/config/active',
   CONFIG_RELOAD: '/api/admin/config/reload',
+  SERVER_STATS: '/api/admin/server/stats',
 };
 
 /**
@@ -16,6 +18,7 @@ export const ENDPOINTS = {
  * @typedef {import('./types').User} User
  * @typedef {import('./types').Strategy} Strategy
  * @typedef {import('./types').AppConfig} AppConfig
+ * @typedef {import('./types').ServerStats} ServerStats
  */
 
 /**
@@ -38,6 +41,15 @@ function unwrapData(response) {
  */
 export async function login(payload) {
   const response = await apiClient.post(ENDPOINTS.LOGIN, payload);
+  return unwrapData(response);
+}
+
+/**
+ * POST /api/auth/logout
+ * @returns {Promise<void>}
+ */
+export async function logout() {
+  const response = await apiClient.post(ENDPOINTS.LOGOUT);
   return unwrapData(response);
 }
 
@@ -115,3 +127,13 @@ export async function reloadConfig() {
   const response = await apiClient.post(ENDPOINTS.CONFIG_RELOAD);
   return unwrapData(response);
 }
+
+/**
+ * GET /api/admin/server/stats
+ * @returns {Promise<ServerStats>}
+ */
+export async function fetchServerStats() {
+  const response = await apiClient.get(ENDPOINTS.SERVER_STATS);
+  return unwrapData(response);
+}
+

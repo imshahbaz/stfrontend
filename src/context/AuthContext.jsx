@@ -1,5 +1,5 @@
 import { createContext, useContext, useCallback, useEffect, useState } from 'react';
-import { login as loginRequest, fetchCurrentUser } from '../api/service';
+import { login as loginRequest, logout as logoutRequest, fetchCurrentUser } from '../api/service';
 
 const AuthContext = createContext(null);
 
@@ -73,9 +73,15 @@ export function AuthProvider({ children }) {
     [applySession]
   );
 
-  const logout = useCallback(() => {
-    setUser(null);
-    localStorage.removeItem('klikpanel_user');
+  const logout = useCallback(async () => {
+    try {
+      await logoutRequest();
+    } catch (err) {
+      console.error('Logout error:', err);
+    } finally {
+      setUser(null);
+      localStorage.removeItem('klikpanel_user');
+    }
   }, []);
 
   return (
