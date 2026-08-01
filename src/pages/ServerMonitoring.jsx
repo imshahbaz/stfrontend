@@ -69,7 +69,7 @@ function CircularGauge({ percent = 0, label, subtext, strokeColor = '#6366f1', v
 }
 
 // Donut / Pie Chart Component
-function DonutChart({ items, centerLabel, centerValue }) {
+function DonutChart({ items, centerLabel, centerValue, compact = false }) {
   const total = items.reduce((acc, item) => acc + (item.value || 0), 0);
   let cumulativeAngle = 0;
 
@@ -90,9 +90,9 @@ function DonutChart({ items, centerLabel, centerValue }) {
   });
 
   return (
-    <div className="flex flex-col sm:flex-row items-center gap-6">
+    <div className={`flex ${compact ? 'flex-col items-center gap-4' : 'flex-col sm:flex-row items-center gap-6'}`}>
       <div className="relative flex items-center justify-center shrink-0">
-        <svg className="h-44 w-44" viewBox="0 0 100 100">
+        <svg className={compact ? 'h-36 w-36' : 'h-44 w-44'} viewBox="0 0 100 100">
           {total === 0 ? (
             <circle cx="50" cy="50" r="36" stroke="#334155" strokeWidth="12" fill="transparent" />
           ) : (
@@ -108,22 +108,22 @@ function DonutChart({ items, centerLabel, centerValue }) {
             ))
           )}
         </svg>
-        <div className="absolute flex flex-col items-center text-center">
-          <span className="text-base font-bold text-slate-100 font-mono">{centerValue}</span>
+        <div className="absolute flex flex-col items-center text-center px-2">
+          <span className="text-sm font-bold text-slate-100 font-mono truncate max-w-[110px]">{centerValue}</span>
           <span className="text-[10px] text-slate-400">{centerLabel}</span>
         </div>
       </div>
 
-      <div className="w-full space-y-2.5 flex-1">
+      <div className="w-full space-y-2 flex-1 min-w-0">
         {slices.map((slice, i) => (
-          <div key={i} className="flex items-center justify-between text-xs rounded-lg p-2 bg-slate-950/40 border border-slate-800/60 hover:bg-slate-800/40 transition">
-            <div className="flex items-center gap-2">
-              <span className="h-3 w-3 rounded-sm shrink-0" style={{ backgroundColor: slice.color }} />
-              <span className="text-slate-300 font-medium">{slice.label}</span>
+          <div key={i} className="flex flex-wrap items-center justify-between text-xs rounded-lg p-2 bg-slate-950/40 border border-slate-800/60 hover:bg-slate-800/40 transition gap-x-2 gap-y-1">
+            <div className="flex items-center gap-2 min-w-0 shrink">
+              <span className="h-2.5 w-2.5 rounded-sm shrink-0" style={{ backgroundColor: slice.color }} />
+              <span className="text-slate-300 font-medium truncate">{slice.label}</span>
             </div>
-            <div className="text-right font-mono">
+            <div className="text-right font-mono shrink-0 ml-auto">
               <span className="text-slate-200 font-semibold">{slice.displayValue || `${slice.value} MB`}</span>
-              <span className="text-slate-500 text-[10px] ml-1.5">({slice.percentage.toFixed(1)}%)</span>
+              <span className="text-slate-500 text-[10px] ml-1">({slice.percentage.toFixed(1)}%)</span>
             </div>
           </div>
         ))}
@@ -280,16 +280,16 @@ export default function ServerMonitoring() {
   const threadsDonutItems = stats
     ? [
         {
-          label: 'Live Non-Daemon',
+          label: 'Non-Daemon',
           value: Math.max(0, (stats.threads?.live || 0) - (stats.threads?.daemon || 0)),
           color: '#10b981', // emerald-500
-          displayValue: `${Math.max(0, (stats.threads?.live || 0) - (stats.threads?.daemon || 0))} Threads`,
+          displayValue: `${Math.max(0, (stats.threads?.live || 0) - (stats.threads?.daemon || 0))}`,
         },
         {
-          label: 'Daemon Threads',
+          label: 'Daemon',
           value: stats.threads?.daemon || 0,
           color: '#f59e0b', // amber-500
-          displayValue: `${stats.threads?.daemon || 0} Threads`,
+          displayValue: `${stats.threads?.daemon || 0}`,
         },
       ]
     : [];
@@ -495,6 +495,7 @@ export default function ServerMonitoring() {
                 items={threadsDonutItems}
                 centerLabel="Peak Threads"
                 centerValue={`${stats.threads?.peak || 0}`}
+                compact={true}
               />
               <div className="mt-4 pt-3 border-t border-slate-800/60 space-y-2">
                 <MetricRow label="Peak Threads" value={stats.threads?.peak} />
