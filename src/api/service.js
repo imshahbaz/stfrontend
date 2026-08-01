@@ -13,6 +13,8 @@ export const ENDPOINTS = {
   MARGIN_ALL: '/api/margin/all',
   MARKET_BAR_SERIES: '/api/market/bar-series',
   SCHEDULE_ALL: '/api/schedule/all',
+  SCHEDULE_CRON: '/api/schedule/cron',
+  SCHEDULE_TASK: '/api/schedule',
 };
 
 /**
@@ -168,6 +170,26 @@ export async function fetchMarketBarSeries(symbol) {
  */
 export async function fetchScheduleTasks(taskType) {
   const response = await apiClient.get(ENDPOINTS.SCHEDULE_ALL, { params: { taskType: taskType } });
+  return unwrapData(response);
+}
+
+/**
+ * POST /api/schedule/cron
+ * @param {import('./types').CronTaskDto} data
+ * @returns {Promise<unknown>}
+ */
+export async function createCronSchedule(data) {
+  const response = await apiClient.post(ENDPOINTS.SCHEDULE_CRON, data);
+  return unwrapData(response);
+}
+
+/**
+ * POST /api/schedule
+ * @param {import('./types').ScheduledTaskDto} data
+ * @returns {Promise<unknown>}
+ */
+export async function createOneTimeSchedule(data) {
+  const response = await apiClient.post(ENDPOINTS.SCHEDULE_TASK, data);
   return unwrapData(response);
 }
 

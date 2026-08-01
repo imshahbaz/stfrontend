@@ -189,12 +189,21 @@ export interface ScheduleCallback {
   headers: Record<string, string> | null;
 }
 
-export interface ScheduleTask {
+export interface CronTaskDto {
   cronId: string;
   callBack: ScheduleCallback | null;
   cronExpression: string;
-  type: 'CRON' | 'TASK' | (string & {});
+  type: 'CRON';
 }
+
+export interface ScheduledTaskDto {
+  taskId: string;
+  callBack: ScheduleCallback | null;
+  executionTime: number;
+  type: 'TASK';
+}
+
+export type ScheduleTask = CronTaskDto | ScheduledTaskDto;
 
 export interface ServerStats {
   memory: ServerMemoryStats;
