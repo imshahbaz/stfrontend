@@ -192,30 +192,25 @@ export default function Strategies() {
 
   return (
     <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 via-indigo-950/40 to-slate-950 p-6 md:p-8 shadow-xl">
-        <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-indigo-500/10 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-16 -left-16 h-56 w-56 rounded-full bg-purple-500/10 blur-3xl" />
-
-        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">Strategy Management</h1>
-            <p className="mt-1 text-xs sm:text-sm text-slate-400">
-              Configure, monitor, and manage algorithmic trading strategies and scan parameters.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={openCreate}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 px-4 py-2.5 text-xs font-semibold text-white shadow-lg transition hover:brightness-110 active:scale-95"
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
-            Add Strategy
-          </button>
+      {/* Header */}
+      <div className="flex flex-col gap-4 rounded-xl border border-slate-800 bg-slate-900 p-6 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-xl font-bold text-white tracking-tight">Strategy Management</h1>
+          <p className="mt-1 text-xs sm:text-sm text-slate-400">
+            Configure, monitor, and manage algorithmic trading strategies and scan parameters.
+          </p>
         </div>
+
+        <button
+          type="button"
+          onClick={openCreate}
+          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-blue-500"
+        >
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          Add Strategy
+        </button>
       </div>
 
       {/* Top Overview Cards */}
@@ -223,7 +218,7 @@ export default function Strategies() {
         <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 backdrop-blur-sm">
           <div className="flex items-center justify-between text-xs text-slate-400">
             <span>Total Strategies</span>
-            <svg className="h-4 w-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="h-4 w-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
             </svg>
           </div>
@@ -234,7 +229,7 @@ export default function Strategies() {
         <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 backdrop-blur-sm">
           <div className="flex items-center justify-between text-xs text-slate-400">
             <span>Active Strategies</span>
-            <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="flex h-2 w-2 rounded-full bg-emerald-400" />
           </div>
           <p className="mt-2 text-2xl font-bold text-emerald-400 font-mono">{stats.activeCount}</p>
           <p className="text-[11px] text-slate-500 mt-1">
@@ -245,11 +240,11 @@ export default function Strategies() {
         <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 backdrop-blur-sm">
           <div className="flex items-center justify-between text-xs text-slate-400">
             <span>Avg Success Rate</span>
-            <svg className="h-4 w-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="h-4 w-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
             </svg>
           </div>
-          <p className="mt-2 text-2xl font-bold text-cyan-400 font-mono">{stats.avgSuccess.toFixed(1)}%</p>
+          <p className="mt-2 text-2xl font-bold text-blue-400 font-mono">{stats.avgSuccess.toFixed(1)}%</p>
           <p className="text-[11px] text-slate-500 mt-1">Across all strategies</p>
         </div>
       </div>
@@ -265,7 +260,7 @@ export default function Strategies() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search strategy by name or scan clause..."
-            className="w-full rounded-lg border border-slate-800 bg-slate-950/80 pl-9 pr-4 py-2 text-xs text-white placeholder-slate-500 outline-none transition focus:border-indigo-500"
+            className="w-full rounded-lg border border-slate-800 bg-slate-950/80 pl-9 pr-4 py-2 text-xs text-white placeholder-slate-500 outline-none transition focus:border-blue-600"
           />
           {searchQuery && (
             <button
@@ -284,7 +279,7 @@ export default function Strategies() {
               onClick={() => setSelectedTimeframe('ALL')}
               className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition ${
                 selectedTimeframe === 'ALL'
-                  ? 'bg-indigo-500 text-white shadow-sm'
+                  ? 'bg-blue-600 text-white'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -296,7 +291,7 @@ export default function Strategies() {
                 onClick={() => setSelectedTimeframe(tf)}
                 className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition ${
                   selectedTimeframe === tf
-                    ? 'bg-indigo-500 text-white shadow-sm'
+                    ? 'bg-blue-600 text-white'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
@@ -309,7 +304,7 @@ export default function Strategies() {
           <select
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value)}
-            className="rounded-lg border border-slate-800 bg-slate-950/80 px-3 py-1.5 text-xs text-slate-300 outline-none transition focus:border-indigo-500"
+            className="rounded-lg border border-slate-800 bg-slate-950/80 px-3 py-1.5 text-xs text-slate-300 outline-none transition focus:border-blue-600"
           >
             <option value="ALL">All Status</option>
             <option value="ACTIVE">Active Only</option>
@@ -361,7 +356,7 @@ export default function Strategies() {
           ) : (
             <button
               onClick={openCreate}
-              className="mt-4 rounded-lg bg-indigo-500 px-3.5 py-2 text-xs font-semibold text-white hover:bg-indigo-400"
+              className="mt-4 rounded-lg bg-blue-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-blue-500"
             >
               Add Strategy
             </button>
@@ -380,8 +375,8 @@ export default function Strategies() {
             return (
               <section key={tf} className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="flex items-center gap-2.5 text-xs font-bold uppercase tracking-wider text-indigo-400">
-                    <span className="flex h-2 w-2 rounded-full bg-indigo-400" />
+                  <h3 className="flex items-center gap-2.5 text-xs font-bold uppercase tracking-wider text-blue-400">
+                    <span className="flex h-2 w-2 rounded-full bg-blue-500" />
                     Timeframe: {TIMEFRAME_LABELS[tf] || tf}
                     <span className="rounded-full bg-slate-800 border border-slate-700 px-2 py-0.5 text-[10px] font-mono text-slate-400">
                       {group.length} {group.length === 1 ? 'strategy' : 'strategies'}
@@ -411,7 +406,7 @@ export default function Strategies() {
                               {strategy.name}
                             </td>
                             <td className="px-5 py-4 max-w-md">
-                              <code className="inline-block rounded-md border border-slate-800 bg-slate-950/80 px-2.5 py-1 text-[11px] font-mono text-cyan-300 break-all">
+                              <code className="inline-block rounded-md border border-slate-800 bg-slate-950/80 px-2.5 py-1 text-[11px] font-mono text-blue-300 break-all">
                                 {strategy.scanClause}
                               </code>
                             </td>
@@ -428,7 +423,7 @@ export default function Strategies() {
                               >
                                 <span
                                   className={`h-1.5 w-1.5 rounded-full ${
-                                    strategy.active ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'
+                                    strategy.active ? 'bg-emerald-400' : 'bg-slate-500'
                                   }`}
                                 />
                                 {strategy.active ? 'Active' : 'Inactive'}
@@ -439,7 +434,7 @@ export default function Strategies() {
                                 <button
                                   type="button"
                                   onClick={() => openEdit(strategy)}
-                                  className="inline-flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-800/60 px-3 py-1.5 text-xs font-medium text-slate-200 transition hover:border-indigo-500 hover:text-white hover:bg-indigo-500/10"
+                                  className="inline-flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-800/60 px-3 py-1.5 text-xs font-medium text-slate-200 transition hover:border-blue-600 hover:text-white hover:bg-blue-600/10"
                                 >
                                   <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -476,7 +471,7 @@ export default function Strategies() {
           <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
             <div className="flex items-center justify-between pb-4 border-b border-slate-800">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/15 text-blue-400 border border-blue-500/30">
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                   </svg>
@@ -502,7 +497,7 @@ export default function Strategies() {
                   value={form.name}
                   disabled={editing}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3.5 py-2 text-xs text-white placeholder-slate-500 outline-none transition focus:border-indigo-500 disabled:opacity-50 font-mono"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3.5 py-2 text-xs text-white placeholder-slate-500 outline-none transition focus:border-blue-600 disabled:opacity-50 font-mono"
                   placeholder="e.g. BREAKOUT_5M"
                 />
               </div>
@@ -513,7 +508,7 @@ export default function Strategies() {
                   required
                   value={form.scanClause}
                   onChange={(e) => setForm({ ...form, scanClause: e.target.value })}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3.5 py-3 text-xs text-cyan-300 font-mono placeholder-slate-500 outline-none transition focus:border-indigo-500 min-h-[160px] leading-relaxed resize-y"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3.5 py-3 text-xs text-blue-300 font-mono placeholder-slate-500 outline-none transition focus:border-blue-600 min-h-[160px] leading-relaxed resize-y"
                   placeholder="e.g. close > sma(20) AND volume > 100000"
                   rows={6}
                 />
@@ -525,7 +520,7 @@ export default function Strategies() {
                 <select
                   value={form.timeFrame}
                   onChange={(e) => setForm({ ...form, timeFrame: e.target.value })}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-white outline-none transition focus:border-indigo-500"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-white outline-none transition focus:border-blue-600"
                 >
                   {TIMEFRAMES.map((tf) => (
                     <option key={tf} value={tf}>
@@ -541,7 +536,7 @@ export default function Strategies() {
                     type="checkbox"
                     checked={form.active}
                     onChange={(e) => setForm({ ...form, active: e.target.checked })}
-                    className="h-4 w-4 rounded accent-indigo-500 cursor-pointer"
+                    className="h-4 w-4 rounded accent-blue-600 cursor-pointer"
                   />
                   Active & Operational
                 </label>
@@ -564,7 +559,7 @@ export default function Strategies() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 px-4 py-2 text-xs font-semibold text-white shadow-md transition hover:from-indigo-600 hover:to-purple-700 disabled:opacity-50"
+                  className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-blue-500 disabled:opacity-50"
                 >
                   {saving ? 'Saving...' : editing ? 'Save Changes' : 'Create Strategy'}
                 </button>
@@ -599,7 +594,7 @@ export default function Strategies() {
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Timeframe:</span>
-                <span className="font-semibold text-indigo-400">{deleteTarget.timeFrame}</span>
+                <span className="font-semibold text-blue-400">{deleteTarget.timeFrame}</span>
               </div>
             </div>
 

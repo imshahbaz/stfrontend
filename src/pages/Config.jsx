@@ -33,11 +33,11 @@ function ValueCell({ value, isSecret = false }) {
       <span
         className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold border ${
           value
-            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+            ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
             : 'bg-slate-800 text-slate-400 border-slate-700'
         }`}
       >
-        <span className={`h-1.5 w-1.5 rounded-full ${value ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`} />
+        <span className={`h-1.5 w-1.5 rounded-full ${value ? 'bg-emerald-400' : 'bg-slate-500'}`} />
         {value ? 'Enabled' : 'Disabled'}
       </span>
     );
@@ -49,7 +49,7 @@ function ValueCell({ value, isSecret = false }) {
     return (
       <div className="flex flex-wrap gap-1.5">
         {value.map((item, i) => (
-          <span key={i} className="rounded-md border border-slate-800 bg-slate-950 px-2 py-0.5 font-mono text-xs text-indigo-300">
+          <span key={i} className="rounded-md border border-slate-800 bg-slate-950 px-2 py-0.5 font-mono text-xs text-blue-400">
             {item}
           </span>
         ))}
@@ -69,9 +69,9 @@ function ValueCell({ value, isSecret = false }) {
           return (
             <div
               key={k}
-              className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-mono rounded-xl bg-slate-950/80 px-3.5 py-2.5 border border-slate-800/80 min-w-0 overflow-hidden"
+              className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-mono rounded-lg bg-slate-950/80 px-3.5 py-2.5 border border-slate-800 min-w-0 overflow-hidden"
             >
-              <span className="text-indigo-300 font-semibold shrink-0">{k}:</span>
+              <span className="text-blue-400 font-semibold shrink-0">{k}:</span>
               <div className="text-slate-200 min-w-0 break-all overflow-hidden">
                 <ValueCell value={v} isSecret={secretKey} />
               </div>
@@ -116,10 +116,10 @@ function ValueCell({ value, isSecret = false }) {
         <button
           type="button"
           onClick={handleCopy}
-          className="text-slate-400 hover:text-cyan-400 transition p-0.5 shrink-0"
+          className="text-slate-400 hover:text-blue-400 transition p-0.5 shrink-0"
           title="Copy"
         >
-          {copied ? <span className="text-[10px] text-cyan-400 font-semibold">Copied</span> : (
+          {copied ? <span className="text-[10px] text-blue-400 font-semibold">Copied</span> : (
             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
             </svg>
@@ -135,10 +135,10 @@ function ValueCell({ value, isSecret = false }) {
       <button
         type="button"
         onClick={handleCopy}
-        className="text-slate-500 hover:text-cyan-400 transition p-0.5 shrink-0"
+        className="text-slate-500 hover:text-blue-400 transition p-0.5 shrink-0"
         title="Copy"
       >
-        {copied ? <span className="text-[10px] text-cyan-400 font-semibold">Copied</span> : (
+        {copied ? <span className="text-[10px] text-blue-400 font-semibold">Copied</span> : (
           <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
           </svg>
@@ -151,7 +151,7 @@ function ValueCell({ value, isSecret = false }) {
 function AdminConfigTable({ title, badgeText, config, searchQuery }) {
   if (!config) {
     return (
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 backdrop-blur-sm">
+      <div className="rounded-xl border border-slate-800 bg-slate-900 p-6">
         <h3 className="font-bold text-slate-200">{title}</h3>
         <p className="mt-4 text-xs text-slate-500">No configuration data loaded.</p>
       </div>
@@ -184,11 +184,11 @@ function AdminConfigTable({ title, badgeText, config, searchQuery }) {
   });
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/60 shadow-xl backdrop-blur-sm overflow-hidden">
+    <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900 shadow-lg">
       {/* Table Card Header */}
-      <div className="flex items-center justify-between border-b border-slate-800 bg-slate-950/80 px-6 py-4">
+      <div className="flex items-center justify-between border-b border-slate-800 bg-slate-900 px-6 py-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-700 bg-slate-800 text-blue-500">
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -196,17 +196,17 @@ function AdminConfigTable({ title, badgeText, config, searchQuery }) {
           </div>
           <div>
             <h3 className="font-bold text-slate-100 text-sm">{title}</h3>
-            <p className="text-[11px] text-slate-400">{filteredItems.length} configuration fields</p>
+            <p className="text-[11px] text-slate-500">{filteredItems.length} configuration fields</p>
           </div>
         </div>
 
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-xs font-semibold text-indigo-400">
+        <span className="inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-800 px-2.5 py-1 text-[11px] font-semibold text-slate-300">
           {badgeText}
         </span>
       </div>
 
       {/* Admin Property Table */}
-      <div className="divide-y divide-slate-800/60">
+      <div className="divide-y divide-slate-800/70">
         {filteredItems.map((item) => (
           <div
             key={item.key}
@@ -287,41 +287,36 @@ export default function Config() {
 
   return (
     <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 via-indigo-950/40 to-slate-950 p-6 md:p-8 shadow-xl">
-        <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-indigo-500/10 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-16 -left-16 h-56 w-56 rounded-full bg-purple-500/10 blur-3xl" />
-
-        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">Configuration Management</h1>
-            <p className="mt-1 text-xs sm:text-sm text-slate-400">
-              Admin control panel for client and backend runtime environment variables.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleReload}
-            disabled={reloading || loading}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 px-4 py-2.5 text-xs font-semibold text-white shadow-lg transition hover:brightness-110 active:scale-95 disabled:opacity-50"
-          >
-            <svg
-              className={`h-4 w-4 ${reloading ? 'animate-spin' : ''}`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            {reloading ? 'Reloading Config...' : 'Reload Config'}
-          </button>
+      {/* Header */}
+      <div className="flex flex-col gap-4 rounded-xl border border-slate-800 bg-slate-900 p-6 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-xl font-bold text-white tracking-tight">Configuration Management</h1>
+          <p className="mt-1 text-xs sm:text-sm text-slate-400">
+            Admin control panel for client and backend runtime environment variables.
+          </p>
         </div>
+
+        <button
+          type="button"
+          onClick={handleReload}
+          disabled={reloading || loading}
+          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-blue-500 disabled:opacity-50"
+        >
+          <svg
+            className={`h-4 w-4 ${reloading ? 'animate-spin' : ''}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          {reloading ? 'Reloading Config...' : 'Reload Config'}
+        </button>
       </div>
 
       {reloadNotice && (
-        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-xs text-emerald-300 flex items-center gap-2 animate-fadeIn">
+        <div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4 text-xs text-emerald-300">
           <svg className="h-4 w-4 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
@@ -331,36 +326,36 @@ export default function Config() {
 
       {/* Admin Quick Stat Overview Bar */}
       <div className="grid gap-4 sm:grid-cols-4">
-        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 backdrop-blur-sm">
+        <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
           <span className="text-xs text-slate-400 font-medium">Trading Leverage</span>
-          <p className="mt-2 text-2xl font-bold text-cyan-400 font-mono">{adminStats.leverage}x</p>
+          <p className="mt-2 text-2xl font-bold text-white font-mono">{adminStats.leverage}x</p>
           <span className="text-[11px] text-slate-500">Max account multiplier</span>
         </div>
 
-        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 backdrop-blur-sm">
+        <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
           <span className="text-xs text-slate-400 font-medium">Rate Limiter</span>
           <div className="mt-2">
             <span
               className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold border ${
                 adminStats.rateLimiter
-                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                  ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
                   : 'bg-slate-800 text-slate-400 border-slate-700'
               }`}
             >
-              <span className={`h-1.5 w-1.5 rounded-full ${adminStats.rateLimiter ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`} />
+              <span className={`h-1.5 w-1.5 rounded-full ${adminStats.rateLimiter ? 'bg-emerald-400' : 'bg-slate-500'}`} />
               {adminStats.rateLimiter ? 'Active' : 'Disabled'}
             </span>
           </div>
           <span className="text-[11px] text-slate-500 mt-1 block">API Request Throttle</span>
         </div>
 
-        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 backdrop-blur-sm">
+        <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
           <span className="text-xs text-slate-400 font-medium">Angel One Broker</span>
           <div className="mt-2">
             <span
               className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold border ${
                 adminStats.angelConfigured
-                  ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30'
+                  ? 'bg-blue-500/15 text-blue-400 border-blue-500/30'
                   : 'bg-slate-800 text-slate-400 border-slate-700'
               }`}
             >
@@ -370,13 +365,13 @@ export default function Config() {
           <span className="text-[11px] text-slate-500 mt-1 block">Broker API integration</span>
         </div>
 
-        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 backdrop-blur-sm">
+        <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
           <span className="text-xs text-slate-400 font-medium">Debug Mode</span>
           <div className="mt-2">
             <span
               className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold border ${
                 adminStats.debugMode
-                  ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                  ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
                   : 'bg-slate-800 text-slate-400 border-slate-700'
               }`}
             >
@@ -388,14 +383,14 @@ export default function Config() {
       </div>
 
       {/* Search Bar & View Filter Tabs */}
-      <div className="flex flex-col gap-4 rounded-xl border border-slate-800 bg-slate-900/60 p-4 sm:flex-row sm:items-center sm:justify-between backdrop-blur-sm">
+      <div className="flex flex-col gap-4 rounded-xl border border-slate-800 bg-slate-900 p-4 sm:flex-row sm:items-center sm:justify-between">
         {/* Filter Pills */}
-        <div className="flex items-center rounded-lg border border-slate-800 bg-slate-950/80 p-1">
+        <div className="flex items-center rounded-lg border border-slate-800 bg-slate-950 p-1">
           <button
             onClick={() => setActiveTab('BACKEND')}
             className={`rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
               activeTab === 'BACKEND'
-                ? 'bg-indigo-500 text-white shadow-md'
+                ? 'bg-blue-600 text-white'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -405,7 +400,7 @@ export default function Config() {
             onClick={() => setActiveTab('CLIENT')}
             className={`rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
               activeTab === 'CLIENT'
-                ? 'bg-indigo-500 text-white shadow-md'
+                ? 'bg-blue-600 text-white'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -423,7 +418,7 @@ export default function Config() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search parameters or values..."
-            className="w-full rounded-lg border border-slate-800 bg-slate-950/80 pl-9 pr-4 py-2 text-xs text-white placeholder-slate-500 outline-none transition focus:border-indigo-500"
+            className="w-full rounded-lg border border-slate-800 bg-slate-950 pl-9 pr-4 py-2 text-xs text-white placeholder-slate-500 outline-none transition focus:border-blue-600"
           />
           {searchQuery && (
             <button
@@ -438,7 +433,7 @@ export default function Config() {
 
       {loading && (
         <div className="space-y-6">
-          <div className="h-96 animate-pulse rounded-2xl border border-slate-800 bg-slate-900/40" />
+          <div className="h-96 animate-pulse rounded-xl border border-slate-800 bg-slate-900/60" />
         </div>
       )}
 

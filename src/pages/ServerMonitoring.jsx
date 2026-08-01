@@ -31,7 +31,7 @@ function getArcPath(cx, cy, r, startAngle, endAngle) {
 }
 
 // Circular Radial Gauge Component
-function CircularGauge({ percent = 0, label, subtext, strokeColor = '#6366f1', valueText }) {
+function CircularGauge({ percent = 0, label, subtext, strokeColor = '#3b82f6', valueText }) {
   const radius = 36;
   const circumference = 2 * Math.PI * radius;
   const safePercent = Math.min(100, Math.max(0, percent || 0));
@@ -148,8 +148,8 @@ function PoolBarChart({ pools }) {
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
               <span className="font-semibold text-slate-200">{pool.name}</span>
               <div className="flex items-center gap-3 font-mono text-[11px]">
-                <span className="text-cyan-400 font-medium">Used: {pool.usedMb} MB</span>
-                <span className="text-indigo-400 font-medium">Committed: {pool.committedMb} MB</span>
+                <span className="text-blue-400 font-medium">Used: {pool.usedMb} MB</span>
+                <span className="text-blue-400 font-medium">Committed: {pool.committedMb} MB</span>
                 <span className="text-slate-400">Max: {pool.maxMb > 0 ? `${pool.maxMb} MB` : 'N/A'}</span>
               </div>
             </div>
@@ -157,13 +157,13 @@ function PoolBarChart({ pools }) {
             <div className="relative h-4 w-full overflow-hidden rounded-full bg-slate-800/90">
               {/* Committed Bar background */}
               <div
-                className="absolute inset-y-0 left-0 rounded-full bg-indigo-600/40 border-r-2 border-indigo-400 transition-all duration-500"
+                className="absolute inset-y-0 left-0 rounded-full bg-blue-500/40 border-r-2 border-blue-400 transition-all duration-500"
                 style={{ width: `${committedPercent}%` }}
                 title={`Committed: ${pool.committedMb} MB (${committedPercent.toFixed(1)}%)`}
               />
               {/* Used Bar foreground */}
               <div
-                className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-500"
+                className="absolute inset-y-0 left-0 rounded-full bg-blue-500 transition-all duration-500"
                 style={{ width: `${usedPercent}%` }}
                 title={`Used: ${pool.usedMb} MB (${usedPercent.toFixed(1)}%)`}
               />
@@ -192,14 +192,14 @@ function GcBarChart({ gcItems }) {
                 <span className="font-semibold text-slate-200">{gc.name}</span>
                 <span className="ml-2 text-[11px] text-slate-400">Collections: {gc.collectionCount}</span>
               </div>
-              <span className="font-mono text-xs font-semibold text-indigo-300">
+              <span className="font-mono text-xs font-semibold text-blue-300">
                 {gc.collectionTimeMs} ms
               </span>
             </div>
 
             <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-800">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 transition-all duration-500"
+                className="h-full rounded-full bg-blue-500 transition-all duration-500"
                 style={{ width: `${percent}%` }}
               />
             </div>
@@ -304,30 +304,26 @@ export default function ServerMonitoring() {
 
   return (
     <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 via-indigo-950/40 to-slate-950 p-6 md:p-8 shadow-xl">
-        <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-cyan-500/10 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-16 -left-16 h-56 w-56 rounded-full bg-indigo-500/10 blur-3xl" />
-
-        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-white tracking-tight">Server Monitoring</h1>
-              <span className="flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-2.5 py-0.5 text-xs font-semibold text-indigo-400">
-                System Health
-              </span>
-            </div>
-            <p className="mt-1 text-xs sm:text-sm text-slate-400">
-              Interactive system metrics, memory allocation charts, CPU load, and domain engine performance.
-            </p>
-          </div>
-
+      {/* Header */}
+      <div className="flex flex-col gap-4 rounded-xl border border-slate-800 bg-slate-900 p-6 sm:flex-row sm:items-center sm:justify-between">
+        <div>
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => loadStats()}
-              disabled={loading}
-              className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 px-4 py-2 text-xs font-medium text-white shadow-md transition hover:from-indigo-600 hover:to-purple-700 disabled:opacity-50"
-            >
+            <h1 className="text-xl font-bold text-white tracking-tight">Server Monitoring</h1>
+            <span className="flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-800 px-2.5 py-0.5 text-xs font-semibold text-slate-300">
+              System Health
+            </span>
+          </div>
+          <p className="mt-1 text-xs sm:text-sm text-slate-400">
+            Interactive system metrics, memory allocation charts, CPU load, and domain engine performance.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => loadStats()}
+            disabled={loading}
+            className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-xs font-medium text-slate-200 transition hover:bg-slate-700 disabled:opacity-50"
+          >
               <svg
                 className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`}
                 fill="none"
@@ -347,7 +343,6 @@ export default function ServerMonitoring() {
             Last updated: {lastUpdated.toLocaleTimeString()}
           </p>
         )}
-      </div>
 
       {error && (
         <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-xs text-red-300">
@@ -399,7 +394,7 @@ export default function ServerMonitoring() {
             <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 backdrop-blur-sm">
               <div className="flex items-center justify-between mb-5">
                 <h3 className="text-md font-bold text-slate-100 flex items-center gap-2">
-                  <svg className="h-5 w-5 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <svg className="h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
                   </svg>
@@ -418,7 +413,7 @@ export default function ServerMonitoring() {
             <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 backdrop-blur-sm">
               <div className="flex items-center justify-between mb-5">
                 <h3 className="text-md font-bold text-slate-100 flex items-center gap-2">
-                  <svg className="h-5 w-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <svg className="h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                   JVM Memory Pools Comparison
@@ -538,7 +533,7 @@ export default function ServerMonitoring() {
                           <p className="text-[11px] text-slate-500">Count: {buf.count}</p>
                         </div>
                         <div className="text-right font-mono">
-                          <span className="text-xs font-semibold text-cyan-300">
+                          <span className="text-xs font-semibold text-blue-300">
                             {buf.memoryUsedMb} / {buf.totalCapacityMb} MB
                           </span>
                           <span className="block text-[10px] text-slate-500">Used / Capacity</span>

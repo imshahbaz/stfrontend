@@ -16,38 +16,33 @@ export default function Home() {
       value: '—',
       hint: 'Manage trading setups',
       to: '/strategies',
-      accent: 'from-emerald-500/20 to-emerald-500/0',
-      ring: 'ring-emerald-500/30',
+      accent: 'text-emerald-400',
     },
     {
       label: 'Active Config',
       value: '—',
       hint: 'Client & backend',
       to: '/config',
-      accent: 'from-indigo-500/20 to-indigo-500/0',
-      ring: 'ring-indigo-500/30',
+      accent: 'text-blue-400',
     },
     {
       label: 'Server Monitoring',
       value: 'Live',
       hint: 'CPU, Memory, Threads & Pipeline health',
       to: '/server-monitoring',
-      accent: 'from-sky-500/20 to-cyan-500/0',
-      ring: 'ring-cyan-500/30',
+      accent: 'text-sky-400',
     },
   ];
 
   return (
     <div>
-      <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 p-8">
-        <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-indigo-600/20 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-24 -left-16 h-64 w-64 rounded-full bg-purple-600/20 blur-3xl" />
-        <div className="relative flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-lg font-bold">
+      <div className="rounded-xl border border-slate-800 bg-slate-900 p-8">
+        <div className="flex items-center gap-4">
+          <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-blue-600 text-lg font-bold text-white">
             {initials}
           </div>
           <div>
-            <h2 className="text-2xl font-bold">
+            <h2 className="text-2xl font-bold text-white">
               Welcome back{user?.name ? `, ${user.name}` : ''}
             </h2>
             <p className="mt-1 text-slate-400">
@@ -62,7 +57,7 @@ export default function Home() {
           <Link
             key={stat.label}
             to={stat.to}
-            className={`group rounded-xl border border-slate-800 bg-gradient-to-br ${stat.accent} p-6 ring-1 ${stat.ring} transition hover:border-slate-600 hover:ring-2`}
+            className="group rounded-xl border border-slate-800 bg-slate-900 p-6 transition hover:border-slate-600"
           >
             <div className="flex items-center justify-between">
               <p className="text-sm text-slate-400">{stat.label}</p>
@@ -70,7 +65,7 @@ export default function Home() {
                 →
               </span>
             </div>
-            <p className="mt-2 text-3xl font-bold">{stat.value}</p>
+            <p className={`mt-2 text-3xl font-bold ${stat.accent}`}>{stat.value}</p>
             <p className="mt-1 text-xs text-slate-500">{stat.hint}</p>
           </Link>
         ))}
