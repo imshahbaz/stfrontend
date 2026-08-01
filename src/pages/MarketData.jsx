@@ -375,12 +375,20 @@ export default function MarketData() {
     setSelectedSymbol(item.symbol);
     setQuery(item.symbol);
     setDropdownOpen(false);
+    setSearchedSymbol(null);
+    setBarSeriesData(null);
+    setBarError(null);
+    setTimeframe('15min');
   };
 
   const handleQueryChange = (value) => {
     setQuery(value);
     setSelectedSymbol('');
     setDropdownOpen(true);
+    setSearchedSymbol(null);
+    setBarSeriesData(null);
+    setBarError(null);
+    setTimeframe('15min');
   };
 
   const handleSort = (key) => {
