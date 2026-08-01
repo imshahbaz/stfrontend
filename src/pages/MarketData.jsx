@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
-import { createChart, ColorType, CrosshairMode } from 'lightweight-charts';
+import { createChart, ColorType, CrosshairMode, CandlestickSeries } from 'lightweight-charts';
 import { fetchMarginData, fetchMarketBarSeries } from '../api/service';
 
 function formatMargin(value) {
@@ -52,13 +52,58 @@ function CandlestickChart({ data }) {
         vertLine: { color: '#6366f1', width: 1, style: 2, labelBackgroundColor: '#4f46e5' },
         horzLine: { color: '#6366f1', width: 1, style: 2, labelBackgroundColor: '#4f46e5' },
       },
+      localization: {
+        locale: 'en-IN',
+        timeFormatter: (timestamp) => {
+          if (typeof timestamp === 'number') {
+            const date = new Date(timestamp * 1000);
+            return date.toLocaleString('en-IN', {
+              timeZone: 'Asia/Kolkata',
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true,
+            });
+          }
+          if (timestamp && typeof timestamp === 'object') {
+            const { year, month, day } = timestamp;
+            return `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`;
+          }
+          return String(timestamp);
+        },
+      },
       rightPriceScale: { borderColor: 'rgba(51, 65, 85, 0.6)' },
-      timeScale: { borderColor: 'rgba(51, 65, 85, 0.6)' },
+      timeScale: {
+        borderColor: 'rgba(51, 65, 85, 0.6)',
+        timeVisible: true,
+        secondsVisible: false,
+        tickMarkFormatter: (time, tickMarkType) => {
+          const date = typeof time === 'number'
+            ? new Date(time * 1000)
+            : new Date(time.year, time.month - 1, time.day);
+
+          switch (tickMarkType) {
+            case 0: // Year
+              return date.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', year: 'numeric' });
+            case 1: // Month
+              return date.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', month: 'short' });
+            case 2: // Day
+              return date.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short' });
+            case 3: // Time
+            case 4: // TimeWithSeconds
+              return date.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: 'numeric', minute: '2-digit', hour12: true });
+            default:
+              return date.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', hour: 'numeric', minute: '2-digit', hour12: true });
+          }
+        },
+      },
       width: containerRef.current.clientWidth,
       height: 420,
     });
 
-    const series = chart.addCandlestickSeries({
+    const series = chart.addSeries(CandlestickSeries, {
       upColor: '#10b981',
       downColor: '#ef4444',
       borderVisible: false,
