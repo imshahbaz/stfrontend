@@ -18,38 +18,63 @@ function getCronDescription(expr) {
   const trimmed = expr.trim();
   const parts = trimmed.split(/\s+/);
 
-  if (parts.length === 5 || parts.length === 6) {
-    const minStr = parts.length === 6 ? parts[1] : parts[0];
-    const hourStr = parts.length === 6 ? parts[2] : parts[1];
-    const dowStr = parts.length === 6 ? parts[5] : parts[4];
+  if (parts.length < 5 || parts.length > 7) return 'Custom cron schedule';
 
-    if (minStr.startsWith('*/')) {
-      return `Runs every ${minStr.replace('*/', '')} minutes`;
+  const minStr = parts.length >= 6 ? parts[1] : parts[0];
+  const hourStr = parts.length >= 6 ? parts[2] : parts[1];
+  const dowStr = parts.length >= 6 ? parts[5] : parts[4];
+
+  // Minutes step syntax e.g. */15 or 0/15
+  let minIntervalText = '';
+  if (minStr.includes('/')) {
+    const step = minStr.split('/')[1];
+    minIntervalText = `every ${step} minutes`;
+  } else if (minStr.startsWith('*/')) {
+    minIntervalText = `every ${minStr.replace('*/', '')} minutes`;
+  }
+
+  // Hours range or specific hour e.g. 10-15 or 9
+  let hourText = '';
+  if (hourStr.includes('-')) {
+    const [startH, endH] = hourStr.split('-').map(Number);
+    if (!isNaN(startH) && !isNaN(endH)) {
+      const startH12 = startH % 12 || 12;
+      const startAmpm = startH >= 12 ? 'PM' : 'AM';
+      const endH12 = endH % 12 || 12;
+      const endAmpm = endH >= 12 ? 'PM' : 'AM';
+      hourText = `between ${String(startH12).padStart(2, '0')}:00 ${startAmpm} and ${String(endH12).padStart(2, '0')}:59 ${endAmpm}`;
     }
-
-    const min = parseInt(minStr, 10);
-    const hour = parseInt(hourStr, 10);
-
-    let timeText = '';
-    if (!isNaN(hour) && !isNaN(min)) {
-      const h12 = hour % 12 || 12;
-      const ampm = hour >= 12 ? 'PM' : 'AM';
-      const mTwo = String(min).padStart(2, '0');
-      timeText = `at ${String(h12).padStart(2, '0')}:${mTwo} ${ampm}`;
+  } else if (hourStr !== '*' && hourStr !== '?') {
+    const h = parseInt(hourStr, 10);
+    const m = parseInt(minStr, 10);
+    if (!isNaN(h)) {
+      const h12 = h % 12 || 12;
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      const mTwo = !isNaN(m) ? String(m).padStart(2, '0') : '00';
+      hourText = `at ${String(h12).padStart(2, '0')}:${mTwo} ${ampm}`;
     }
+  }
 
-    let daysText = 'every day';
-    if (dowStr === '1-5' || dowStr === 'MON-FRI' || dowStr === 'MON,TUE,WED,THU,FRI') {
-      daysText = 'Monday through Friday';
-    } else if (dowStr === '6,7' || dowStr === 'SAT,SUN') {
-      daysText = 'on Weekends (Sat-Sun)';
-    } else if (dowStr !== '*' && dowStr !== '?') {
-      daysText = `on ${dowStr}`;
-    }
+  // Days of week e.g. MON-FRI or ? or *
+  let daysText = 'Monday through Friday';
+  if (dowStr === '1-5' || dowStr === 'MON-FRI' || dowStr === 'MON,TUE,WED,THU,FRI') {
+    daysText = 'Monday through Friday';
+  } else if (dowStr === '6,7' || dowStr === 'SAT,SUN') {
+    daysText = 'on Weekends (Sat-Sun)';
+  } else if (dowStr === '*' || dowStr === '?') {
+    daysText = 'every day';
+  } else {
+    daysText = `on ${dowStr}`;
+  }
 
-    if (timeText) {
-      return `Runs ${daysText} ${timeText}`;
-    }
+  if (minIntervalText && hourText) {
+    return `Runs ${minIntervalText}, ${hourText}, ${daysText}`;
+  }
+  if (minIntervalText) {
+    return `Runs ${minIntervalText}, ${daysText}`;
+  }
+  if (hourText) {
+    return `Runs ${daysText} ${hourText}`;
   }
 
   return 'Custom cron schedule';
@@ -786,9 +811,15 @@ export default function SchedulerTasks() {
                   {selectedTask.cronExpression ? 'Cron Expression' : 'Execution Time'}
                 </p>
                 {selectedTask.cronExpression ? (
-                  <code className="mt-1 inline-block rounded border border-slate-800 bg-slate-950 px-2 py-1 font-mono text-xs font-semibold text-amber-300">
-                    {selectedTask.cronExpression}
-                  </code>
+                  <div>
+                    <code className="mt-1 inline-block rounded border border-slate-800 bg-slate-950 px-2 py-1 font-mono text-xs font-semibold text-amber-300">
+                      {selectedTask.cronExpression}
+                    </code>
+                    <p className="mt-1 text-[11px] font-medium text-emerald-400 flex items-center gap-1">
+                      <span>⚡</span>
+                      <span>{getCronDescription(selectedTask.cronExpression)}</span>
+                    </p>
+                  </div>
                 ) : (
                   <span className="mt-1 block font-mono text-xs font-semibold text-emerald-300">
                     {formatExecutionTime(selectedTask.executionTime)}
