@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { createChart, ColorType, CrosshairMode } from 'lightweight-charts';
 import { fetchMarginData, fetchMarketBarSeries } from '../api/service';
 
@@ -7,10 +7,34 @@ function formatMargin(value) {
   return Number(value).toLocaleString('en-IN', { maximumFractionDigits: 2 });
 }
 
+function SortIcon({ dir }) {
+  if (!dir) {
+    return (
+      <svg className="h-3 w-3 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M7 15l5 5 5-5M7 9l5-5 5 5" />
+      </svg>
+    );
+  }
+  if (dir === 'asc') {
+    return (
+      <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+      </svg>
+    );
+  }
+  return (
+    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+    </svg>
+  );
+}
+
 function CandlestickChart({ data }) {
   const containerRef = useRef(null);
   const chartRef = useRef(null);
   const seriesRef = useRef(null);
+  const dataRef = useRef(data);
+  dataRef.current = data;
 
   useEffect(() => {
     const chart = createChart(containerRef.current, {
@@ -44,6 +68,11 @@ function CandlestickChart({ data }) {
 
     chartRef.current = chart;
     seriesRef.current = series;
+
+    if (dataRef.current && dataRef.current.length > 0) {
+      series.setData(dataRef.current);
+      chart.timeScale().fitContent();
+    }
 
     const handleResize = () => {
       if (containerRef.current) {
@@ -84,6 +113,14 @@ export default function MarketData() {
   const [barLoading, setBarLoading] = useState(false);
   const [barError, setBarError] = useState(null);
 
+  const [showTable, setShowTable] = useState(false);
+  const [sortKey, setSortKey] = useState(null);
+  const [sortDir, setSortDir] = useState('asc');
+
+  const [query, setQuery] = useState('');
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
   const loadMarginData = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -101,6 +138,72 @@ export default function MarketData() {
   useEffect(() => {
     loadMarginData();
   }, [loadMarginData]);
+
+  const sortedOptions = useMemo(() => {
+    if (!marginData) return [];
+    return [...marginData].sort((a, b) => (a.symbol || '').localeCompare(b.symbol || ''));
+  }, [marginData]);
+
+  const filteredOptions = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return sortedOptions;
+    return sortedOptions.filter(
+      (item) =>
+        (item.symbol || '').toLowerCase().includes(q) ||
+        (item.name || '').toLowerCase().includes(q)
+    );
+  }, [sortedOptions, query]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const selectedItem = marginData?.find((item) => item.symbol === selectedSymbol) || null;
+
+  const handleSelectOption = (item) => {
+    setSelectedSymbol(item.symbol);
+    setQuery(item.symbol);
+    setDropdownOpen(false);
+  };
+
+  const handleQueryChange = (value) => {
+    setQuery(value);
+    setSelectedSymbol('');
+    setDropdownOpen(true);
+  };
+
+  const handleSort = (key) => {
+    if (sortKey === key) {
+      setSortDir((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  };
+
+  const sortedRows = useMemo(() => {
+    if (!marginData) return [];
+    const rows = [...marginData];
+    if (!sortKey) return rows;
+    rows.sort((a, b) => {
+      const av = a[sortKey];
+      const bv = b[sortKey];
+      let cmp;
+      if (typeof av === 'number' && typeof bv === 'number') {
+        cmp = av - bv;
+      } else {
+        cmp = String(av ?? '').localeCompare(String(bv ?? ''));
+      }
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+    return rows;
+  }, [marginData, sortKey, sortDir]);
 
   const handleSearch = async () => {
     if (!selectedSymbol) return;
@@ -192,20 +295,58 @@ export default function MarketData() {
         </p>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <select
-            value={selectedSymbol}
-            onChange={(e) => setSelectedSymbol(e.target.value)}
-            disabled={!marginData || marginData.length === 0}
-            className="w-full sm:w-72 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-slate-200 outline-none transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:opacity-50"
-          >
-            <option value="">Select a symbol</option>
-            {marginData?.map((item) => (
-              <option key={item.token || item.symbol} value={item.symbol}>
-                {item.symbol}
-                {item.name ? ` — ${item.name}` : ''}
-              </option>
-            ))}
-          </select>
+          <div ref={dropdownRef} className="relative w-full sm:w-72">
+            <div className="flex items-center">
+              <svg className="pointer-events-none absolute left-3 h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 10.5a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z" />
+              </svg>
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => handleQueryChange(e.target.value)}
+                onFocus={() => setDropdownOpen(true)}
+                placeholder="Search symbol or name..."
+                disabled={!marginData || marginData.length === 0}
+                className="w-full rounded-lg border border-slate-700 bg-slate-950 py-2.5 pl-9 pr-8 text-sm text-slate-200 outline-none transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:opacity-50"
+              />
+              <button
+                onClick={() => setDropdownOpen((prev) => !prev)}
+                className="absolute right-2 p-1 text-slate-400 transition hover:text-slate-200"
+                aria-label="Toggle dropdown"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            </div>
+
+            {dropdownOpen && (
+              <div className="absolute z-10 mt-1 max-h-72 w-full overflow-y-auto rounded-lg border border-slate-700 bg-slate-950 shadow-2xl">
+                {filteredOptions.length === 0 ? (
+                  <p className="px-3 py-3 text-sm text-slate-500">No symbols match "{query}".</p>
+                ) : (
+                  filteredOptions.map((item) => (
+                    <button
+                      key={item.token || item.symbol}
+                      type="button"
+                      onClick={() => handleSelectOption(item)}
+                      className={`flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left text-sm transition hover:bg-slate-800/80 ${
+                        item.symbol === selectedSymbol ? 'bg-indigo-500/10 text-indigo-300' : 'text-slate-200'
+                      }`}
+                    >
+                      <span className="min-w-0">
+                        <span className="block truncate font-mono font-semibold">{item.symbol || '—'}</span>
+                        {item.name && <span className="block truncate text-xs text-slate-500">{item.name}</span>}
+                      </span>
+                      <span className="shrink-0 font-mono text-xs text-emerald-400">
+                        {formatMargin(item.rupeezyMargin)}
+                      </span>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
 
           <button
             onClick={handleSearch}
@@ -218,6 +359,35 @@ export default function MarketData() {
             {barLoading ? 'Loading...' : 'Search'}
           </button>
         </div>
+
+        {selectedItem && (
+          <div className="mt-4 grid grid-cols-2 gap-3 rounded-xl border border-slate-700/60 bg-slate-950/50 p-4 sm:grid-cols-5">
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-slate-500">Symbol</p>
+              <p className="mt-0.5 font-mono text-sm font-semibold text-indigo-300">{selectedItem.symbol || '—'}</p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-slate-500">Name</p>
+              <p className="mt-0.5 truncate text-sm text-slate-200">{selectedItem.name || '—'}</p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-slate-500">Token</p>
+              <p className="mt-0.5 font-mono text-sm text-slate-300">{selectedItem.token || '—'}</p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-slate-500">Required Margin</p>
+              <p className="mt-0.5 font-mono text-sm font-semibold text-slate-200">
+                {formatMargin(selectedItem.requiredMargin)}
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-slate-500">Rupeezy Margin</p>
+              <p className="mt-0.5 font-mono text-sm font-semibold text-emerald-300">
+                {formatMargin(selectedItem.rupeezyMargin)}
+              </p>
+            </div>
+          </div>
+        )}
 
         {barError && (
           <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-xs text-red-300">
@@ -255,49 +425,92 @@ export default function MarketData() {
         </div>
       </div>
 
-      {loading && !marginData ? (
-        <div className="space-y-3">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="h-14 animate-pulse rounded-xl border border-slate-800 bg-slate-900/50" />
-          ))}
+      <div className="flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-900/60 p-4 shadow-xl">
+        <div>
+          <p className="text-sm font-semibold text-slate-200">All Margin Data</p>
+          <p className="text-xs text-slate-500">
+            {marginData ? `${marginData.length} symbols` : '—'}
+          </p>
         </div>
-      ) : marginData && marginData.length === 0 ? (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-10 text-center text-sm text-slate-400">
-          No margin data available.
-        </div>
-      ) : marginData ? (
-        <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60 shadow-xl">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-slate-800 bg-slate-900/80 text-xs uppercase tracking-wider text-slate-400">
-                  <th className="px-5 py-3 font-semibold">Symbol</th>
-                  <th className="px-5 py-3 font-semibold">Name</th>
-                  <th className="px-5 py-3 font-semibold">Token</th>
-                  <th className="px-5 py-3 text-right font-semibold">Required Margin</th>
-                  <th className="px-5 py-3 text-right font-semibold">Rupeezy Margin</th>
-                </tr>
-              </thead>
-              <tbody>
-                {marginData.map((item, i) => (
-                  <tr
-                    key={item.token || item.symbol || i}
-                    className={`border-b border-slate-800/60 transition hover:bg-slate-800/40 ${
-                      i % 2 === 1 ? 'bg-slate-950/30' : ''
-                    }`}
-                  >
-                    <td className="px-5 py-3 font-mono font-semibold text-indigo-300">{item.symbol || '—'}</td>
-                    <td className="px-5 py-3 text-slate-300">{item.name || '—'}</td>
-                    <td className="px-5 py-3 font-mono text-slate-400">{item.token || '—'}</td>
-                    <td className="px-5 py-3 text-right font-mono text-slate-200">{formatMargin(item.requiredMargin)}</td>
-                    <td className="px-5 py-3 text-right font-mono text-emerald-300">{formatMargin(item.rupeezyMargin)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <button
+          onClick={() => setShowTable((prev) => !prev)}
+          className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 px-4 py-2 text-xs font-medium text-white shadow-md transition hover:from-indigo-600 hover:to-purple-700"
+        >
+          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+          {showTable ? 'Hide All' : 'Show All'}
+        </button>
+      </div>
+
+      {showTable &&
+        (loading && !marginData ? (
+          <div className="space-y-3">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="h-14 animate-pulse rounded-xl border border-slate-800 bg-slate-900/50" />
+            ))}
           </div>
-        </div>
-      ) : null}
+        ) : marginData && marginData.length === 0 ? (
+          <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-10 text-center text-sm text-slate-400">
+            No margin data available.
+          </div>
+        ) : marginData ? (
+          <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60 shadow-xl">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-slate-800 bg-slate-900/80 text-xs uppercase tracking-wider text-slate-400">
+                    <th className="px-5 py-3">
+                      <button
+                        onClick={() => handleSort('symbol')}
+                        className="flex items-center gap-1.5 font-semibold transition hover:text-white"
+                      >
+                        Symbol
+                        <SortIcon dir={sortKey === 'symbol' ? sortDir : null} />
+                      </button>
+                    </th>
+                    <th className="px-5 py-3 font-semibold">Name</th>
+                    <th className="px-5 py-3 font-semibold">Token</th>
+                    <th className="px-5 py-3 text-right">
+                      <button
+                        onClick={() => handleSort('requiredMargin')}
+                        className="ml-auto flex items-center gap-1.5 font-semibold transition hover:text-white"
+                      >
+                        Required Margin
+                        <SortIcon dir={sortKey === 'requiredMargin' ? sortDir : null} />
+                      </button>
+                    </th>
+                    <th className="px-5 py-3 text-right">
+                      <button
+                        onClick={() => handleSort('rupeezyMargin')}
+                        className="ml-auto flex items-center gap-1.5 font-semibold transition hover:text-white"
+                      >
+                        Rupeezy Margin
+                        <SortIcon dir={sortKey === 'rupeezyMargin' ? sortDir : null} />
+                      </button>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedRows.map((item, i) => (
+                    <tr
+                      key={item.token || item.symbol || i}
+                      className={`border-b border-slate-800/60 transition hover:bg-slate-800/40 ${
+                        i % 2 === 1 ? 'bg-slate-950/30' : ''
+                      }`}
+                    >
+                      <td className="px-5 py-3 font-mono font-semibold text-indigo-300">{item.symbol || '—'}</td>
+                      <td className="px-5 py-3 text-slate-300">{item.name || '—'}</td>
+                      <td className="px-5 py-3 font-mono text-slate-400">{item.token || '—'}</td>
+                      <td className="px-5 py-3 text-right font-mono text-slate-200">{formatMargin(item.requiredMargin)}</td>
+                      <td className="px-5 py-3 text-right font-mono text-emerald-300">{formatMargin(item.rupeezyMargin)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : null)}
     </div>
   );
 }
