@@ -167,7 +167,7 @@ export async function fetchMarketBarSeries(symbol) {
  * @returns {Promise<ScheduleTask[]>}
  */
 export async function fetchScheduleTasks(taskType) {
-  const response = await apiClient.get(ENDPOINTS.SCHEDULE_ALL, { params: { tasktType: taskType } });
+  const response = await apiClient.get(ENDPOINTS.SCHEDULE_ALL, { params: { taskType: taskType } });
   return unwrapData(response);
 }
 
