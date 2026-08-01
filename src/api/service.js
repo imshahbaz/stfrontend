@@ -3,11 +3,11 @@ import apiClient from './client';
 export const ENDPOINTS = {
   LOGIN: '/api/auth/login',
   ME: '/api/auth/me',
-  STRATEGIES: '/api/strategy/admin',
-  STRATEGY: '/api/strategy',
+  STRATEGIES: '/api/admin/strategy/admin',
+  STRATEGY: '/api/admin/strategy',
   CLIENT_CONFIG: '/api/config/client/active',
-  BACKEND_CONFIG: '/api/config/active',
-  CONFIG_RELOAD: '/api/config/reload',
+  BACKEND_CONFIG: '/api/admin/config/active',
+  CONFIG_RELOAD: '/api/admin/config/reload',
 };
 
 /**
