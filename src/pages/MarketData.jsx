@@ -7,6 +7,52 @@ function formatMargin(value) {
   return Number(value).toLocaleString('en-IN', { maximumFractionDigits: 2 });
 }
 
+function aggregateDailyCandles(candles) {
+  if (!candles || candles.length === 0) return [];
+
+  const groups = new Map();
+
+  candles.forEach((point) => {
+    const date = new Date(point.time * 1000);
+    const dateStr = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Kolkata',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(date);
+
+    if (!groups.has(dateStr)) {
+      groups.set(dateStr, []);
+    }
+    groups.get(dateStr).push(point);
+  });
+
+  const dailyCandles = [];
+  groups.forEach((dayCandles, dateStr) => {
+    dayCandles.sort((a, b) => a.time - b.time);
+
+    const open = dayCandles[0].open;
+    const close = dayCandles[dayCandles.length - 1].close;
+    let high = -Infinity;
+    let low = Infinity;
+
+    dayCandles.forEach((c) => {
+      if (c.high > high) high = c.high;
+      if (c.low < low) low = c.low;
+    });
+
+    dailyCandles.push({
+      time: dateStr,
+      open,
+      high,
+      low,
+      close,
+    });
+  });
+
+  return dailyCandles.sort((a, b) => a.time.localeCompare(b.time));
+}
+
 function SortIcon({ dir }) {
   if (!dir) {
     return (
@@ -29,10 +75,37 @@ function SortIcon({ dir }) {
   );
 }
 
-function CandlestickChart({ data }) {
+function formatTimeLabel(time) {
+  if (typeof time === 'number') {
+    return new Date(time * 1000).toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  }
+  if (typeof time === 'string') {
+    const parts = time.split('-');
+    if (parts.length === 3) {
+      const date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+      return date.toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      });
+    }
+  }
+  return String(time);
+}
+
+function CandlestickChart({ data, timeframe }) {
   const containerRef = useRef(null);
   const chartRef = useRef(null);
   const seriesRef = useRef(null);
+  const [hoveredData, setHoveredData] = useState(null);
   const dataRef = useRef(data);
   dataRef.current = data;
 
@@ -67,6 +140,17 @@ function CandlestickChart({ data }) {
               hour12: true,
             });
           }
+          if (typeof timestamp === 'string') {
+            const parts = timestamp.split('-');
+            if (parts.length === 3) {
+              const date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+              return date.toLocaleDateString('en-IN', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+              });
+            }
+          }
           if (timestamp && typeof timestamp === 'object') {
             const { year, month, day } = timestamp;
             return `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`;
@@ -77,12 +161,24 @@ function CandlestickChart({ data }) {
       rightPriceScale: { borderColor: 'rgba(51, 65, 85, 0.6)' },
       timeScale: {
         borderColor: 'rgba(51, 65, 85, 0.6)',
-        timeVisible: true,
+        timeVisible: timeframe === '15min',
         secondsVisible: false,
         tickMarkFormatter: (time, tickMarkType) => {
-          const date = typeof time === 'number'
-            ? new Date(time * 1000)
-            : new Date(time.year, time.month - 1, time.day);
+          let date;
+          if (typeof time === 'number') {
+            date = new Date(time * 1000);
+          } else if (typeof time === 'string') {
+            const parts = time.split('-');
+            if (parts.length === 3) {
+              date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+            } else {
+              date = new Date(time);
+            }
+          } else if (time && typeof time === 'object') {
+            date = new Date(time.year, time.month - 1, time.day);
+          } else {
+            return String(time);
+          }
 
           switch (tickMarkType) {
             case 0: // Year
@@ -95,7 +191,7 @@ function CandlestickChart({ data }) {
             case 4: // TimeWithSeconds
               return date.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: 'numeric', minute: '2-digit', hour12: true });
             default:
-              return date.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', hour: 'numeric', minute: '2-digit', hour12: true });
+              return date.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric' });
           }
         },
       },
@@ -119,6 +215,21 @@ function CandlestickChart({ data }) {
       chart.timeScale().fitContent();
     }
 
+    const handleCrosshairMove = (param) => {
+      if (!param || !param.time || !param.seriesData || param.point === undefined || param.point.x < 0 || param.point.y < 0) {
+        setHoveredData(null);
+        return;
+      }
+      const candle = param.seriesData.get(series);
+      if (candle) {
+        setHoveredData(candle);
+      } else {
+        setHoveredData(null);
+      }
+    };
+
+    chart.subscribeCrosshairMove(handleCrosshairMove);
+
     const handleResize = () => {
       if (containerRef.current) {
         chart.applyOptions({ width: containerRef.current.clientWidth });
@@ -129,6 +240,7 @@ function CandlestickChart({ data }) {
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      chart.unsubscribeCrosshairMove(handleCrosshairMove);
       chart.remove();
       chartRef.current = null;
       seriesRef.current = null;
@@ -136,13 +248,52 @@ function CandlestickChart({ data }) {
   }, []);
 
   useEffect(() => {
-    if (seriesRef.current && data && data.length > 0) {
+    if (chartRef.current && seriesRef.current && data && data.length > 0) {
+      chartRef.current.timeScale().applyOptions({
+        timeVisible: timeframe === '15min',
+      });
       seriesRef.current.setData(data);
       chartRef.current.timeScale().fitContent();
     }
-  }, [data]);
+  }, [data, timeframe]);
 
-  return <div ref={containerRef} className="w-full" />;
+  const displayCandle = hoveredData || (data && data.length > 0 ? data[data.length - 1] : null);
+  let change = 0;
+  let changePercent = 0;
+  let isUp = true;
+  if (displayCandle) {
+    change = displayCandle.close - displayCandle.open;
+    changePercent = displayCandle.open ? (change / displayCandle.open) * 100 : 0;
+    isUp = change >= 0;
+  }
+
+  return (
+    <div className="relative w-full">
+      {displayCandle && (
+        <div className="mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-slate-800/80 bg-slate-900/90 px-3 py-1.5 text-xs font-mono backdrop-blur-sm">
+          <span className="font-sans font-medium text-slate-400">
+            {formatTimeLabel(displayCandle.time)}
+          </span>
+          <span className="text-slate-400">
+            O: <span className="font-semibold text-slate-200">{displayCandle.open?.toFixed(2)}</span>
+          </span>
+          <span className="text-slate-400">
+            H: <span className="font-semibold text-slate-200">{displayCandle.high?.toFixed(2)}</span>
+          </span>
+          <span className="text-slate-400">
+            L: <span className="font-semibold text-slate-200">{displayCandle.low?.toFixed(2)}</span>
+          </span>
+          <span className="text-slate-400">
+            C: <span className="font-semibold text-slate-200">{displayCandle.close?.toFixed(2)}</span>
+          </span>
+          <span className={`font-semibold ${isUp ? 'text-emerald-400' : 'text-red-400'}`}>
+            {isUp ? '+' : ''}{change.toFixed(2)} ({isUp ? '+' : ''}{changePercent.toFixed(2)}%)
+          </span>
+        </div>
+      )}
+      <div ref={containerRef} className="w-full" />
+    </div>
+  );
 }
 
 export default function MarketData() {
@@ -157,6 +308,7 @@ export default function MarketData() {
   const [barSeriesData, setBarSeriesData] = useState(null);
   const [barLoading, setBarLoading] = useState(false);
   const [barError, setBarError] = useState(null);
+  const [timeframe, setTimeframe] = useState('15min');
 
   const [showTable, setShowTable] = useState(false);
   const [sortKey, setSortKey] = useState(null);
@@ -165,6 +317,14 @@ export default function MarketData() {
   const [query, setQuery] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+
+  const activeChartData = useMemo(() => {
+    if (!barSeriesData || barSeriesData.length === 0) return [];
+    if (timeframe === 'daily') {
+      return aggregateDailyCandles(barSeriesData);
+    }
+    return barSeriesData;
+  }, [barSeriesData, timeframe]);
 
   const loadMarginData = useCallback(async () => {
     setLoading(true);
@@ -444,18 +604,57 @@ export default function MarketData() {
         <div className="mt-4">
           {barLoading ? (
             <div className="h-[420px] animate-pulse rounded-xl border border-slate-800 bg-slate-950/40" />
-          ) : searchedSymbol && barSeriesData && barSeriesData.length > 0 ? (
+          ) : searchedSymbol && activeChartData && activeChartData.length > 0 ? (
             <>
-              <div className="mb-3 flex flex-wrap items-center gap-2">
-                <span className="rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-xs font-semibold text-indigo-300">
-                  {searchedSymbol}
-                </span>
-                <span className="text-[11px] text-slate-500">
-                  {barSeriesData.length} candles
-                </span>
+              <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-xs font-semibold text-indigo-300">
+                    {searchedSymbol}
+                  </span>
+                  <span className="text-[11px] text-slate-500">
+                    {activeChartData.length} {timeframe === 'daily' ? 'daily candles' : 'candles (15m)'}
+                  </span>
+                </div>
+
+                <div className="inline-flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-950 p-1">
+                  <label
+                    className={`flex items-center gap-1.5 cursor-pointer rounded-md px-3 py-1 text-xs font-medium transition ${
+                      timeframe === '15min'
+                        ? 'bg-indigo-600 text-white shadow-sm'
+                        : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="timeframe"
+                      value="15min"
+                      checked={timeframe === '15min'}
+                      onChange={() => setTimeframe('15min')}
+                      className="sr-only"
+                    />
+                    <span>15 Min</span>
+                  </label>
+                  <label
+                    className={`flex items-center gap-1.5 cursor-pointer rounded-md px-3 py-1 text-xs font-medium transition ${
+                      timeframe === 'daily'
+                        ? 'bg-indigo-600 text-white shadow-sm'
+                        : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="timeframe"
+                      value="daily"
+                      checked={timeframe === 'daily'}
+                      onChange={() => setTimeframe('daily')}
+                      className="sr-only"
+                    />
+                    <span>Daily</span>
+                  </label>
+                </div>
               </div>
               <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-950/40 p-3">
-                <CandlestickChart data={barSeriesData} />
+                <CandlestickChart data={activeChartData} timeframe={timeframe} />
               </div>
             </>
           ) : searchedSymbol ? (
