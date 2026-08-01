@@ -500,7 +500,7 @@ export default function MarketData() {
         </p>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div ref={dropdownRef} className="relative w-full sm:w-72">
+          <div ref={dropdownRef} className="relative w-full sm:w-96">
             <div className="flex items-center">
               <svg className="pointer-events-none absolute left-3 h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 10.5a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z" />
@@ -526,7 +526,10 @@ export default function MarketData() {
             </div>
 
             {dropdownOpen && (
-              <div className="absolute z-10 mt-1 max-h-72 w-full overflow-y-auto rounded-lg border border-slate-700 bg-slate-950 shadow-2xl">
+              <div
+                className="absolute z-10 mt-1 max-h-80 w-full overflow-y-auto rounded-lg border border-slate-700 bg-slate-950 shadow-2xl [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              >
                 {filteredOptions.length === 0 ? (
                   <p className="px-3 py-3 text-sm text-slate-500">No symbols match "{query}".</p>
                 ) : (
