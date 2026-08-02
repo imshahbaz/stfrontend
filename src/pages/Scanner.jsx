@@ -23,14 +23,6 @@ function SortIcon({ dir }) {
   );
 }
 
-function formatCurrency(val) {
-  if (val === null || val === undefined || isNaN(Number(val))) return '—';
-  return '₹' + Number(val).toLocaleString('en-IN', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-}
-
 function formatNumber(val) {
   if (val === null || val === undefined || isNaN(Number(val))) return '—';
   return Number(val).toLocaleString('en-IN', {
@@ -38,6 +30,8 @@ function formatNumber(val) {
     maximumFractionDigits: 2,
   });
 }
+
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
 export default function Scanner() {
   // Strategy Loading States
@@ -53,10 +47,12 @@ export default function Scanner() {
   const [hasSearched, setHasSearched] = useState(false);
   const [lastSearchedStrategy, setLastSearchedStrategy] = useState('');
 
-  // Table Filtering & Sorting
+  // Table Filtering, Sorting & Pagination
   const [filterQuery, setFilterQuery] = useState('');
   const [sortColumn, setSortColumn] = useState('symbol');
   const [sortDirection, setSortDirection] = useState('asc');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   // Load Strategies on Mount
   const loadStrategies = async () => {
@@ -93,6 +89,7 @@ export default function Scanner() {
     setResultsError(null);
     setHasSearched(true);
     setLastSearchedStrategy(selectedStrategy);
+    setCurrentPage(1);
 
     try {
       const res = await fetchStrategyWithMargin(selectedStrategy);
@@ -145,6 +142,28 @@ export default function Scanner() {
 
     return list;
   }, [results, filterQuery, sortColumn, sortDirection]);
+
+  // Reset page when filter changes
+  const handleFilterChange = (e) => {
+    setFilterQuery(e.target.value);
+    setCurrentPage(1);
+  };
+
+  // Reset page when page size changes
+  const handlePageSizeChange = (e) => {
+    setPageSize(Number(e.target.value));
+    setCurrentPage(1);
+  };
+
+  // Pagination Math
+  const totalItems = filteredAndSortedResults.length;
+  const totalPages = Math.ceil(totalItems / pageSize) || 1;
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, totalItems);
+
+  const paginatedResults = useMemo(() => {
+    return filteredAndSortedResults.slice(startIndex, endIndex);
+  }, [filteredAndSortedResults, startIndex, endIndex]);
 
   // Export CSV Helper
   const handleExportCSV = () => {
@@ -307,7 +326,7 @@ export default function Scanner() {
             <p className="text-xs text-slate-400">
               {hasSearched ? (
                 <>
-                  Results for strategy <span className="font-semibold text-blue-400">"{lastSearchedStrategy}"</span> ({results.length} items)
+                  Results for strategy <span className="font-semibold text-blue-400">"{lastSearchedStrategy}"</span> ({totalItems} items)
                 </>
               ) : (
                 'Select a strategy and search to populate results'
@@ -322,7 +341,7 @@ export default function Scanner() {
                   type="text"
                   placeholder="Filter by symbol or name..."
                   value={filterQuery}
-                  onChange={(e) => setFilterQuery(e.target.value)}
+                  onChange={handleFilterChange}
                   className="w-full sm:w-64 rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 pl-9 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
                 />
                 <svg
@@ -403,85 +422,145 @@ export default function Scanner() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-300">
-              <thead className="border-b border-slate-800 bg-slate-950/70 text-xs font-semibold text-slate-400">
-                <tr>
-                  <th className="px-4 py-3.5 w-12 text-center">#</th>
-                  <th
-                    className="cursor-pointer px-4 py-3.5 hover:text-white transition"
-                    onClick={() => handleSort('symbol')}
-                  >
-                    <div className="flex items-center gap-1.5">
-                      <span>Symbol</span>
-                      <SortIcon dir={sortColumn === 'symbol' ? sortDirection : null} />
-                    </div>
-                  </th>
-                  <th
-                    className="cursor-pointer px-4 py-3.5 hover:text-white transition"
-                    onClick={() => handleSort('name')}
-                  >
-                    <div className="flex items-center gap-1.5">
-                      <span>Name</span>
-                      <SortIcon dir={sortColumn === 'name' ? sortDirection : null} />
-                    </div>
-                  </th>
-                  <th
-                    className="cursor-pointer px-4 py-3.5 text-right hover:text-white transition"
-                    onClick={() => handleSort('close')}
-                  >
-                    <div className="flex items-center justify-end gap-1.5">
-                      <span>Close (₹)</span>
-                      <SortIcon dir={sortColumn === 'close' ? sortDirection : null} />
-                    </div>
-                  </th>
-                  <th
-                    className="cursor-pointer px-4 py-3.5 text-right hover:text-white transition"
-                    onClick={() => handleSort('margin')}
-                  >
-                    <div className="flex items-center justify-end gap-1.5">
-                      <span>Margin (₹)</span>
-                      <SortIcon dir={sortColumn === 'margin' ? sortDirection : null} />
-                    </div>
-                  </th>
-                  <th
-                    className="cursor-pointer px-4 py-3.5 text-right hover:text-white transition"
-                    onClick={() => handleSort('rupeezyMargin')}
-                  >
-                    <div className="flex items-center justify-end gap-1.5">
-                      <span>Rupeezy Margin (₹)</span>
-                      <SortIcon dir={sortColumn === 'rupeezyMargin' ? sortDirection : null} />
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60 bg-slate-900/40">
-                {filteredAndSortedResults.map((item, idx) => (
-                  <tr
-                    key={item.symbol || idx}
-                    className="transition hover:bg-slate-800/50"
-                  >
-                    <td className="px-4 py-3 text-center text-xs font-mono text-slate-500">{idx + 1}</td>
-                    <td className="px-4 py-3">
-                      <span className="inline-flex items-center rounded-md border border-slate-700 bg-slate-800/90 px-2.5 py-1 text-xs font-mono font-bold text-blue-300">
-                        {item.symbol || '—'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 font-medium text-white">{item.name || '—'}</td>
-                    <td className="px-4 py-3 text-right font-mono font-semibold text-slate-200">
-                      {formatNumber(item.close)}
-                    </td>
-                    <td className="px-4 py-3 text-right font-mono font-medium text-emerald-400">
-                      {formatNumber(item.margin)}
-                    </td>
-                    <td className="px-4 py-3 text-right font-mono font-medium text-indigo-400">
-                      {formatNumber(item.rupeezyMargin)}
-                    </td>
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm text-slate-300">
+                <thead className="border-b border-slate-800 bg-slate-950/70 text-xs font-semibold text-slate-400">
+                  <tr>
+                    <th className="px-4 py-3.5 w-12 text-center">#</th>
+                    <th
+                      className="cursor-pointer px-4 py-3.5 hover:text-white transition"
+                      onClick={() => handleSort('symbol')}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span>Symbol</span>
+                        <SortIcon dir={sortColumn === 'symbol' ? sortDirection : null} />
+                      </div>
+                    </th>
+                    <th
+                      className="cursor-pointer px-4 py-3.5 hover:text-white transition"
+                      onClick={() => handleSort('name')}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span>Name</span>
+                        <SortIcon dir={sortColumn === 'name' ? sortDirection : null} />
+                      </div>
+                    </th>
+                    <th
+                      className="cursor-pointer px-4 py-3.5 text-right hover:text-white transition"
+                      onClick={() => handleSort('close')}
+                    >
+                      <div className="flex items-center justify-end gap-1.5">
+                        <span>Close (₹)</span>
+                        <SortIcon dir={sortColumn === 'close' ? sortDirection : null} />
+                      </div>
+                    </th>
+                    <th
+                      className="cursor-pointer px-4 py-3.5 text-right hover:text-white transition"
+                      onClick={() => handleSort('margin')}
+                    >
+                      <div className="flex items-center justify-end gap-1.5">
+                        <span>Margin (₹)</span>
+                        <SortIcon dir={sortColumn === 'margin' ? sortDirection : null} />
+                      </div>
+                    </th>
+                    <th
+                      className="cursor-pointer px-4 py-3.5 text-right hover:text-white transition"
+                      onClick={() => handleSort('rupeezyMargin')}
+                    >
+                      <div className="flex items-center justify-end gap-1.5">
+                        <span>Rupeezy Margin (₹)</span>
+                        <SortIcon dir={sortColumn === 'rupeezyMargin' ? sortDirection : null} />
+                      </div>
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60 bg-slate-900/40">
+                  {paginatedResults.map((item, idx) => (
+                    <tr
+                      key={item.symbol || idx}
+                      className="transition hover:bg-slate-800/50"
+                    >
+                      <td className="px-4 py-3 text-center text-xs font-mono text-slate-500">
+                        {startIndex + idx + 1}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="inline-flex items-center rounded-md border border-slate-700 bg-slate-800/90 px-2.5 py-1 text-xs font-mono font-bold text-blue-300">
+                          {item.symbol || '—'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 font-medium text-white">{item.name || '—'}</td>
+                      <td className="px-4 py-3 text-right font-mono font-semibold text-slate-200">
+                        {formatNumber(item.close)}
+                      </td>
+                      <td className="px-4 py-3 text-right font-mono font-medium text-emerald-400">
+                        {formatNumber(item.margin)}
+                      </td>
+                      <td className="px-4 py-3 text-right font-mono font-medium text-indigo-400">
+                        {formatNumber(item.rupeezyMargin)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination Controls Bar */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-800 px-5 py-4 bg-slate-950/40 text-xs text-slate-400">
+              <div className="flex items-center gap-3">
+                <span>
+                  Showing <span className="font-semibold text-white">{startIndex + 1}</span> to{' '}
+                  <span className="font-semibold text-white">{endIndex}</span> of{' '}
+                  <span className="font-semibold text-white">{totalItems}</span> results
+                </span>
+
+                <div className="flex items-center gap-1.5 ml-2 border-l border-slate-800 pl-3">
+                  <span>Per page:</span>
+                  <select
+                    value={pageSize}
+                    onChange={handlePageSizeChange}
+                    className="rounded border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-white focus:border-blue-500 focus:outline-none"
+                  >
+                    {PAGE_SIZE_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="inline-flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 font-medium text-slate-300 transition hover:bg-slate-700 hover:text-white disabled:opacity-40 disabled:pointer-events-none"
+                >
+                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                  </svg>
+                  Previous
+                </button>
+
+                <div className="flex items-center gap-1 px-2 font-mono text-slate-300">
+                  <span className="font-semibold text-white">{currentPage}</span> / <span>{totalPages}</span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage >= totalPages}
+                  className="inline-flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 font-medium text-slate-300 transition hover:bg-slate-700 hover:text-white disabled:opacity-40 disabled:pointer-events-none"
+                >
+                  Next
+                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </>
         )}
       </div>
     </div>

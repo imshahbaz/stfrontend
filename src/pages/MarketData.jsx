@@ -313,6 +313,10 @@ export default function MarketData() {
   const [showTable, setShowTable] = useState(false);
   const [sortKey, setSortKey] = useState(null);
   const [sortDir, setSortDir] = useState('asc');
+  const [tableFilterQuery, setTableFilterQuery] = useState('');
+  const [tablePage, setTablePage] = useState(1);
+  const [tablePageSize, setTablePageSize] = useState(10);
+
 
   const [warming, setWarming] = useState(false);
   const [warmupNotice, setWarmupNotice] = useState(null);
@@ -422,11 +426,21 @@ export default function MarketData() {
       setSortKey(key);
       setSortDir('asc');
     }
+    setTablePage(1);
   };
 
-  const sortedRows = useMemo(() => {
+  const filteredAndSortedRows = useMemo(() => {
     if (!marginData) return [];
-    const rows = [...marginData];
+    let rows = [...marginData];
+    if (tableFilterQuery.trim()) {
+      const q = tableFilterQuery.trim().toLowerCase();
+      rows = rows.filter(
+        (item) =>
+          (item.symbol || '').toLowerCase().includes(q) ||
+          (item.name || '').toLowerCase().includes(q) ||
+          (item.token || '').toLowerCase().includes(q)
+      );
+    }
     if (!sortKey) return rows;
     rows.sort((a, b) => {
       const av = a[sortKey];
@@ -440,7 +454,18 @@ export default function MarketData() {
       return sortDir === 'asc' ? cmp : -cmp;
     });
     return rows;
-  }, [marginData, sortKey, sortDir]);
+  }, [marginData, tableFilterQuery, sortKey, sortDir]);
+
+  const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
+  const totalTableItems = filteredAndSortedRows.length;
+  const totalTablePages = Math.ceil(totalTableItems / tablePageSize) || 1;
+  const tableStartIndex = (tablePage - 1) * tablePageSize;
+  const tableEndIndex = Math.min(tableStartIndex + tablePageSize, totalTableItems);
+
+  const paginatedRows = useMemo(() => {
+    return filteredAndSortedRows.slice(tableStartIndex, tableEndIndex);
+  }, [filteredAndSortedRows, tableStartIndex, tableEndIndex]);
+
 
   const handleSearch = async () => {
     if (!selectedSymbol) return;
@@ -742,22 +767,47 @@ export default function MarketData() {
         </div>
       </div>
 
-      <div className="flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-900/60 p-4 shadow-xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-slate-800 bg-slate-900/60 p-4 shadow-xl">
         <div>
           <p className="text-sm font-semibold text-slate-200">All Margin Data</p>
           <p className="text-xs text-slate-500">
-            {marginData ? `${marginData.length} symbols` : '—'}
+            {marginData ? `${marginData.length} total symbols` : '—'}
           </p>
         </div>
-        <button
-          onClick={() => setShowTable((prev) => !prev)}
-          className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-xs font-medium text-slate-200 transition hover:bg-slate-700"
-        >
-          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-          {showTable ? 'Hide All' : 'Show All'}
-        </button>
+        <div className="flex items-center gap-3">
+          {showTable && marginData && marginData.length > 0 && (
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Filter margin data..."
+                value={tableFilterQuery}
+                onChange={(e) => {
+                  setTableFilterQuery(e.target.value);
+                  setTablePage(1);
+                }}
+                className="w-full sm:w-56 rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 pl-8 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+              />
+              <svg
+                className="absolute left-2.5 top-2 h-3.5 w-3.5 text-slate-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+          )}
+          <button
+            onClick={() => setShowTable((prev) => !prev)}
+            className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-xs font-medium text-slate-200 transition hover:bg-slate-700"
+          >
+            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+            {showTable ? 'Hide All' : 'Show All'}
+          </button>
+        </div>
       </div>
 
       {showTable &&
@@ -773,61 +823,133 @@ export default function MarketData() {
           </div>
         ) : marginData ? (
           <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60 shadow-xl">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b border-slate-800 bg-slate-900/80 text-xs uppercase tracking-wider text-slate-400">
-                    <th className="px-5 py-3">
-                      <button
-                        onClick={() => handleSort('symbol')}
-                        className="flex items-center gap-1.5 font-semibold transition hover:text-white"
+            {filteredAndSortedRows.length === 0 ? (
+              <div className="p-10 text-center text-sm text-slate-400">
+                No margin symbols match your filter "{tableFilterQuery}".
+              </div>
+            ) : (
+              <>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-800 bg-slate-900/80 text-xs uppercase tracking-wider text-slate-400">
+                        <th className="px-4 py-3 w-12 text-center">#</th>
+                        <th className="px-5 py-3">
+                          <button
+                            onClick={() => handleSort('symbol')}
+                            className="flex items-center gap-1.5 font-semibold transition hover:text-white"
+                          >
+                            Symbol
+                            <SortIcon dir={sortKey === 'symbol' ? sortDir : null} />
+                          </button>
+                        </th>
+                        <th className="px-5 py-3 font-semibold">Name</th>
+                        <th className="px-5 py-3 font-semibold">Token</th>
+                        <th className="px-5 py-3 text-right">
+                          <button
+                            onClick={() => handleSort('requiredMargin')}
+                            className="ml-auto flex items-center gap-1.5 font-semibold transition hover:text-white"
+                          >
+                            Required Margin
+                            <SortIcon dir={sortKey === 'requiredMargin' ? sortDir : null} />
+                          </button>
+                        </th>
+                        <th className="px-5 py-3 text-right">
+                          <button
+                            onClick={() => handleSort('rupeezyMargin')}
+                            className="ml-auto flex items-center gap-1.5 font-semibold transition hover:text-white"
+                          >
+                            Rupeezy Margin
+                            <SortIcon dir={sortKey === 'rupeezyMargin' ? sortDir : null} />
+                          </button>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800/60 bg-slate-900/40">
+                      {paginatedRows.map((item, i) => (
+                        <tr
+                          key={item.token || item.symbol || i}
+                          className={`transition hover:bg-slate-800/40 ${
+                            i % 2 === 1 ? 'bg-slate-950/30' : ''
+                          }`}
+                        >
+                          <td className="px-4 py-3 text-center text-xs font-mono text-slate-500">
+                            {tableStartIndex + i + 1}
+                          </td>
+                          <td className="px-5 py-3 font-mono font-semibold text-blue-400">{item.symbol || '—'}</td>
+                          <td className="px-5 py-3 text-slate-300">{item.name || '—'}</td>
+                          <td className="px-5 py-3 font-mono text-slate-400">{item.token || '—'}</td>
+                          <td className="px-5 py-3 text-right font-mono text-slate-200">{formatMargin(item.requiredMargin)}</td>
+                          <td className="px-5 py-3 text-right font-mono text-emerald-300">{formatMargin(item.rupeezyMargin)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination Controls Bar */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-800 px-5 py-4 bg-slate-950/40 text-xs text-slate-400">
+                  <div className="flex items-center gap-3">
+                    <span>
+                      Showing <span className="font-semibold text-white">{tableStartIndex + 1}</span> to{' '}
+                      <span className="font-semibold text-white">{tableEndIndex}</span> of{' '}
+                      <span className="font-semibold text-white">{totalTableItems}</span> symbols
+                    </span>
+
+                    <div className="flex items-center gap-1.5 ml-2 border-l border-slate-800 pl-3">
+                      <span>Per page:</span>
+                      <select
+                        value={tablePageSize}
+                        onChange={(e) => {
+                          setTablePageSize(Number(e.target.value));
+                          setTablePage(1);
+                        }}
+                        className="rounded border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-white focus:border-blue-500 focus:outline-none"
                       >
-                        Symbol
-                        <SortIcon dir={sortKey === 'symbol' ? sortDir : null} />
-                      </button>
-                    </th>
-                    <th className="px-5 py-3 font-semibold">Name</th>
-                    <th className="px-5 py-3 font-semibold">Token</th>
-                    <th className="px-5 py-3 text-right">
-                      <button
-                        onClick={() => handleSort('requiredMargin')}
-                        className="ml-auto flex items-center gap-1.5 font-semibold transition hover:text-white"
-                      >
-                        Required Margin
-                        <SortIcon dir={sortKey === 'requiredMargin' ? sortDir : null} />
-                      </button>
-                    </th>
-                    <th className="px-5 py-3 text-right">
-                      <button
-                        onClick={() => handleSort('rupeezyMargin')}
-                        className="ml-auto flex items-center gap-1.5 font-semibold transition hover:text-white"
-                      >
-                        Rupeezy Margin
-                        <SortIcon dir={sortKey === 'rupeezyMargin' ? sortDir : null} />
-                      </button>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sortedRows.map((item, i) => (
-                    <tr
-                      key={item.token || item.symbol || i}
-                      className={`border-b border-slate-800/60 transition hover:bg-slate-800/40 ${
-                        i % 2 === 1 ? 'bg-slate-950/30' : ''
-                      }`}
+                        {PAGE_SIZE_OPTIONS.map((opt) => (
+                          <option key={opt} value={opt}>
+                            {opt}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setTablePage((prev) => Math.max(prev - 1, 1))}
+                      disabled={tablePage === 1}
+                      className="inline-flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 font-medium text-slate-300 transition hover:bg-slate-700 hover:text-white disabled:opacity-40 disabled:pointer-events-none"
                     >
-                      <td className="px-5 py-3 font-mono font-semibold text-blue-400">{item.symbol || '—'}</td>
-                      <td className="px-5 py-3 text-slate-300">{item.name || '—'}</td>
-                      <td className="px-5 py-3 font-mono text-slate-400">{item.token || '—'}</td>
-                      <td className="px-5 py-3 text-right font-mono text-slate-200">{formatMargin(item.requiredMargin)}</td>
-                      <td className="px-5 py-3 text-right font-mono text-emerald-300">{formatMargin(item.rupeezyMargin)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                      </svg>
+                      Previous
+                    </button>
+
+                    <div className="flex items-center gap-1 px-2 font-mono text-slate-300">
+                      <span className="font-semibold text-white">{tablePage}</span> / <span>{totalTablePages}</span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setTablePage((prev) => Math.min(prev + 1, totalTablePages))}
+                      disabled={tablePage >= totalTablePages}
+                      className="inline-flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 font-medium text-slate-300 transition hover:bg-slate-700 hover:text-white disabled:opacity-40 disabled:pointer-events-none"
+                    >
+                      Next
+                      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         ) : null)}
     </div>
   );
 }
+
