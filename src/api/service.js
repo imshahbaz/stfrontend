@@ -45,16 +45,6 @@ export const SERVER_ENDPOINTS = {
   SERVER_STATS: '/api/admin/server/stats',
 };
 
-/** Unified Endpoints Registry for backwards compatibility */
-export const ENDPOINTS = {
-  ...AUTH_ENDPOINTS,
-  ...STRATEGY_ENDPOINTS,
-  STRATEGY_TRADING_WARMUP: STRATEGY_ENDPOINTS.WARMUP,
-  ...CONFIG_ENDPOINTS,
-  ...SCHEDULE_ENDPOINTS,
-  ...MARKET_ENDPOINTS,
-  ...SERVER_ENDPOINTS,
-};
 
 /* ==========================================================================
    TYPE DEFINITIONS & HELPERS
