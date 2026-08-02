@@ -48,12 +48,134 @@ function SuccessRateBadge({ rate }) {
 
   return (
     <div className="flex items-center gap-2">
-      <div className="w-16 h-1.5 overflow-hidden rounded-full bg-slate-800 hidden sm:block">
-        <div className={`h-full rounded-full ${barColor}`} style={{ width: `${Math.min(100, numRate)}%` }} />
-      </div>
-      <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold font-mono border ${colorClass}`}>
-        {numRate.toFixed(1)}%
+      <span
+        className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-mono font-bold ${colorClass}`}
+      >
+        {numRate}%
       </span>
+      <div className="h-1.5 w-14 overflow-hidden rounded-full bg-slate-800 border border-slate-700/50 hidden sm:block">
+        <div
+          className={`h-full rounded-full transition-all duration-500 ${barColor}`}
+          style={{ width: `${Math.min(100, Math.max(0, numRate))}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function ScanClauseDisplay({ scanClause, isMobile = false }) {
+  const [copied, setCopied] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+
+  if (!scanClause) return <span className="text-slate-500 font-mono text-xs">—</span>;
+
+  const handleCopy = (e) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(scanClause);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const isLong = scanClause.length > 100;
+
+  return (
+    <div className="space-y-1.5 w-full">
+      <div className="flex items-center justify-between gap-2 text-[10px]">
+        <span className="font-semibold uppercase tracking-wider text-slate-400 font-mono">Scan Clause</span>
+        <div className="flex items-center gap-2">
+          {isMobile && isLong && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setExpanded(!expanded);
+              }}
+              className="font-medium text-blue-400 hover:text-blue-300 transition"
+            >
+              {expanded ? 'Show Less' : 'Show Full'}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={handleCopy}
+            className="inline-flex items-center gap-1 font-medium text-slate-400 hover:text-blue-400 transition"
+            title="Copy Scan Clause"
+          >
+            {copied ? (
+              <span className="font-semibold text-emerald-400">Copied!</span>
+            ) : (
+              <>
+                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                Copy
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      <div
+        className={`rounded-xl border border-slate-800 bg-slate-950/90 p-3 font-mono text-xs text-blue-300 leading-relaxed break-words whitespace-pre-wrap ${
+          isMobile && !expanded && isLong ? 'max-h-28 overflow-y-auto' : ''
+        }`}
+      >
+        {scanClause}
+      </div>
+    </div>
+  );
+}
+
+function MobileStrategyCard({ strategy, onEdit, onDelete }) {
+  return (
+    <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4 space-y-3.5 shadow-lg backdrop-blur-sm">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h4 className="font-mono text-base font-bold text-white tracking-tight break-all">{strategy.name}</h4>
+          <div className="flex items-center gap-2 mt-1.5">
+            <span className="inline-flex items-center rounded-md border border-slate-700 bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-slate-300">
+              {TIMEFRAME_LABELS[strategy.timeFrame?.toUpperCase()] || strategy.timeFrame}
+            </span>
+            <SuccessRateBadge rate={strategy.successRate} />
+          </div>
+        </div>
+
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium border shrink-0 ${
+            strategy.active
+              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+              : 'bg-slate-800 text-slate-400 border-slate-700'
+          }`}
+        >
+          <span className={`h-1.5 w-1.5 rounded-full ${strategy.active ? 'bg-emerald-400' : 'bg-slate-500'}`} />
+          {strategy.active ? 'Active' : 'Inactive'}
+        </span>
+      </div>
+
+      <ScanClauseDisplay scanClause={strategy.scanClause} isMobile={true} />
+
+      <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800/60">
+        <button
+          type="button"
+          onClick={() => onEdit(strategy)}
+          className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800/80 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:bg-slate-700"
+        >
+          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          Edit
+        </button>
+        <button
+          type="button"
+          onClick={() => onDelete(strategy)}
+          className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-red-500/30 bg-red-500/10 px-3.5 py-2 text-xs font-semibold text-red-400 transition hover:bg-red-500/20"
+        >
+          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+          Delete
+        </button>
+      </div>
     </div>
   );
 }
@@ -384,16 +506,29 @@ export default function Strategies() {
                   </h3>
                 </div>
 
-                <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60 shadow-lg backdrop-blur-sm">
+                {/* Mobile View: Responsive Cards (block md:hidden) */}
+                <div className="grid grid-cols-1 gap-4 md:hidden">
+                  {group.map((strategy) => (
+                    <MobileStrategyCard
+                      key={strategy.name}
+                      strategy={strategy}
+                      onEdit={openEdit}
+                      onDelete={openDelete}
+                    />
+                  ))}
+                </div>
+
+                {/* Desktop View: Table (hidden md:block) */}
+                <div className="hidden md:block overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60 shadow-lg backdrop-blur-sm">
                   <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs">
+                    <table className="w-full table-fixed text-left text-xs">
                       <thead className="border-b border-slate-800 bg-slate-950/80 text-slate-400 uppercase tracking-wider text-[10px]">
                         <tr>
-                          <th className="px-5 py-3.5 font-semibold">Strategy Name</th>
+                          <th className="w-48 px-5 py-3.5 font-semibold truncate">Strategy Name</th>
                           <th className="px-5 py-3.5 font-semibold">Scan Clause</th>
-                          <th className="px-5 py-3.5 font-semibold">Success Rate</th>
-                          <th className="px-5 py-3.5 font-semibold">Status</th>
-                          <th className="px-5 py-3.5 font-semibold text-right">Actions</th>
+                          <th className="w-36 px-5 py-3.5 font-semibold">Success Rate</th>
+                          <th className="w-28 px-5 py-3.5 font-semibold">Status</th>
+                          <th className="w-44 px-5 py-3.5 font-semibold text-right">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-800/60">
@@ -402,13 +537,11 @@ export default function Strategies() {
                             key={strategy.name}
                             className="bg-slate-900/40 transition hover:bg-slate-800/40"
                           >
-                            <td className="px-5 py-4 font-semibold text-slate-100 font-mono text-sm">
+                            <td className="px-5 py-4 font-semibold text-slate-100 font-mono text-sm truncate">
                               {strategy.name}
                             </td>
-                            <td className="px-5 py-4 max-w-md">
-                              <code className="inline-block rounded-md border border-slate-800 bg-slate-950/80 px-2.5 py-1 text-[11px] font-mono text-blue-300 break-all">
-                                {strategy.scanClause}
-                              </code>
+                            <td className="px-5 py-4">
+                              <ScanClauseDisplay scanClause={strategy.scanClause} isMobile={false} />
                             </td>
                             <td className="px-5 py-4 whitespace-nowrap">
                               <SuccessRateBadge rate={strategy.successRate} />

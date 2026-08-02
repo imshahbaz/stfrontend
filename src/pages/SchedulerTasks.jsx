@@ -136,6 +136,81 @@ function MethodBadge({ method }) {
   );
 }
 
+function MobileScheduleCard({ task, onSelect, onDelete }) {
+  const isCron = task.type === 'CRON' || Boolean(task.cronId) || Boolean(task.cronExpression);
+  const taskIdVal = task.cronId || task.taskId || task.id || '—';
+
+  return (
+    <div
+      onClick={() => onSelect(task)}
+      className="cursor-pointer rounded-2xl border border-slate-800 bg-slate-900/80 p-4 space-y-3.5 shadow-lg backdrop-blur-sm hover:border-slate-700 transition"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 block">Task ID</span>
+          <p className="font-mono text-sm font-bold text-white tracking-tight break-all">{taskIdVal}</p>
+        </div>
+
+        <span className="inline-flex items-center rounded-md border border-slate-700 bg-slate-800 px-2.5 py-1 text-xs font-semibold text-slate-300 shrink-0">
+          {task.type || (isCron ? 'CRON' : 'TASK')}
+        </span>
+      </div>
+
+      <div className="rounded-xl border border-slate-800/80 bg-slate-950/80 p-3 space-y-1">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+          {task.cronExpression ? 'Cron Expression & Schedule' : 'Execution Time'}
+        </span>
+        {task.cronExpression ? (
+          <div>
+            <code className="inline-block rounded border border-slate-800 bg-slate-950 px-2 py-0.5 font-mono text-xs font-semibold text-amber-300">
+              {task.cronExpression}
+            </code>
+            <p className="mt-1 text-[11px] text-emerald-400 flex items-center gap-1 font-medium">
+              <span>⚡</span>
+              <span>{getCronDescription(task.cronExpression)}</span>
+            </p>
+          </div>
+        ) : task.executionTime ? (
+          <span className="block font-mono text-xs font-semibold text-emerald-300">
+            {formatExecutionTime(task.executionTime)}
+          </span>
+        ) : (
+          <span className="text-slate-500 font-mono text-xs">—</span>
+        )}
+      </div>
+
+      {task.callBack && (
+        <div className="space-y-1">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Callback</span>
+          <div className="flex items-center gap-2 min-w-0">
+            <MethodBadge method={task.callBack.httpMethod} />
+            <code className="min-w-0 flex-1 truncate font-mono text-xs text-slate-300">
+              {task.callBack.url}
+            </code>
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between pt-2 border-t border-slate-800/60 text-xs">
+        <span className="text-[11px] text-slate-400 font-medium">Tap to view full details</span>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(task);
+          }}
+          className="inline-flex items-center gap-1 text-xs text-red-400 hover:text-red-300 font-semibold px-3 py-1.5 rounded-xl border border-red-500/20 bg-red-500/10 hover:bg-red-500/20 transition"
+        >
+          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+          Delete
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function SchedulerTasks() {
   const [selectedType, setSelectedType] = useState('');
   const [searchedType, setSearchedType] = useState(null);
@@ -443,80 +518,95 @@ export default function SchedulerTasks() {
               No {searchedType} tasks found.
             </div>
           ) : searchedType ? (
-            <div className="overflow-hidden rounded-lg border border-slate-800 bg-slate-950/40">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead>
-                    <tr className="border-b border-slate-800 bg-slate-900 text-xs uppercase tracking-wider text-slate-400">
-                      <th className="px-5 py-3 font-semibold">Task ID</th>
-                      <th className="px-5 py-3 font-semibold">Type</th>
-                      <th className="px-5 py-3 font-semibold">Schedule / Execution</th>
-                      <th className="px-5 py-3 font-semibold">Callback</th>
-                      <th className="px-5 py-3 font-semibold text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {tasks.map((task, i) => (
-                      <tr
-                        key={task.cronId || task.taskId || i}
-                        onClick={() => setSelectedTask(task)}
-                        className={`cursor-pointer border-b border-slate-800/60 transition hover:bg-slate-800/60 ${
-                          i % 2 === 1 ? 'bg-slate-950/30' : ''
-                        }`}
-                      >
-                        <td className="px-5 py-4 font-mono text-xs font-semibold text-slate-100">
-                          {task.cronId || task.taskId || '—'}
-                        </td>
-                        <td className="px-5 py-4">
-                          <span className="inline-flex items-center rounded-md border border-slate-700 bg-slate-800 px-2 py-0.5 text-[11px] font-semibold text-slate-300">
-                            {task.type || '—'}
-                          </span>
-                        </td>
-                        <td className="px-5 py-4">
-                          {task.cronExpression ? (
-                            <code className="rounded-md border border-slate-800 bg-slate-950 px-2 py-1 font-mono text-[11px] text-amber-300">
-                              {task.cronExpression}
-                            </code>
-                          ) : task.executionTime ? (
-                            <span className="font-mono text-[11px] text-emerald-300">
-                              {formatExecutionTime(task.executionTime)}
-                            </span>
-                          ) : (
-                            <span className="text-slate-500 font-mono text-xs">—</span>
-                          )}
-                        </td>
-                        <td className="px-5 py-4">
-                          {task.callBack ? (
-                            <div className="flex items-center gap-2">
-                              <MethodBadge method={task.callBack.httpMethod} />
-                              <code className="min-w-0 max-w-xs truncate font-mono text-[11px] text-slate-400">
-                                {task.callBack.url}
-                              </code>
-                            </div>
-                          ) : (
-                            <span className="text-slate-500 font-mono text-xs">—</span>
-                          )}
-                        </td>
-                        <td className="px-5 py-4 text-right">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setTaskToDelete(task);
-                            }}
-                            className="inline-flex items-center gap-1 text-xs text-red-400 hover:text-red-300 font-medium px-2.5 py-1 rounded-lg border border-red-500/20 bg-red-500/10 hover:bg-red-500/20 transition"
-                            title="Delete schedule task"
-                          >
-                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                            Delete
-                          </button>
-                        </td>
+            <div>
+              {/* Mobile View: Cards Layout (block md:hidden) */}
+              <div className="grid grid-cols-1 gap-4 md:hidden">
+                {tasks.map((task, i) => (
+                  <MobileScheduleCard
+                    key={task.cronId || task.taskId || i}
+                    task={task}
+                    onSelect={setSelectedTask}
+                    onDelete={setTaskToDelete}
+                  />
+                ))}
+              </div>
+
+              {/* Desktop View: Table Layout (hidden md:block) */}
+              <div className="hidden md:block overflow-hidden rounded-lg border border-slate-800 bg-slate-950/40">
+                <div className="overflow-x-auto">
+                  <table className="w-full table-fixed text-left text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-800 bg-slate-900 text-xs uppercase tracking-wider text-slate-400">
+                        <th className="w-44 px-5 py-3 font-semibold truncate">Task ID</th>
+                        <th className="w-24 px-5 py-3 font-semibold">Type</th>
+                        <th className="w-64 px-5 py-3 font-semibold">Schedule / Execution</th>
+                        <th className="px-5 py-3 font-semibold">Callback</th>
+                        <th className="w-28 px-5 py-3 font-semibold text-right">Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800/60">
+                      {tasks.map((task, i) => (
+                        <tr
+                          key={task.cronId || task.taskId || i}
+                          onClick={() => setSelectedTask(task)}
+                          className={`cursor-pointer border-b border-slate-800/60 transition hover:bg-slate-800/60 ${
+                            i % 2 === 1 ? 'bg-slate-950/30' : ''
+                          }`}
+                        >
+                          <td className="px-5 py-4 font-mono text-xs font-semibold text-slate-100 truncate">
+                            {task.cronId || task.taskId || '—'}
+                          </td>
+                          <td className="px-5 py-4 whitespace-nowrap">
+                            <span className="inline-flex items-center rounded-md border border-slate-700 bg-slate-800 px-2 py-0.5 text-[11px] font-semibold text-slate-300">
+                              {task.type || '—'}
+                            </span>
+                          </td>
+                          <td className="px-5 py-4">
+                            {task.cronExpression ? (
+                              <code className="rounded-md border border-slate-800 bg-slate-950 px-2 py-1 font-mono text-[11px] text-amber-300 break-all">
+                                {task.cronExpression}
+                              </code>
+                            ) : task.executionTime ? (
+                              <span className="font-mono text-[11px] text-emerald-300 whitespace-nowrap">
+                                {formatExecutionTime(task.executionTime)}
+                              </span>
+                            ) : (
+                              <span className="text-slate-500 font-mono text-xs">—</span>
+                            )}
+                          </td>
+                          <td className="px-5 py-4">
+                            {task.callBack ? (
+                              <div className="flex items-center gap-2 min-w-0">
+                                <MethodBadge method={task.callBack.httpMethod} />
+                                <code className="min-w-0 flex-1 truncate font-mono text-[11px] text-slate-400">
+                                  {task.callBack.url}
+                                </code>
+                              </div>
+                            ) : (
+                              <span className="text-slate-500 font-mono text-xs">—</span>
+                            )}
+                          </td>
+                          <td className="px-5 py-4 text-right whitespace-nowrap">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setTaskToDelete(task);
+                              }}
+                              className="inline-flex items-center gap-1 text-xs text-red-400 hover:text-red-300 font-medium px-2.5 py-1 rounded-lg border border-red-500/20 bg-red-500/10 hover:bg-red-500/20 transition"
+                              title="Delete schedule task"
+                            >
+                              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           ) : (
