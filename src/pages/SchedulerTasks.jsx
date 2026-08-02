@@ -1,5 +1,11 @@
 import { useState } from 'react';
-import { fetchScheduleTasks, createCronSchedule, createOneTimeSchedule } from '../api/service';
+import {
+  fetchScheduleTasks,
+  createCronSchedule,
+  createOneTimeSchedule,
+  deleteOneTimeSchedule,
+  deleteCronSchedule,
+} from '../api/service';
 
 const TASK_TYPES = ['CRON', 'TASK'];
 
@@ -153,6 +159,12 @@ export default function SchedulerTasks() {
   const [createError, setCreateError] = useState(null);
   const [createSuccess, setCreateSuccess] = useState(null);
 
+  // Delete Confirmation Modal State
+  const [taskToDelete, setTaskToDelete] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
+  const [deleteSuccess, setDeleteSuccess] = useState(null);
+
   // Visual CRON Days & Time builder state
   const [cronTime, setCronTime] = useState('09:15');
   const [selectedDays, setSelectedDays] = useState(['MON', 'TUE', 'WED', 'THU', 'FRI']);
@@ -191,6 +203,40 @@ export default function SchedulerTasks() {
     const weekdays = ['MON', 'TUE', 'WED', 'THU', 'FRI'];
     setSelectedDays(weekdays);
     updateCronFromDaysAndTime(weekdays, cronTime);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!taskToDelete || deleteLoading) return;
+    setDeleteLoading(true);
+    setDeleteError(null);
+    setDeleteSuccess(null);
+
+    const isCron = taskToDelete.type === 'CRON' || Boolean(taskToDelete.cronId) || Boolean(taskToDelete.cronExpression);
+    const targetId = isCron
+      ? (taskToDelete.cronId || taskToDelete.id)
+      : (taskToDelete.taskId || taskToDelete.id);
+
+    try {
+      if (isCron) {
+        await deleteCronSchedule(targetId);
+      } else {
+        await deleteOneTimeSchedule(targetId);
+      }
+
+      setDeleteSuccess('Schedule task deleted successfully!');
+      setTimeout(() => {
+        setTaskToDelete(null);
+        setDeleteSuccess(null);
+        setSelectedTask(null);
+        if (selectedType) {
+          handleSearch();
+        }
+      }, 1000);
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Failed to delete schedule task');
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   const handleSearch = async () => {
@@ -406,6 +452,7 @@ export default function SchedulerTasks() {
                       <th className="px-5 py-3 font-semibold">Type</th>
                       <th className="px-5 py-3 font-semibold">Schedule / Execution</th>
                       <th className="px-5 py-3 font-semibold">Callback</th>
+                      <th className="px-5 py-3 font-semibold text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -449,6 +496,22 @@ export default function SchedulerTasks() {
                           ) : (
                             <span className="text-slate-500 font-mono text-xs">—</span>
                           )}
+                        </td>
+                        <td className="px-5 py-4 text-right">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setTaskToDelete(task);
+                            }}
+                            className="inline-flex items-center gap-1 text-xs text-red-400 hover:text-red-300 font-medium px-2.5 py-1 rounded-lg border border-red-500/20 bg-red-500/10 hover:bg-red-500/20 transition"
+                            title="Delete schedule task"
+                          >
+                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            Delete
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -874,12 +937,110 @@ export default function SchedulerTasks() {
             </div>
 
             {/* Modal Footer */}
-            <div className="flex justify-end pt-2 border-t border-slate-800">
+            <div className="flex justify-between items-center pt-2 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => setTaskToDelete(selectedTask)}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-500/10 px-3.5 py-2 text-xs font-semibold text-red-400 hover:bg-red-500/20 transition"
+              >
+                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Delete Task
+              </button>
+
               <button
                 onClick={() => setSelectedTask(null)}
                 className="rounded-lg bg-slate-800 px-4 py-2 text-xs font-medium text-slate-200 transition hover:bg-slate-700"
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {taskToDelete && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm"
+          onClick={() => {
+            if (!deleteLoading) setTaskToDelete(null);
+          }}
+        >
+          <div
+            className="w-full max-w-md overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl animate-in fade-in zoom-in duration-150 p-6 space-y-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-red-500/30 bg-red-500/10 text-red-400">
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-bold text-white text-base">Delete Schedule Task</h3>
+                <p className="text-xs text-slate-400">This action cannot be undone.</p>
+              </div>
+            </div>
+
+            {deleteError && (
+              <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-300 font-mono">
+                {deleteError}
+              </div>
+            )}
+
+            {deleteSuccess && (
+              <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs text-emerald-300 font-mono">
+                {deleteSuccess}
+              </div>
+            )}
+
+            <div className="rounded-xl border border-slate-800 bg-slate-950 p-4 space-y-2 text-xs font-mono">
+              <div className="flex justify-between">
+                <span className="text-slate-500">Target ID:</span>
+                <span className="text-slate-200 font-semibold">{taskToDelete.cronId || taskToDelete.taskId || taskToDelete.id || '—'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Task Type:</span>
+                <span className="text-amber-400 font-semibold">{taskToDelete.type || (taskToDelete.cronExpression ? 'CRON' : 'TASK')}</span>
+              </div>
+              <div className="flex justify-between border-t border-slate-800/80 pt-2 text-[11px]">
+                <span className="text-slate-500">Endpoint:</span>
+                <span className="text-blue-400 font-mono">
+                  {taskToDelete.type === 'CRON' || taskToDelete.cronId || taskToDelete.cronExpression
+                    ? `DELETE /api/admin/schedule/cron?id=${taskToDelete.cronId || taskToDelete.id}`
+                    : `DELETE /api/admin/schedule?id=${taskToDelete.taskId || taskToDelete.id}`}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setTaskToDelete(null)}
+                disabled={deleteLoading}
+                className="rounded-lg border border-slate-800 px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800 transition disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={deleteLoading}
+                className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-red-500 transition disabled:opacity-50"
+              >
+                {deleteLoading ? (
+                  <>
+                    <svg className="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                    </svg>
+                    Deleting...
+                  </>
+                ) : (
+                  'Delete Schedule'
+                )}
               </button>
             </div>
           </div>

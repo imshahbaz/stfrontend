@@ -225,3 +225,23 @@ export async function warmupStrategyTrading() {
   return unwrapData(response);
 }
 
+/**
+ * DELETE /api/admin/schedule?id={id}
+ * @param {string} id
+ * @returns {Promise<any>}
+ */
+export async function deleteOneTimeSchedule(id) {
+  const response = await apiClient.delete(ENDPOINTS.SCHEDULE_TASK, { params: { id } });
+  return unwrapData(response);
+}
+
+/**
+ * DELETE /api/admin/schedule/cron?id={id}
+ * @param {string} id
+ * @returns {Promise<any>}
+ */
+export async function deleteCronSchedule(id) {
+  const response = await apiClient.delete(ENDPOINTS.SCHEDULE_CRON, { params: { id } });
+  return unwrapData(response);
+}
+
