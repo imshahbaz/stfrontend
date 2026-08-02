@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -70,10 +71,26 @@ const navItems = [
 
 export default function Layout() {
   const { user, logout } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const closeSidebar = () => setSidebarOpen(false);
 
   return (
     <div className="flex min-h-screen bg-slate-950 text-slate-200">
-      <aside className="fixed inset-y-0 left-0 flex w-64 flex-col border-r border-slate-800 bg-slate-900">
+      {/* Mobile backdrop overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+          onClick={closeSidebar}
+          aria-hidden="true"
+        />
+      )}
+
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-slate-800 bg-slate-900 transition-transform duration-200 ease-in-out lg:translate-x-0 ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
         <div className="flex items-center gap-3 px-6 py-5">
           <div className="flex h-9 w-9 items-center justify-center rounded-md bg-blue-600 text-sm font-bold text-white">
             K
@@ -82,6 +99,15 @@ export default function Layout() {
             <p className="text-sm font-semibold text-white">KlikPanel</p>
             <p className="text-xs text-slate-500">Admin Console</p>
           </div>
+          <button
+            onClick={closeSidebar}
+            className="ml-auto rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-800 hover:text-white lg:hidden"
+            aria-label="Close sidebar"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
 
         <nav className="mt-2 flex-1 space-y-1 px-3">
@@ -90,6 +116,7 @@ export default function Layout() {
               key={item.to}
               to={item.to}
               end={item.end}
+              onClick={closeSidebar}
               className={({ isActive }) =>
                 `flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition ${
                   isActive
@@ -123,8 +150,32 @@ export default function Layout() {
         </div>
       </aside>
 
-      <main className="ml-64 flex-1 px-8 py-10">
-        <div className="mx-auto max-w-5xl">
+      <main className="min-w-0 flex-1 lg:ml-64">
+        {/* Mobile top bar */}
+        <div className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-800 bg-slate-950/90 px-4 py-3 backdrop-blur-sm lg:hidden">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="rounded-lg border border-slate-800 p-2 text-slate-300 transition hover:bg-slate-800 hover:text-white"
+              aria-label="Open sidebar"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-600 text-xs font-bold text-white">
+                K
+              </div>
+              <span className="text-sm font-semibold text-white">KlikPanel</span>
+            </div>
+          </div>
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 text-xs font-semibold text-blue-400">
+            {(user?.name || user?.email || '?').charAt(0).toUpperCase()}
+          </div>
+        </div>
+
+        <div className="mx-auto max-w-5xl px-4 py-6 md:px-8 md:py-10">
           <Outlet />
         </div>
       </main>

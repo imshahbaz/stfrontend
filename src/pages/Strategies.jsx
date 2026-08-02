@@ -272,9 +272,9 @@ export default function Strategies() {
           )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Timeframe Filter Pills */}
-          <div className="flex items-center rounded-lg border border-slate-800 bg-slate-950/80 p-1">
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Timeframe Filter Pills */}
+            <div className="flex flex-wrap items-center rounded-lg border border-slate-800 bg-slate-950/80 p-1">
             <button
               onClick={() => setSelectedTimeframe('ALL')}
               className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition ${
