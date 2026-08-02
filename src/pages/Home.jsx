@@ -43,6 +43,14 @@ function SchedulerCardIcon() {
   );
 }
 
+function ScannerCardIcon() {
+  return (
+    <svg className="h-6 w-6 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    </svg>
+  );
+}
+
 function UserAvatar({ user }) {
   const [imageError, setImageError] = useState(false);
   const profilePic =
@@ -112,6 +120,17 @@ export default function Home() {
       bgGlow: 'from-emerald-500/10 via-transparent to-transparent',
       icon: <StrategyCardIcon />,
       actionText: 'Manage Strategies',
+    },
+    {
+      label: 'Chartink Strategy Scanner',
+      badge: 'Live Stock Scan',
+      hint: 'Select loaded strategies to scan live market symbols & margin requirements.',
+      to: '/scanner',
+      accent: 'text-cyan-400',
+      borderAccent: 'hover:border-cyan-500/50 hover:shadow-cyan-500/10',
+      bgGlow: 'from-cyan-500/10 via-transparent to-transparent',
+      icon: <ScannerCardIcon />,
+      actionText: 'Open Scanner',
     },
     {
       label: 'Config Management',
@@ -203,7 +222,7 @@ export default function Home() {
             <h3 className="text-base font-bold text-white tracking-tight">System Control Modules</h3>
             <p className="text-xs text-slate-400">Quick access to all KlikPanel operational views and management suites.</p>
           </div>
-          <span className="text-xs font-mono font-semibold text-slate-500">5 Modules Ready</span>
+          <span className="text-xs font-mono font-semibold text-slate-500">{cards.length} Modules Ready</span>
         </div>
 
         {/* Responsive Grid of All 5 Module Cards */}
