@@ -60,6 +60,14 @@ function SchedulerIcon() {
   );
 }
 
+function ScannerIcon() {
+  return (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    </svg>
+  );
+}
+
 function UserAvatar({ user, className = 'h-9 w-9 text-sm' }) {
   const [imageError, setImageError] = useState(false);
 
@@ -96,6 +104,7 @@ function UserAvatar({ user, className = 'h-9 w-9 text-sm' }) {
 const navItems = [
   { to: '/', label: 'Dashboard', icon: <DashboardIcon />, end: true },
   { to: '/strategies', label: 'Strategy Management', icon: <StrategyIcon /> },
+  { to: '/scanner', label: 'Scanner', icon: <ScannerIcon /> },
   { to: '/config', label: 'Config Management', icon: <ConfigIcon /> },
   { to: '/server-monitoring', label: 'Server Monitoring', icon: <ServerIcon /> },
   { to: '/market-data', label: 'Market Data', icon: <MarketIcon /> },

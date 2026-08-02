@@ -45,6 +45,12 @@ export const SERVER_ENDPOINTS = {
   SERVER_STATS: '/api/admin/server/stats',
 };
 
+/** Chartink / Scanner Endpoints */
+export const SCANNER_ENDPOINTS = {
+  FETCH_WITH_MARGIN: '/api/chartink/fetchWithMargin',
+};
+
+
 
 /* ==========================================================================
    TYPE DEFINITIONS & HELPERS
@@ -60,6 +66,7 @@ export const SERVER_ENDPOINTS = {
  * @typedef {import('./types').ServerStats} ServerStats
  * @typedef {import('./types').MarginData} MarginData
  * @typedef {import('./types').ScheduleTask} ScheduleTask
+ * @typedef {import('./types').ScannerResultItem} ScannerResultItem
  */
 
 /**
@@ -300,3 +307,20 @@ export async function fetchServerStats() {
   const response = await apiClient.get(SERVER_ENDPOINTS.SERVER_STATS);
   return unwrapData(response);
 }
+
+/* ==========================================================================
+   7. SCANNER SERVICES
+   ========================================================================== */
+
+/**
+ * GET /api/chartink/fetchWithMargin?strategy={strategy}
+ * @param {string} strategy
+ * @returns {Promise<ScannerResultItem[]>}
+ */
+export async function fetchStrategyWithMargin(strategy) {
+  const response = await apiClient.get(SCANNER_ENDPOINTS.FETCH_WITH_MARGIN, {
+    params: { strategy },
+  });
+  return unwrapData(response);
+}
+

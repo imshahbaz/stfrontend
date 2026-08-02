@@ -43,6 +43,14 @@ export interface Strategy {
 
 export type StrategyInput = Strategy;
 
+export interface ScannerResultItem {
+  name: string;
+  symbol: string;
+  margin: number;
+  rupeezyMargin: number;
+  close: number;
+}
+
 export interface GoogleAuthConfig {
   clientId: string;
   secret: string;
