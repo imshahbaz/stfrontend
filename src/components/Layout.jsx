@@ -60,6 +60,39 @@ function SchedulerIcon() {
   );
 }
 
+function UserAvatar({ user, className = 'h-9 w-9 text-sm' }) {
+  const [imageError, setImageError] = useState(false);
+
+  const profilePic =
+    user?.profile ||
+    user?.picture ||
+    user?.avatar ||
+    user?.profilePicture ||
+    user?.profileUrl ||
+    user?.avatarUrl;
+
+  const initial = (user?.name || user?.username || user?.email || '?').charAt(0).toUpperCase();
+
+  if (profilePic && !imageError) {
+    return (
+      <img
+        src={profilePic}
+        alt={user?.name || user?.username || 'User Profile'}
+        onError={() => setImageError(true)}
+        className={`rounded-full object-cover border border-slate-700 ${className}`}
+      />
+    );
+  }
+
+  return (
+    <div
+      className={`flex shrink-0 items-center justify-center rounded-full bg-slate-800 font-semibold text-blue-400 border border-slate-700/50 ${className}`}
+    >
+      {initial}
+    </div>
+  );
+}
+
 const navItems = [
   { to: '/', label: 'Dashboard', icon: <DashboardIcon />, end: true },
   { to: '/strategies', label: 'Strategy Management', icon: <StrategyIcon /> },
@@ -133,11 +166,9 @@ export default function Layout() {
 
         <div className="border-t border-slate-800 p-4">
           <div className="flex items-center gap-3 rounded-md px-2 py-2">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-800 text-sm font-semibold text-blue-400">
-              {(user?.name || user?.email || '?').charAt(0).toUpperCase()}
-            </div>
+            <UserAvatar user={user} className="h-9 w-9 text-sm font-semibold" />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-slate-200">{user?.name || user?.email}</p>
+              <p className="truncate text-sm font-medium text-slate-200">{user?.name || user?.username || user?.email}</p>
               <p className="truncate text-xs text-slate-500">{user?.email}</p>
             </div>
           </div>
@@ -170,9 +201,7 @@ export default function Layout() {
               <span className="text-sm font-semibold text-white">KlikPanel</span>
             </div>
           </div>
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 text-xs font-semibold text-blue-400">
-            {(user?.name || user?.email || '?').charAt(0).toUpperCase()}
-          </div>
+          <UserAvatar user={user} className="h-8 w-8 text-xs font-semibold" />
         </div>
 
         <div className="mx-auto max-w-5xl px-4 py-6 md:px-8 md:py-10">
