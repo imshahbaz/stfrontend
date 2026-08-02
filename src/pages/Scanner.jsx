@@ -1,5 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
-import { fetchStrategies, fetchStrategyWithMargin } from '../api/service';
+import { fetchStrategyWithMargin } from '../api/service';
+import { useStrategies } from '../context/StrategyContext';
+
 
 function SortIcon({ dir }) {
   if (!dir) {
@@ -34,10 +36,13 @@ function formatNumber(val) {
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
 export default function Scanner() {
-  // Strategy Loading States
-  const [strategies, setStrategies] = useState([]);
-  const [loadingStrategies, setLoadingStrategies] = useState(true);
-  const [strategiesError, setStrategiesError] = useState(null);
+  // Shared Strategies Context
+  const {
+    strategies,
+    loading: loadingStrategies,
+    error: strategiesError,
+    refreshStrategies,
+  } = useStrategies();
 
   // Selection & Search States
   const [selectedStrategy, setSelectedStrategy] = useState('');
@@ -54,28 +59,13 @@ export default function Scanner() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  // Load Strategies on Mount
-  const loadStrategies = async () => {
-    setLoadingStrategies(true);
-    setStrategiesError(null);
-    try {
-      const data = await fetchStrategies();
-      const loaded = Array.isArray(data) ? data : [];
-      setStrategies(loaded);
-      if (loaded.length > 0 && !selectedStrategy) {
-        setSelectedStrategy(loaded[0].name);
-      }
-    } catch (err) {
-      console.error('Failed to fetch strategies:', err);
-      setStrategiesError(err.message || 'Failed to load strategies.');
-    } finally {
-      setLoadingStrategies(false);
-    }
-  };
-
+  // Auto-select first strategy if none selected
   useEffect(() => {
-    loadStrategies();
-  }, []);
+    if (strategies.length > 0 && !selectedStrategy) {
+      setSelectedStrategy(strategies[0].name);
+    }
+  }, [strategies, selectedStrategy]);
+
 
   // Selected Strategy Object
   const currentStrategyObj = useMemo(() => {
@@ -205,7 +195,7 @@ export default function Scanner() {
 
         <button
           type="button"
-          onClick={loadStrategies}
+          onClick={refreshStrategies}
           disabled={loadingStrategies}
           className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-700 bg-slate-800/80 px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-700 hover:text-white disabled:opacity-50"
         >

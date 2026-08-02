@@ -1,10 +1,11 @@
 import { useEffect, useState, useMemo } from 'react';
 import {
-  fetchStrategies,
   createStrategy,
   updateStrategy,
   deleteStrategy,
 } from '../api/service';
+import { useStrategies } from '../context/StrategyContext';
+
 
 const EMPTY_FORM = {
   name: '',
@@ -181,8 +182,7 @@ function MobileStrategyCard({ strategy, onEdit, onDelete }) {
 }
 
 export default function Strategies() {
-  const [strategies, setStrategies] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { strategies, loading, error: contextError, refreshStrategies } = useStrategies();
   const [error, setError] = useState('');
   const [form, setForm] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -195,22 +195,8 @@ export default function Strategies() {
   const [selectedTimeframe, setSelectedTimeframe] = useState('ALL');
   const [selectedStatus, setSelectedStatus] = useState('ALL');
 
-  const loadStrategies = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const data = await fetchStrategies();
-      setStrategies(data || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load strategies');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const displayError = error || contextError;
 
-  useEffect(() => {
-    loadStrategies();
-  }, []);
 
   // Filtered strategies
   const filteredStrategies = useMemo(() => {
@@ -281,7 +267,7 @@ export default function Strategies() {
     setDeletingName(deleteTarget.name);
     try {
       await deleteStrategy(deleteTarget.name);
-      setStrategies((prev) => prev.filter((s) => s.name !== deleteTarget.name));
+      await refreshStrategies();
       closeDelete();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete strategy');
@@ -302,7 +288,7 @@ export default function Strategies() {
         await createStrategy(form);
       }
       closeForm();
-      await loadStrategies();
+      await refreshStrategies();
     } catch (err) {
       setFormError(err instanceof Error ? err.message : 'Failed to save strategy');
     } finally {
