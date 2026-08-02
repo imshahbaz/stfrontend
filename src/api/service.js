@@ -9,12 +9,15 @@ export const ENDPOINTS = {
   CLIENT_CONFIG: '/api/config/client/active',
   BACKEND_CONFIG: '/api/admin/config/active',
   CONFIG_RELOAD: '/api/admin/config/reload',
+  CLIENT_CONFIG_RELOAD: '/api/admin/config/client/reload',
+  CONFIG_UPDATE: '/api/admin/config/update',
   SERVER_STATS: '/api/admin/server/stats',
   MARGIN_ALL: '/api/margin/all',
   MARKET_BAR_SERIES: '/api/market/bar-series',
-  SCHEDULE_ALL: '/api/schedule/all',
-  SCHEDULE_CRON: '/api/schedule/cron',
-  SCHEDULE_TASK: '/api/schedule',
+  SCHEDULE_ALL: '/api/admin/schedule/all',
+  SCHEDULE_CRON: '/api/admin/schedule/cron',
+  SCHEDULE_TASK: '/api/admin/schedule',
+  STRATEGY_TRADING_WARMUP: '/api/strategy-trading/warmup',
 };
 
 /**
@@ -136,6 +139,26 @@ export async function reloadConfig() {
 }
 
 /**
+ * POST /api/admin/config/client/reload
+ * @returns {Promise<string>}
+ */
+export async function reloadClientConfig() {
+  const response = await apiClient.post(ENDPOINTS.CLIENT_CONFIG_RELOAD);
+  return unwrapData(response);
+}
+
+/**
+ * PUT /api/admin/config/update/{id}
+ * @param {string} id
+ * @param {Record<string, any>} payload
+ * @returns {Promise<AppConfig>}
+ */
+export async function updateConfig(id, payload) {
+  const response = await apiClient.put(`${ENDPOINTS.CONFIG_UPDATE}/${id}`, payload);
+  return unwrapData(response);
+}
+
+/**
  * GET /api/admin/server/stats
  * @returns {Promise<ServerStats>}
  */
@@ -190,6 +213,15 @@ export async function createCronSchedule(data) {
  */
 export async function createOneTimeSchedule(data) {
   const response = await apiClient.post(ENDPOINTS.SCHEDULE_TASK, data);
+  return unwrapData(response);
+}
+
+/**
+ * POST /api/strategy-trading/warmup
+ * @returns {Promise<any>}
+ */
+export async function warmupStrategyTrading() {
+  const response = await apiClient.post(ENDPOINTS.STRATEGY_TRADING_WARMUP);
   return unwrapData(response);
 }
 

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { createChart, ColorType, CrosshairMode, CandlestickSeries } from 'lightweight-charts';
-import { fetchMarginData, fetchMarketBarSeries } from '../api/service';
+import { fetchMarginData, fetchMarketBarSeries, warmupStrategyTrading } from '../api/service';
 
 function formatMargin(value) {
   if (value === null || value === undefined || value === '') return '—';
@@ -314,6 +314,10 @@ export default function MarketData() {
   const [sortKey, setSortKey] = useState(null);
   const [sortDir, setSortDir] = useState('asc');
 
+  const [warming, setWarming] = useState(false);
+  const [warmupNotice, setWarmupNotice] = useState(null);
+  const isWarmingRef = useRef(false);
+
   const [query, setQuery] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -343,6 +347,26 @@ export default function MarketData() {
   useEffect(() => {
     loadMarginData();
   }, [loadMarginData]);
+
+  const handleWarmup = async () => {
+    if (isWarmingRef.current || warming) return;
+    isWarmingRef.current = true;
+    setWarming(true);
+    setWarmupNotice(null);
+    try {
+      await warmupStrategyTrading();
+      setWarmupNotice({ type: 'success', message: 'Strategy trading warmup executed successfully!' });
+      setTimeout(() => setWarmupNotice(null), 5000);
+    } catch (err) {
+      setWarmupNotice({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Failed to execute strategy trading warmup',
+      });
+    } finally {
+      setWarming(false);
+      isWarmingRef.current = false;
+    }
+  };
 
   const sortedOptions = useMemo(() => {
     if (!marginData) return [];
@@ -466,23 +490,66 @@ export default function MarketData() {
 
         <div className="flex items-center gap-3">
           <button
+            type="button"
+            onClick={handleWarmup}
+            disabled={warming}
+            className="flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-2 text-xs font-semibold text-amber-400 transition hover:bg-amber-500/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none"
+            title="Manually trigger strategy trading warmup"
+          >
+            <svg
+              className={`h-3.5 w-3.5 ${warming ? 'animate-spin' : ''}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" />
+            </svg>
+            {warming ? 'Warming Up...' : 'Warmup'}
+          </button>
+
+          <button
             onClick={() => loadMarginData()}
             disabled={loading}
             className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-xs font-medium text-slate-200 transition hover:bg-slate-700 disabled:opacity-50"
           >
-              <svg
-                className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              Refresh
-            </button>
-          </div>
+            <svg
+              className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Refresh
+          </button>
         </div>
+      </div>
+
+      {warmupNotice && (
+        <div
+          className={`flex items-center gap-2 rounded-lg border p-4 text-xs ${
+            warmupNotice.type === 'success'
+              ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
+              : 'border-red-500/30 bg-red-500/10 text-red-300'
+          }`}
+        >
+          <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d={
+                warmupNotice.type === 'success'
+                  ? 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'
+                  : 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+              }
+            />
+          </svg>
+          {warmupNotice.message}
+        </div>
+      )}
 
         {lastUpdated && (
           <p className="mt-3 text-[11px] text-slate-500">
