@@ -64,33 +64,41 @@ function DateRangePicker({ availableDates, value, onChange }) {
 
   const availableSet = useMemo(() => new Set(availableDates), [availableDates]);
 
+  const availableMonths = useMemo(() => {
+    const set = new Set();
+    availableDates.forEach((d) => set.add(d.slice(0, 7)));
+    return Array.from(set).sort();
+  }, [availableDates]);
+
   useEffect(() => {
     if (open) {
-      const first = availableDates.length > 0 ? parseDateStr(availableDates[0]) : new Date();
-      setViewYear(first.getFullYear());
-      setViewMonth(first.getMonth());
+      const last = availableDates.length > 0 ? parseDateStr(availableDates[availableDates.length - 1]) : new Date();
+      setViewYear(last.getFullYear());
+      setViewMonth(last.getMonth());
     }
   }, [open]);
 
   const daysInMonth = viewYear !== null ? new Date(viewYear, viewMonth + 1, 0).getDate() : 0;
   const firstDayOffset = viewYear !== null ? new Date(viewYear, viewMonth, 1).getDay() : 0;
 
+  const currentMonthKey = viewYear !== null ? `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}` : null;
+  const hasPrevDataMonth = currentMonthKey !== null && availableMonths.some((m) => m < currentMonthKey);
+  const hasNextDataMonth = currentMonthKey !== null && availableMonths.some((m) => m > currentMonthKey);
+
   const goPrevMonth = () => {
-    if (viewMonth === 0) {
-      setViewMonth(11);
-      setViewYear((y) => y - 1);
-    } else {
-      setViewMonth((m) => m - 1);
-    }
+    if (!currentMonthKey) return;
+    const prev = availableMonths.filter((m) => m < currentMonthKey).pop();
+    if (!prev) return;
+    setViewYear(Number(prev.slice(0, 4)));
+    setViewMonth(Number(prev.slice(5, 7)) - 1);
   };
 
   const goNextMonth = () => {
-    if (viewMonth === 11) {
-      setViewMonth(0);
-      setViewYear((y) => y + 1);
-    } else {
-      setViewMonth((m) => m + 1);
-    }
+    if (!currentMonthKey) return;
+    const next = availableMonths.find((m) => m > currentMonthKey);
+    if (!next) return;
+    setViewYear(Number(next.slice(0, 4)));
+    setViewMonth(Number(next.slice(5, 7)) - 1);
   };
 
   const handlePick = (dateStr) => {
@@ -144,7 +152,8 @@ function DateRangePicker({ availableDates, value, onChange }) {
               <button
                 type="button"
                 onClick={goPrevMonth}
-                className="inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-400 transition hover:bg-slate-800 hover:text-white"
+                disabled={!hasPrevDataMonth}
+                className="inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-400 transition hover:bg-slate-800 hover:text-white disabled:opacity-30 disabled:pointer-events-none"
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -156,7 +165,8 @@ function DateRangePicker({ availableDates, value, onChange }) {
               <button
                 type="button"
                 onClick={goNextMonth}
-                className="inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-400 transition hover:bg-slate-800 hover:text-white"
+                disabled={!hasNextDataMonth}
+                className="inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-400 transition hover:bg-slate-800 hover:text-white disabled:opacity-30 disabled:pointer-events-none"
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
