@@ -399,6 +399,38 @@ export default function Scanner() {
     setCurrentPage(1);
   };
 
+  // Shift the selected date range to previous/next available trading dates
+  const shiftDateRange = (dir) => {
+    if (availableDates.length === 0) return;
+    if (dateRange && dateRange.start) {
+      const startIdx = availableDates.indexOf(dateRange.start);
+      const endIdx = dateRange.end ? availableDates.indexOf(dateRange.end) : startIdx;
+      if (startIdx === -1 || endIdx === -1) return;
+      const span = Math.max(1, endIdx - startIdx + 1);
+      let newStartIdx;
+      if (dir === 'next') {
+        newStartIdx = Math.min(endIdx + 1, availableDates.length - span);
+      } else {
+        newStartIdx = Math.max(startIdx - span, 0);
+      }
+      setDateRange({ start: availableDates[newStartIdx], end: availableDates[newStartIdx + span - 1] });
+    } else if (dir === 'next') {
+      setDateRange({ start: availableDates[availableDates.length - 1], end: null });
+    } else {
+      setDateRange({ start: availableDates[0], end: null });
+    }
+    setCurrentPage(1);
+  };
+
+  const canShiftDate = (dir) => {
+    if (availableDates.length === 0) return false;
+    if (!dateRange || !dateRange.start) return true;
+    const startIdx = availableDates.indexOf(dateRange.start);
+    const endIdx = dateRange.end ? availableDates.indexOf(dateRange.end) : startIdx;
+    if (startIdx === -1 || endIdx === -1) return true;
+    return dir === 'next' ? endIdx < availableDates.length - 1 : startIdx > 0;
+  };
+
   // Reset page when page size changes
   const handlePageSizeChange = (e) => {
     setPageSize(Number(e.target.value));
@@ -620,11 +652,33 @@ export default function Scanner() {
           {hasSearched && results.length > 0 && (
             <div className="flex flex-wrap items-center gap-3">
               {searchMode === 'backtest' && (
-                <DateRangePicker
-                  availableDates={availableDates}
-                  value={dateRange}
-                  onChange={handleDateRangeChange}
-                />
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => shiftDateRange('prev')}
+                    disabled={!canShiftDate('prev')}
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-700 bg-slate-800 text-slate-400 transition hover:bg-slate-700 hover:text-white disabled:opacity-40 disabled:pointer-events-none"
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  <DateRangePicker
+                    availableDates={availableDates}
+                    value={dateRange}
+                    onChange={handleDateRangeChange}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => shiftDateRange('next')}
+                    disabled={!canShiftDate('next')}
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-700 bg-slate-800 text-slate-400 transition hover:bg-slate-700 hover:text-white disabled:opacity-40 disabled:pointer-events-none"
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
               )}
               <div className="relative">
                 <input
