@@ -48,6 +48,7 @@ export const SERVER_ENDPOINTS = {
 /** Chartink / Scanner Endpoints */
 export const SCANNER_ENDPOINTS = {
   FETCH_WITH_MARGIN: '/api/chartink/fetchWithMargin',
+  BACKTEST_WITH_MARGIN: '/api/chartink/backtestWithMargin',
 };
 
 
@@ -67,6 +68,7 @@ export const SCANNER_ENDPOINTS = {
  * @typedef {import('./types').MarginData} MarginData
  * @typedef {import('./types').ScheduleTask} ScheduleTask
  * @typedef {import('./types').ScannerResultItem} ScannerResultItem
+ * @typedef {import('./types').BacktestWithMarginResult} BacktestWithMarginResult
  */
 
 /**
@@ -319,6 +321,18 @@ export async function fetchServerStats() {
  */
 export async function fetchStrategyWithMargin(strategy) {
   const response = await apiClient.get(SCANNER_ENDPOINTS.FETCH_WITH_MARGIN, {
+    params: { strategy },
+  });
+  return unwrapData(response);
+}
+
+/**
+ * GET /api/chartink/backtestWithMargin?strategy={strategy}
+ * @param {string} strategy
+ * @returns {Promise<BacktestWithMarginResult[]>}
+ */
+export async function fetchStrategyBacktestWithMargin(strategy) {
+  const response = await apiClient.get(SCANNER_ENDPOINTS.BACKTEST_WITH_MARGIN, {
     params: { strategy },
   });
   return unwrapData(response);

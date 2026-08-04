@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { fetchStrategyWithMargin } from '../api/service';
+import { fetchStrategyWithMargin, fetchStrategyBacktestWithMargin } from '../api/service';
 import { useStrategies } from '../context/StrategyContext';
 
 
@@ -51,6 +51,7 @@ export default function Scanner() {
   const [results, setResults] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [lastSearchedStrategy, setLastSearchedStrategy] = useState('');
+  const [searchMode, setSearchMode] = useState('scanner');
 
   // Table Filtering, Sorting & Pagination
   const [filterQuery, setFilterQuery] = useState('');
@@ -75,6 +76,7 @@ export default function Scanner() {
   // Execute Search API Call
   const handleSearch = async () => {
     if (!selectedStrategy) return;
+    setSearchMode('scanner');
     setLoadingResults(true);
     setResultsError(null);
     setHasSearched(true);
@@ -87,6 +89,35 @@ export default function Scanner() {
     } catch (err) {
       console.error('Scanner search failed:', err);
       setResultsError(err.message || 'Failed to execute scanner search.');
+      setResults([]);
+    } finally {
+      setLoadingResults(false);
+    }
+  };
+
+  // Execute Backtest Search API Call
+  const handleSearchBacktest = async () => {
+    if (!selectedStrategy) return;
+    setSearchMode('backtest');
+    setLoadingResults(true);
+    setResultsError(null);
+    setHasSearched(true);
+    setLastSearchedStrategy(selectedStrategy);
+    setCurrentPage(1);
+
+    try {
+      const res = await fetchStrategyBacktestWithMargin(selectedStrategy);
+      const buckets = Array.isArray(res) ? res : [];
+      const flat = [];
+      buckets.forEach((bucket) => {
+        (bucket.margins || []).forEach((m) => {
+          flat.push({ ...m, marketTime: bucket.marketTime });
+        });
+      });
+      setResults(flat);
+    } catch (err) {
+      console.error('Backtest search failed:', err);
+      setResultsError(err.message || 'Failed to execute backtest search.');
       setResults([]);
     } finally {
       setLoadingResults(false);
@@ -113,7 +144,8 @@ export default function Scanner() {
       list = list.filter(
         (item) =>
           (item.symbol && item.symbol.toLowerCase().includes(q)) ||
-          (item.name && item.name.toLowerCase().includes(q))
+          (item.name && item.name.toLowerCase().includes(q)) ||
+          (item.marketTime && item.marketTime.toLowerCase().includes(q))
       );
     }
 
@@ -158,20 +190,27 @@ export default function Scanner() {
   // Export CSV Helper
   const handleExportCSV = () => {
     if (filteredAndSortedResults.length === 0) return;
-    const headers = ['Symbol', 'Name', 'Close', 'Margin', 'Rupeezy Margin'];
-    const rows = filteredAndSortedResults.map((r) => [
-      `"${r.symbol || ''}"`,
-      `"${r.name || ''}"`,
-      r.close ?? '',
-      r.margin ?? '',
-      r.rupeezyMargin ?? '',
-    ]);
+    const isBacktest = searchMode === 'backtest';
+    const headers = isBacktest
+      ? ['Market Time', 'Symbol', 'Name', 'Margin', 'Rupeezy Margin']
+      : ['Symbol', 'Name', 'Close', 'Margin', 'Rupeezy Margin'];
+    const rows = filteredAndSortedResults.map((r) =>
+      isBacktest
+        ? [
+            `"${r.marketTime || ''}"`,
+            `"${r.symbol || ''}"`,
+            `"${r.name || ''}"`,
+            r.requiredMargin ?? '',
+            r.rupeezyMargin ?? '',
+          ]
+        : [`"${r.symbol || ''}"`, `"${r.name || ''}"`, r.close ?? '', r.margin ?? '', r.rupeezyMargin ?? '']
+    );
 
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `scanner_${lastSearchedStrategy || 'results'}.csv`);
+    link.setAttribute('download', `${isBacktest ? 'backtest' : 'scanner'}_${lastSearchedStrategy || 'results'}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -185,7 +224,7 @@ export default function Scanner() {
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold tracking-tight text-white">Chartink Strategy Scanner</h1>
             <span className="rounded-full bg-blue-500/10 px-2.5 py-0.5 text-xs font-semibold text-blue-400 border border-blue-500/20">
-              Live Margin Scan
+              {searchMode === 'backtest' ? 'Backtest Margin' : 'Live Margin Scan'}
             </span>
           </div>
           <p className="mt-1 text-sm text-slate-400">
@@ -269,6 +308,30 @@ export default function Scanner() {
               </>
             )}
           </button>
+
+          <button
+            type="button"
+            onClick={handleSearchBacktest}
+            disabled={!selectedStrategy || loadingResults || loadingStrategies}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-600/20 transition hover:bg-emerald-500 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
+          >
+            {loadingResults && searchMode === 'backtest' ? (
+              <>
+                <svg className="h-4 w-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                <span>Searching...</span>
+              </>
+            ) : (
+              <>
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                </svg>
+                <span>Search Backtest Data</span>
+              </>
+            )}
+          </button>
         </div>
 
         {/* Error when fetching strategies */}
@@ -312,7 +375,9 @@ export default function Scanner() {
         {/* Table Top Controls */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 border-b border-slate-800">
           <div>
-            <h2 className="text-base font-semibold text-white">Scan Results</h2>
+            <h2 className="text-base font-semibold text-white">
+              {searchMode === 'backtest' ? 'Backtest Results' : 'Scan Results'}
+            </h2>
             <p className="text-xs text-slate-400">
               {hasSearched ? (
                 <>
@@ -329,7 +394,7 @@ export default function Scanner() {
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="Filter by symbol or name..."
+                  placeholder={searchMode === 'backtest' ? 'Filter by symbol, name or time...' : 'Filter by symbol or name...'}
                   value={filterQuery}
                   onChange={handleFilterChange}
                   className="w-full sm:w-64 rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 pl-9 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
@@ -365,7 +430,11 @@ export default function Scanner() {
             <div className="relative flex items-center justify-center">
               <div className="h-12 w-12 rounded-full border-4 border-blue-500/20 border-t-blue-500 animate-spin" />
             </div>
-            <p className="mt-4 text-sm font-medium text-slate-300">Fetching scanner results for "{selectedStrategy}"...</p>
+            <p className="mt-4 text-sm font-medium text-slate-300">
+              {searchMode === 'backtest'
+                ? `Fetching backtest data for "${selectedStrategy}"...`
+                : `Fetching scanner results for "${selectedStrategy}"...`}
+            </p>
             <p className="mt-1 text-xs text-slate-500">Querying Chartink and margin calculation API</p>
           </div>
         ) : resultsError ? (
@@ -394,7 +463,9 @@ export default function Scanner() {
             </div>
             <h3 className="mt-4 text-base font-medium text-white">No Scan Executed Yet</h3>
             <p className="mt-1 text-xs text-slate-400 max-w-sm">
-              Select a strategy from the dropdown above and click <span className="text-blue-400 font-semibold">Search Scanner</span> to run the Chartink scanner.
+              Select a strategy from the dropdown above and click{' '}
+              <span className="text-blue-400 font-semibold">Search Scanner</span> or{' '}
+              <span className="text-emerald-400 font-semibold">Search Backtest Data</span> to run the Chartink scanner.
             </p>
           </div>
         ) : filteredAndSortedResults.length === 0 ? (
@@ -418,6 +489,17 @@ export default function Scanner() {
                 <thead className="border-b border-slate-800 bg-slate-950/70 text-xs font-semibold text-slate-400">
                   <tr>
                     <th className="px-4 py-3.5 w-12 text-center">#</th>
+                    {searchMode === 'backtest' && (
+                      <th
+                        className="cursor-pointer px-4 py-3.5 hover:text-white transition"
+                        onClick={() => handleSort('marketTime')}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <span>Market Time</span>
+                          <SortIcon dir={sortColumn === 'marketTime' ? sortDirection : null} />
+                        </div>
+                      </th>
+                    )}
                     <th
                       className="cursor-pointer px-4 py-3.5 hover:text-white transition"
                       onClick={() => handleSort('symbol')}
@@ -436,22 +518,30 @@ export default function Scanner() {
                         <SortIcon dir={sortColumn === 'name' ? sortDirection : null} />
                       </div>
                     </th>
+                    {searchMode !== 'backtest' && (
+                      <th
+                        className="cursor-pointer px-4 py-3.5 text-right hover:text-white transition"
+                        onClick={() => handleSort('close')}
+                      >
+                        <div className="flex items-center justify-end gap-1.5">
+                          <span>Close (₹)</span>
+                          <SortIcon dir={sortColumn === 'close' ? sortDirection : null} />
+                        </div>
+                      </th>
+                    )}
                     <th
                       className="cursor-pointer px-4 py-3.5 text-right hover:text-white transition"
-                      onClick={() => handleSort('close')}
-                    >
-                      <div className="flex items-center justify-end gap-1.5">
-                        <span>Close (₹)</span>
-                        <SortIcon dir={sortColumn === 'close' ? sortDirection : null} />
-                      </div>
-                    </th>
-                    <th
-                      className="cursor-pointer px-4 py-3.5 text-right hover:text-white transition"
-                      onClick={() => handleSort('margin')}
+                      onClick={() => handleSort(searchMode === 'backtest' ? 'requiredMargin' : 'margin')}
                     >
                       <div className="flex items-center justify-end gap-1.5">
                         <span>Margin (₹)</span>
-                        <SortIcon dir={sortColumn === 'margin' ? sortDirection : null} />
+                        <SortIcon
+                          dir={
+                            sortColumn === (searchMode === 'backtest' ? 'requiredMargin' : 'margin')
+                              ? sortDirection
+                              : null
+                          }
+                        />
                       </div>
                     </th>
                     <th
@@ -468,23 +558,30 @@ export default function Scanner() {
                 <tbody className="divide-y divide-slate-800/60 bg-slate-900/40">
                   {paginatedResults.map((item, idx) => (
                     <tr
-                      key={item.symbol || idx}
+                      key={`${searchMode}-${item.marketTime || ''}-${item.symbol || idx}`}
                       className="transition hover:bg-slate-800/50"
                     >
                       <td className="px-4 py-3 text-center text-xs font-mono text-slate-500">
                         {startIndex + idx + 1}
                       </td>
+                      {searchMode === 'backtest' && (
+                        <td className="px-4 py-3 text-xs font-mono text-slate-400">
+                          {item.marketTime ? new Date(item.marketTime).toLocaleString() : '—'}
+                        </td>
+                      )}
                       <td className="px-4 py-3">
                         <span className="inline-flex items-center rounded-md border border-slate-700 bg-slate-800/90 px-2.5 py-1 text-xs font-mono font-bold text-blue-300">
                           {item.symbol || '—'}
                         </span>
                       </td>
                       <td className="px-4 py-3 font-medium text-white">{item.name || '—'}</td>
-                      <td className="px-4 py-3 text-right font-mono font-semibold text-slate-200">
-                        {formatNumber(item.close)}
-                      </td>
+                      {searchMode !== 'backtest' && (
+                        <td className="px-4 py-3 text-right font-mono font-semibold text-slate-200">
+                          {formatNumber(item.close)}
+                        </td>
+                      )}
                       <td className="px-4 py-3 text-right font-mono font-medium text-emerald-400">
-                        {formatNumber(item.margin)}
+                        {formatNumber(searchMode === 'backtest' ? item.requiredMargin : item.margin)}
                       </td>
                       <td className="px-4 py-3 text-right font-mono font-medium text-indigo-400">
                         {formatNumber(item.rupeezyMargin)}

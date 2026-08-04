@@ -51,6 +51,19 @@ export interface ScannerResultItem {
   close: number;
 }
 
+export interface BacktestMarginItem {
+  symbol: string;
+  name: string;
+  requiredMargin: number;
+  token: string;
+  rupeezyMargin: number;
+}
+
+export interface BacktestWithMarginResult {
+  marketTime: string;
+  margins: BacktestMarginItem[];
+}
+
 export interface GoogleAuthConfig {
   clientId: string;
   secret: string;
