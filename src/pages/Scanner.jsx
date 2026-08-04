@@ -35,6 +35,194 @@ function formatNumber(val) {
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
+const MONTHS = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+function toDateStr(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function parseDateStr(s) {
+  const [y, m, d] = s.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function formatDateShort(s) {
+  return parseDateStr(s).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function DateRangePicker({ availableDates, value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const [viewYear, setViewYear] = useState(null);
+  const [viewMonth, setViewMonth] = useState(null);
+
+  const availableSet = useMemo(() => new Set(availableDates), [availableDates]);
+
+  useEffect(() => {
+    if (open) {
+      const first = availableDates.length > 0 ? parseDateStr(availableDates[0]) : new Date();
+      setViewYear(first.getFullYear());
+      setViewMonth(first.getMonth());
+    }
+  }, [open]);
+
+  const daysInMonth = viewYear !== null ? new Date(viewYear, viewMonth + 1, 0).getDate() : 0;
+  const firstDayOffset = viewYear !== null ? new Date(viewYear, viewMonth, 1).getDay() : 0;
+
+  const goPrevMonth = () => {
+    if (viewMonth === 0) {
+      setViewMonth(11);
+      setViewYear((y) => y - 1);
+    } else {
+      setViewMonth((m) => m - 1);
+    }
+  };
+
+  const goNextMonth = () => {
+    if (viewMonth === 11) {
+      setViewMonth(0);
+      setViewYear((y) => y + 1);
+    } else {
+      setViewMonth((m) => m + 1);
+    }
+  };
+
+  const handlePick = (dateStr) => {
+    if (!value || !value.start || value.end) {
+      onChange({ start: dateStr, end: null });
+      return;
+    }
+    let start = value.start;
+    let end = dateStr;
+    if (dateStr < start) {
+      start = dateStr;
+      end = value.start;
+    }
+    onChange({ start, end });
+  };
+
+  const inRange = (dateStr) => {
+    if (!value || !value.start || !value.end) return false;
+    return dateStr >= value.start && dateStr <= value.end;
+  };
+
+  const display = () => {
+    if (!value || (!value.start && !value.end)) return 'All dates';
+    if (value.start && !value.end) return formatDateShort(value.start);
+    return `${formatDateShort(value.start)} – ${formatDateShort(value.end)}`;
+  };
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-300 transition hover:bg-slate-700 hover:text-white"
+      >
+        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3M3 7h18m-1 0a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V7z" />
+        </svg>
+        <span>{display()}</span>
+        {value && value.start && (
+          <svg className="h-3 w-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        )}
+      </button>
+
+      {open && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 z-20 mt-2 w-72 rounded-xl border border-slate-700 bg-slate-900 p-4 shadow-2xl">
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={goPrevMonth}
+                className="inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-400 transition hover:bg-slate-800 hover:text-white"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <div className="text-sm font-semibold text-white">
+                {MONTHS[viewMonth]} {viewYear}
+              </div>
+              <button
+                type="button"
+                onClick={goNextMonth}
+                className="inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-400 transition hover:bg-slate-800 hover:text-white"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="mt-3 grid grid-cols-7 gap-1 text-center text-[10px] font-semibold text-slate-500">
+              {WEEKDAYS.map((d) => (
+                <div key={d}>{d}</div>
+              ))}
+            </div>
+
+            <div className="mt-1 grid grid-cols-7 gap-1">
+              {Array.from({ length: firstDayOffset }).map((_, i) => (
+                <div key={`blank-${i}`} />
+              ))}
+              {Array.from({ length: daysInMonth }).map((_, i) => {
+                const dateStr = toDateStr(new Date(viewYear, viewMonth, i + 1));
+                const enabled = availableSet.has(dateStr);
+                const isStart = value?.start === dateStr;
+                const isEnd = value?.end === dateStr;
+                const ranged = inRange(dateStr);
+                return (
+                  <button
+                    key={dateStr}
+                    type="button"
+                    disabled={!enabled}
+                    onClick={() => handlePick(dateStr)}
+                    className={[
+                      'flex h-8 items-center justify-center rounded-md text-xs font-medium transition',
+                      !enabled
+                        ? 'cursor-not-allowed text-slate-700'
+                        : ranged
+                          ? isStart || isEnd
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-blue-600/25 text-blue-200'
+                          : 'text-slate-200 hover:bg-slate-800',
+                    ].join(' ')}
+                  >
+                    {i + 1}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="mt-3 flex items-center justify-between border-t border-slate-800 pt-3">
+              <button
+                type="button"
+                onClick={() => {
+                  onChange(null);
+                  setOpen(false);
+                }}
+                className="text-xs font-medium text-slate-400 transition hover:text-white"
+              >
+                Clear
+              </button>
+              <span className="text-[10px] text-slate-500">{availableDates.length} trading date(s)</span>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function Scanner() {
   // Shared Strategies Context
   const {
@@ -52,6 +240,7 @@ export default function Scanner() {
   const [hasSearched, setHasSearched] = useState(false);
   const [lastSearchedStrategy, setLastSearchedStrategy] = useState('');
   const [searchMode, setSearchMode] = useState('scanner');
+  const [dateRange, setDateRange] = useState(null);
 
   // Table Filtering, Sorting & Pagination
   const [filterQuery, setFilterQuery] = useState('');
@@ -73,10 +262,21 @@ export default function Scanner() {
     return strategies.find((s) => s.name === selectedStrategy);
   }, [strategies, selectedStrategy]);
 
+  // Unique trading dates present in the loaded results (backtest mode only)
+  const availableDates = useMemo(() => {
+    if (searchMode !== 'backtest') return [];
+    const set = new Set();
+    results.forEach((r) => {
+      if (r.marketTime) set.add(toDateStr(new Date(r.marketTime)));
+    });
+    return Array.from(set).sort();
+  }, [results, searchMode]);
+
   // Execute Search API Call
   const handleSearch = async () => {
     if (!selectedStrategy) return;
     setSearchMode('scanner');
+    setDateRange(null);
     setLoadingResults(true);
     setResultsError(null);
     setHasSearched(true);
@@ -99,6 +299,7 @@ export default function Scanner() {
   const handleSearchBacktest = async () => {
     if (!selectedStrategy) return;
     setSearchMode('backtest');
+    setDateRange(null);
     setLoadingResults(true);
     setResultsError(null);
     setHasSearched(true);
@@ -138,7 +339,18 @@ export default function Scanner() {
   const filteredAndSortedResults = useMemo(() => {
     let list = [...results];
 
-    // Filter
+    // Date range filter (backtest mode only)
+    if (searchMode === 'backtest' && dateRange && dateRange.start) {
+      const start = dateRange.start;
+      const end = dateRange.end || dateRange.start;
+      list = list.filter((item) => {
+        if (!item.marketTime) return false;
+        const d = toDateStr(new Date(item.marketTime));
+        return d >= start && d <= end;
+      });
+    }
+
+    // Text filter
     if (filterQuery.trim()) {
       const q = filterQuery.trim().toLowerCase();
       list = list.filter(
@@ -163,11 +375,17 @@ export default function Scanner() {
     });
 
     return list;
-  }, [results, filterQuery, sortColumn, sortDirection]);
+  }, [results, filterQuery, sortColumn, sortDirection, searchMode, dateRange]);
 
   // Reset page when filter changes
   const handleFilterChange = (e) => {
     setFilterQuery(e.target.value);
+    setCurrentPage(1);
+  };
+
+  // Reset page when date range changes
+  const handleDateRangeChange = (range) => {
+    setDateRange(range);
     setCurrentPage(1);
   };
 
@@ -390,7 +608,14 @@ export default function Scanner() {
           </div>
 
           {hasSearched && results.length > 0 && (
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              {searchMode === 'backtest' && (
+                <DateRangePicker
+                  availableDates={availableDates}
+                  value={dateRange}
+                  onChange={handleDateRangeChange}
+                />
+              )}
               <div className="relative">
                 <input
                   type="text"
@@ -479,7 +704,9 @@ export default function Scanner() {
             <p className="mt-1 text-xs text-slate-400">
               {filterQuery
                 ? `No stock items match your filter criteria "${filterQuery}".`
-                : `Strategy "${lastSearchedStrategy}" returned 0 matching stock items.`}
+                : searchMode === 'backtest' && dateRange && dateRange.start
+                  ? 'No stock items fall within the selected date range.'
+                  : `Strategy "${lastSearchedStrategy}" returned 0 matching stock items.`}
             </p>
           </div>
         ) : (
