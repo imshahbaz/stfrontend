@@ -5,6 +5,7 @@ import {
   createOneTimeSchedule,
   deleteOneTimeSchedule,
   deleteCronSchedule,
+  updateCronSchedule,
 } from '../api/service';
 
 const TASK_TYPES = ['CRON', 'TASK'];
@@ -136,7 +137,7 @@ function MethodBadge({ method }) {
   );
 }
 
-function MobileScheduleCard({ task, onSelect, onDelete }) {
+function MobileScheduleCard({ task, onSelect, onDelete, onEdit }) {
   const isCron = task.type === 'CRON' || Boolean(task.cronId) || Boolean(task.cronExpression);
   const taskIdVal = task.cronId || task.taskId || task.id || '—';
 
@@ -193,19 +194,36 @@ function MobileScheduleCard({ task, onSelect, onDelete }) {
 
       <div className="flex items-center justify-between pt-2 border-t border-slate-800/60 text-xs">
         <span className="text-[11px] text-slate-400 font-medium">Tap to view full details</span>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(task);
-          }}
-          className="inline-flex items-center gap-1 text-xs text-red-400 hover:text-red-300 font-semibold px-3 py-1.5 rounded-xl border border-red-500/20 bg-red-500/10 hover:bg-red-500/20 transition"
-        >
-          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-          </svg>
-          Delete
-        </button>
+        <div className="flex items-center gap-2">
+          {isCron && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(task);
+              }}
+              className="inline-flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300 font-semibold px-3 py-1.5 rounded-xl border border-amber-500/20 bg-amber-500/10 hover:bg-amber-500/20 transition"
+            >
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Update
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(task);
+            }}
+            className="inline-flex items-center gap-1 text-xs text-red-400 hover:text-red-300 font-semibold px-3 py-1.5 rounded-xl border border-red-500/20 bg-red-500/10 hover:bg-red-500/20 transition"
+          >
+            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            Delete
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -233,6 +251,7 @@ export default function SchedulerTasks() {
   const [createLoading, setCreateLoading] = useState(false);
   const [createError, setCreateError] = useState(null);
   const [createSuccess, setCreateSuccess] = useState(null);
+  const [cronToEdit, setCronToEdit] = useState(null);
 
   // Delete Confirmation Modal State
   const [taskToDelete, setTaskToDelete] = useState(null);
@@ -278,6 +297,64 @@ export default function SchedulerTasks() {
     const weekdays = ['MON', 'TUE', 'WED', 'THU', 'FRI'];
     setSelectedDays(weekdays);
     updateCronFromDaysAndTime(weekdays, cronTime);
+  };
+
+  const resetFormFields = () => {
+    setCronId('');
+    setCronExpression('');
+    setTaskId('');
+    setExecutionTime('');
+    setUrl('');
+    setHeadersText('');
+    setBodyText('');
+    setCronTime('09:15');
+    setSelectedDays(['MON', 'TUE', 'WED', 'THU', 'FRI']);
+    setCreateError(null);
+    setCreateSuccess(null);
+  };
+
+  const openCreateModal = () => {
+    setCronToEdit(null);
+    setCreateType('CRON');
+    resetFormFields();
+    setIsCreateOpen(true);
+  };
+
+  const openEditCron = (task) => {
+    setCronToEdit(task);
+    setCreateType('CRON');
+    setCronId(task.cronId || '');
+    setCronExpression(task.cronExpression || '');
+    setUrl(task.callBack?.url || '');
+    setHttpMethod(task.callBack?.httpMethod || 'GET');
+    setHeadersText(task.callBack?.headers ? JSON.stringify(task.callBack.headers, null, 2) : '');
+    const body = task.callBack?.body;
+    setBodyText(body != null ? (typeof body === 'object' ? JSON.stringify(body, null, 2) : String(body)) : '');
+    setTaskId('');
+    setExecutionTime('');
+    setCreateError(null);
+    setCreateSuccess(null);
+
+    const expr = task.cronExpression || '';
+    const parts = expr.trim().split(/\s+/);
+    if (parts.length >= 5) {
+      const minIdx = parts.length >= 6 ? 1 : 0;
+      const hourIdx = parts.length >= 6 ? 2 : 1;
+      const dowIdx = parts.length >= 6 ? 5 : 4;
+      const m = parseInt(parts[minIdx], 10);
+      const h = parseInt(parts[hourIdx], 10);
+      if (!isNaN(h) && !isNaN(m)) {
+        setCronTime(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+      }
+      const dowStr = parts[dowIdx] || '';
+      if (dowStr && dowStr !== '*' && dowStr !== '?') {
+        const days = dowStr.split(',').filter((d) => DAYS_OF_WEEK.some((x) => x.key === d));
+        setSelectedDays(days);
+      } else {
+        setSelectedDays(DAYS_OF_WEEK.map((d) => d.key));
+      }
+    }
+    setIsCreateOpen(true);
   };
 
   const handleConfirmDelete = async () => {
@@ -381,8 +458,13 @@ export default function SchedulerTasks() {
           },
         };
 
-        await createCronSchedule(payload);
-        setCreateSuccess(`CRON schedule "${cronId.trim()}" created successfully!`);
+        if (cronToEdit) {
+          await updateCronSchedule(cronToEdit.cronId, payload);
+          setCreateSuccess(`CRON schedule "${cronId.trim()}" updated successfully!`);
+        } else {
+          await createCronSchedule(payload);
+          setCreateSuccess(`CRON schedule "${cronId.trim()}" created successfully!`);
+        }
       } else {
         if (!executionTime) {
           setCreateError('Execution Date & Time is required for Task schedules.');
@@ -423,14 +505,8 @@ export default function SchedulerTasks() {
 
       setTimeout(() => {
         setIsCreateOpen(false);
-        setCreateSuccess(null);
-        setCronId('');
-        setCronExpression('');
-        setTaskId('');
-        setExecutionTime('');
-        setUrl('');
-        setHeadersText('');
-        setBodyText('');
+        setCronToEdit(null);
+        resetFormFields();
         if (selectedType) {
           handleSearch();
         }
@@ -458,7 +534,7 @@ export default function SchedulerTasks() {
         </div>
 
         <button
-          onClick={() => setIsCreateOpen(true)}
+          onClick={openCreateModal}
           className="flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-md transition hover:from-blue-500 hover:to-indigo-500"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -527,6 +603,7 @@ export default function SchedulerTasks() {
                     task={task}
                     onSelect={setSelectedTask}
                     onDelete={setTaskToDelete}
+                    onEdit={openEditCron}
                   />
                 ))}
               </div>
@@ -587,6 +664,22 @@ export default function SchedulerTasks() {
                             )}
                           </td>
                           <td className="px-5 py-4 text-right whitespace-nowrap">
+                            {(task.cronId || task.cronExpression) && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openEditCron(task);
+                                }}
+                                className="inline-flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300 font-medium px-2.5 py-1 rounded-lg border border-amber-500/20 bg-amber-500/10 hover:bg-amber-500/20 transition mr-2"
+                                title="Update schedule task"
+                              >
+                                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                Update
+                              </button>
+                            )}
                             <button
                               type="button"
                               onClick={(e) => {
@@ -629,7 +722,9 @@ export default function SchedulerTasks() {
           >
             {/* Header */}
             <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-              <h3 className="text-lg font-bold text-white">Create New Schedule Task</h3>
+              <h3 className="text-lg font-bold text-white">
+                {cronToEdit ? 'Update Cron Schedule' : 'Create New Schedule Task'}
+              </h3>
               <button
                 onClick={() => setIsCreateOpen(false)}
                 className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition"
@@ -910,10 +1005,10 @@ export default function SchedulerTasks() {
                       <svg className="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                       </svg>
-                      <span>Submitting...</span>
+                      <span>{cronToEdit ? 'Updating...' : 'Submitting...'}</span>
                     </>
                   ) : (
-                    <span>Create Schedule</span>
+                    <span>{cronToEdit ? 'Update Schedule' : 'Create Schedule'}</span>
                   )}
                 </button>
               </div>
@@ -1028,16 +1123,33 @@ export default function SchedulerTasks() {
 
             {/* Modal Footer */}
             <div className="flex justify-between items-center pt-2 border-t border-slate-800">
-              <button
-                type="button"
-                onClick={() => setTaskToDelete(selectedTask)}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-500/10 px-3.5 py-2 text-xs font-semibold text-red-400 hover:bg-red-500/20 transition"
-              >
-                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                Delete Task
-              </button>
+              <div className="flex items-center gap-2">
+                {(selectedTask.cronId || selectedTask.cronExpression) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      openEditCron(selectedTask);
+                      setSelectedTask(null);
+                    }}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3.5 py-2 text-xs font-semibold text-amber-400 hover:bg-amber-500/20 transition"
+                  >
+                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Update Task
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setTaskToDelete(selectedTask)}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-500/10 px-3.5 py-2 text-xs font-semibold text-red-400 hover:bg-red-500/20 transition"
+                >
+                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Delete Task
+                </button>
+              </div>
 
               <button
                 onClick={() => setSelectedTask(null)}

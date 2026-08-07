@@ -265,6 +265,17 @@ export async function deleteOneTimeSchedule(id) {
 }
 
 /**
+ * PUT /api/admin/schedule/cron/{id}
+ * @param {string} id
+ * @param {import('./types').CronTaskDto} data
+ * @returns {Promise<unknown>}
+ */
+export async function updateCronSchedule(id, data) {
+  const response = await apiClient.put(`${SCHEDULE_ENDPOINTS.SCHEDULE_CRON}/${id}`, data);
+  return unwrapData(response);
+}
+
+/**
  * DELETE /api/admin/schedule/cron?id={id}
  * @param {string} id
  * @returns {Promise<any>}
