@@ -801,7 +801,9 @@ export default function SchedulerTasks() {
                       onChange={(e) => setCronId(e.target.value)}
                       placeholder="e.g. daily_market_sync"
                       required
-                      className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-blue-500 font-mono"
+                      disabled={Boolean(cronToEdit)}
+                      readOnly={Boolean(cronToEdit)}
+                      className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-blue-500 font-mono disabled:cursor-not-allowed disabled:opacity-60"
                     />
                   </div>
 
