@@ -252,6 +252,7 @@ export default function SchedulerTasks() {
   const [createError, setCreateError] = useState(null);
   const [createSuccess, setCreateSuccess] = useState(null);
   const [cronToEdit, setCronToEdit] = useState(null);
+  const [successNotice, setSuccessNotice] = useState('');
 
   // Delete Confirmation Modal State
   const [taskToDelete, setTaskToDelete] = useState(null);
@@ -461,9 +462,11 @@ export default function SchedulerTasks() {
         if (cronToEdit) {
           await updateCronSchedule(cronToEdit.cronId, payload);
           setCreateSuccess(`CRON schedule "${cronId.trim()}" updated successfully!`);
+          setSuccessNotice(`CRON schedule "${cronId.trim()}" updated successfully!`);
         } else {
           await createCronSchedule(payload);
           setCreateSuccess(`CRON schedule "${cronId.trim()}" created successfully!`);
+          setSuccessNotice(`CRON schedule "${cronId.trim()}" created successfully!`);
         }
       } else {
         if (cronToEdit) {
@@ -506,6 +509,7 @@ export default function SchedulerTasks() {
 
         await createOneTimeSchedule(payload);
         setCreateSuccess('Task schedule created successfully!');
+        setSuccessNotice('Task schedule created successfully!');
       }
 
       setTimeout(() => {
@@ -516,6 +520,7 @@ export default function SchedulerTasks() {
           handleSearch();
         }
       }, 1000);
+      setTimeout(() => setSuccessNotice(''), 4000);
     } catch (err) {
       setCreateError(err instanceof Error ? err.message : 'Failed to create schedule');
     } finally {
@@ -525,6 +530,14 @@ export default function SchedulerTasks() {
 
   return (
     <div className="space-y-6">
+      {successNotice && (
+        <div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4 text-xs text-emerald-300">
+          <svg className="h-4 w-4 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          {successNotice}
+        </div>
+      )}
       <div className="flex flex-col gap-4 rounded-xl border border-slate-800 bg-slate-900 p-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-3">
