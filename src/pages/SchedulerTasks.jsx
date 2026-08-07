@@ -618,7 +618,7 @@ export default function SchedulerTasks() {
                         <th className="w-24 px-5 py-3 font-semibold">Type</th>
                         <th className="w-64 px-5 py-3 font-semibold">Schedule / Execution</th>
                         <th className="px-5 py-3 font-semibold">Callback</th>
-                        <th className="w-28 px-5 py-3 font-semibold text-right">Actions</th>
+                        <th className="w-56 px-5 py-3 font-semibold text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800/60">
@@ -664,36 +664,38 @@ export default function SchedulerTasks() {
                             )}
                           </td>
                           <td className="px-5 py-4 text-right whitespace-nowrap">
-                            {(task.cronId || task.cronExpression) && (
+                            <div className="inline-flex items-center justify-end gap-2">
+                              {(task.cronId || task.cronExpression) && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openEditCron(task);
+                                  }}
+                                  className="inline-flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300 font-medium px-2.5 py-1 rounded-lg border border-amber-500/20 bg-amber-500/10 hover:bg-amber-500/20 transition"
+                                  title="Update schedule task"
+                                >
+                                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                  </svg>
+                                  Update
+                                </button>
+                              )}
                               <button
                                 type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  openEditCron(task);
+                                  setTaskToDelete(task);
                                 }}
-                                className="inline-flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300 font-medium px-2.5 py-1 rounded-lg border border-amber-500/20 bg-amber-500/10 hover:bg-amber-500/20 transition mr-2"
-                                title="Update schedule task"
+                                className="inline-flex items-center gap-1 text-xs text-red-400 hover:text-red-300 font-medium px-2.5 py-1 rounded-lg border border-red-500/20 bg-red-500/10 hover:bg-red-500/20 transition"
+                                title="Delete schedule task"
                               >
                                 <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
-                                Update
+                                Delete
                               </button>
-                            )}
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setTaskToDelete(task);
-                              }}
-                              className="inline-flex items-center gap-1 text-xs text-red-400 hover:text-red-300 font-medium px-2.5 py-1 rounded-lg border border-red-500/20 bg-red-500/10 hover:bg-red-500/20 transition"
-                              title="Delete schedule task"
-                            >
-                              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                              Delete
-                            </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
