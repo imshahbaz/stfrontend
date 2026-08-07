@@ -466,6 +466,11 @@ export default function SchedulerTasks() {
           setCreateSuccess(`CRON schedule "${cronId.trim()}" created successfully!`);
         }
       } else {
+        if (cronToEdit) {
+          setCreateError('Updating is only supported for CRON schedules.');
+          setCreateLoading(false);
+          return;
+        }
         if (!executionTime) {
           setCreateError('Execution Date & Time is required for Task schedules.');
           setCreateLoading(false);
@@ -751,35 +756,37 @@ export default function SchedulerTasks() {
 
             <form onSubmit={handleCreateSubmit} className="space-y-4">
               {/* Type Switcher */}
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
-                  Schedule Type
-                </label>
-                <div className="grid grid-cols-2 gap-2 rounded-xl border border-slate-800 bg-slate-950 p-1.5">
-                  <button
-                    type="button"
-                    onClick={() => setCreateType('CRON')}
-                    className={`rounded-lg py-2 text-xs font-semibold transition ${
-                      createType === 'CRON'
-                        ? 'bg-blue-600 text-white shadow-md'
-                        : 'text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
-                    CRON Schedule (Recurring)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setCreateType('TASK')}
-                    className={`rounded-lg py-2 text-xs font-semibold transition ${
-                      createType === 'TASK'
-                        ? 'bg-blue-600 text-white shadow-md'
-                        : 'text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
-                    Task Schedule (One-Time)
-                  </button>
+              {!cronToEdit && (
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                    Schedule Type
+                  </label>
+                  <div className="grid grid-cols-2 gap-2 rounded-xl border border-slate-800 bg-slate-950 p-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setCreateType('CRON')}
+                      className={`rounded-lg py-2 text-xs font-semibold transition ${
+                        createType === 'CRON'
+                          ? 'bg-blue-600 text-white shadow-md'
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      CRON Schedule (Recurring)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCreateType('TASK')}
+                      className={`rounded-lg py-2 text-xs font-semibold transition ${
+                        createType === 'TASK'
+                          ? 'bg-blue-600 text-white shadow-md'
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      Task Schedule (One-Time)
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Conditional Fields: CRON vs TASK */}
               {createType === 'CRON' ? (
