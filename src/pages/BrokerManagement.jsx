@@ -30,7 +30,6 @@ export default function BrokerManagement() {
   const [loading, setLoading] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [notification, setNotification] = useState(null); // { type: 'success'|'error', title: string, message: string }
-  const [activityLog, setActivityLog] = useState([]);
 
   const isFormValid = () => {
     if (!userId) return false;
@@ -73,18 +72,6 @@ export default function BrokerManagement() {
         title: 'Authentication Revoked',
         message: successMsg,
       });
-
-      // Add to local activity log
-      setActivityLog((prev) => [
-        {
-          id: Date.now(),
-          userId: targetUserId,
-          brokerType: targetBroker,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-          status: 'SUCCESS',
-        },
-        ...prev,
-      ]);
     } catch (err) {
       setNotification({
         type: 'error',
@@ -295,48 +282,6 @@ export default function BrokerManagement() {
                 Yes, Revoke Auth
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Activity Log Section */}
-      {activityLog.length > 0 && (
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 backdrop-blur-md">
-          <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-emerald-400" />
-            Recent Session Revocation History
-          </h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs font-mono">
-              <thead>
-                <tr className="border-b border-slate-800 text-slate-500 uppercase">
-                  <th className="pb-3 px-2">Time</th>
-                  <th className="pb-3 px-2">User ID</th>
-                  <th className="pb-3 px-2">Broker</th>
-                  <th className="pb-3 px-2">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60">
-                {activityLog.map((log) => (
-                  <tr key={log.id} className="hover:bg-slate-800/30">
-                    <td className="py-3 px-2 text-slate-400">{log.timestamp}</td>
-                    <td className="py-3 px-2 text-blue-400 font-bold">{log.userId}</td>
-                    <td className="py-3 px-2 text-white">
-                      <span
-                        className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-semibold border ${
-                          log.brokerType === 'ZERODHA'
-                            ? 'bg-orange-500/10 text-orange-400 border-orange-500/30'
-                            : 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30'
-                        }`}
-                      >
-                        {log.brokerType}
-                      </span>
-                    </td>
-                    <td className="py-3 px-2 text-emerald-400 font-semibold">{log.status}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         </div>
       )}
