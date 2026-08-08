@@ -12,6 +12,13 @@ export interface LoginRequest {
 
 export type Role = 'ADMIN' | (string & {});
 export type Theme = 'LIGHT' | 'DARK' | (string & {});
+export type BrokerType = 'ZERODHA' | 'RUPEEZY';
+
+export interface RevokeBrokerAuthRequest {
+  userId: number;
+  brokerType: BrokerType;
+}
+
 export type TimeFrame =
   | 'FIVE_MINUTE'
   | 'FIFTEEN_MINUTE'
@@ -20,6 +27,7 @@ export type TimeFrame =
   | 'WEEKLY'
   | 'MONTHLY'
   | (string & {});
+
 
 export interface User {
   userId: number;

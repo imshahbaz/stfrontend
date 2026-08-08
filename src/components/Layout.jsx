@@ -68,6 +68,14 @@ function ScannerIcon() {
   );
 }
 
+function BrokerIcon() {
+  return (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+    </svg>
+  );
+}
+
 function UserAvatar({ user, className = 'h-9 w-9 text-sm' }) {
   const [imageError, setImageError] = useState(false);
 
@@ -105,11 +113,13 @@ const navItems = [
   { to: '/', label: 'Dashboard', icon: <DashboardIcon />, end: true },
   { to: '/strategies', label: 'Strategy Management', icon: <StrategyIcon /> },
   { to: '/scanner', label: 'Scanner', icon: <ScannerIcon /> },
+  { to: '/broker-management', label: 'Broker Management', icon: <BrokerIcon /> },
   { to: '/config', label: 'Config Management', icon: <ConfigIcon /> },
   { to: '/server-monitoring', label: 'Server Monitoring', icon: <ServerIcon /> },
   { to: '/market-data', label: 'Market Data', icon: <MarketIcon /> },
   { to: '/scheduler-tasks', label: 'Scheduler Tasks', icon: <SchedulerIcon /> },
 ];
+
 
 export default function Layout() {
   const { user, logout } = useAuth();

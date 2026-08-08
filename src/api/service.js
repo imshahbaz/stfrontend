@@ -51,6 +51,12 @@ export const SCANNER_ENDPOINTS = {
   BACKTEST_WITH_MARGIN: '/api/chartink/backtestWithMargin',
 };
 
+/** Broker Management Endpoints */
+export const BROKER_ENDPOINTS = {
+  REVOKE_AUTH: '/api/session-manager/broker/revoke-auth',
+};
+
+
 
 
 /* ==========================================================================
@@ -348,4 +354,22 @@ export async function fetchStrategyBacktestWithMargin(strategy) {
   });
   return unwrapData(response);
 }
+
+/* ==========================================================================
+   8. BROKER MANAGEMENT SERVICES
+   ========================================================================== */
+
+/**
+ * POST /api/session-manager/broker/revoke-auth?userId={userId}&brokerType={brokerType}
+ * @param {number|string} userId
+ * @param {'ZERODHA' | 'RUPEEZY'} brokerType
+ * @returns {Promise<any>}
+ */
+export async function revokeBrokerAuth(userId, brokerType) {
+  const response = await apiClient.post(BROKER_ENDPOINTS.REVOKE_AUTH, null, {
+    params: { userId, brokerType },
+  });
+  return unwrapData(response);
+}
+
 

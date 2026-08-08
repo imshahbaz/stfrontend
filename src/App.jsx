@@ -7,6 +7,7 @@ import ServerMonitoring from './pages/ServerMonitoring';
 import MarketData from './pages/MarketData';
 import SchedulerTasks from './pages/SchedulerTasks';
 import Scanner from './pages/Scanner';
+import BrokerManagement from './pages/BrokerManagement';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 
@@ -19,6 +20,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/strategies" element={<Strategies />} />
           <Route path="/scanner" element={<Scanner />} />
+          <Route path="/broker-management" element={<BrokerManagement />} />
           <Route path="/config" element={<Config />} />
           <Route path="/server-monitoring" element={<ServerMonitoring />} />
           <Route path="/market-data" element={<MarketData />} />
@@ -28,3 +30,4 @@ export default function App() {
     </Routes>
   );
 }
+
