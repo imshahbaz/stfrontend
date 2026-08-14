@@ -279,13 +279,13 @@ function CandlestickChart({ data, predictions = EMPTY_PREDICTIONS, timeframe }) 
     });
 
     const predictionSeries = chart.addSeries(CandlestickSeries, {
-      upColor: '#a78bfa',
-      downColor: '#f472b6',
+      upColor: '#00F0FF',
+      downColor: '#FF007F',
       borderVisible: true,
-      borderUpColor: '#a78bfa',
-      borderDownColor: '#f472b6',
-      wickUpColor: '#a78bfa',
-      wickDownColor: '#f472b6',
+      borderUpColor: '#00F0FF',
+      borderDownColor: '#FF007F',
+      wickUpColor: '#00F0FF',
+      wickDownColor: '#FF007F',
     });
 
     chartRef.current = chart;
@@ -381,7 +381,7 @@ function CandlestickChart({ data, predictions = EMPTY_PREDICTIONS, timeframe }) 
             {isUp ? '+' : ''}{change.toFixed(2)} ({isUp ? '+' : ''}{changePercent.toFixed(2)}%)
           </span>
           {predictedTimes.has(displayCandle.time) && (
-            <span className="rounded-md border border-violet-500/30 bg-violet-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-violet-300">
+            <span className="rounded-md border border-cyan-500/30 bg-cyan-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-cyan-300">
               Predicted
             </span>
           )}
@@ -876,14 +876,14 @@ export default function MarketData() {
             <>
               <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-1 text-xs font-semibold text-violet-400">
+                  <span className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-400">
                     {predictionSymbol}
                   </span>
                   <span className="text-[11px] text-slate-500">
                     {historicalCandles.length} historical + {predictedCandles.length} predicted daily candles
                   </span>
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-500/30 bg-violet-500/10 px-2.5 py-0.5 text-[10px] font-medium text-violet-300">
-                    <span className="inline-block h-2 w-2 rounded-sm bg-violet-400" />
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-0.5 text-[10px] font-medium text-cyan-300">
+                    <span className="inline-block h-2 w-2 rounded-sm bg-cyan-400" />
                     Predicted
                   </span>
                 </div>
