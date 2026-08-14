@@ -113,6 +113,8 @@ function buildPredictionChartData(apiData) {
   return merged.sort((a, b) => a.time.localeCompare(b.time));
 }
 
+const EMPTY_PREDICTIONS = [];
+
 function SortIcon({ dir }) {
   if (!dir) {
     return (
@@ -161,7 +163,7 @@ function formatTimeLabel(time) {
   return String(time);
 }
 
-function CandlestickChart({ data, predictions = [], timeframe }) {
+function CandlestickChart({ data, predictions = EMPTY_PREDICTIONS, timeframe }) {
   const containerRef = useRef(null);
   const chartRef = useRef(null);
   const seriesRef = useRef(null);
