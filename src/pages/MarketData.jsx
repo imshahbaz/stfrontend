@@ -765,7 +765,7 @@ export default function MarketData() {
                 type="text"
                 value={query}
                 onChange={(e) => handleQueryChange(e.target.value)}
-                onFocus={() => setDropdownOpen(true)}
+                onFocus={() => handleQueryChange('')}
                 placeholder="Search symbol or name..."
                 disabled={!marginData || marginData.length === 0}
                 className="w-full rounded-lg border border-slate-700 bg-slate-950 py-2.5 pl-9 pr-8 text-sm text-slate-200 outline-none transition focus:border-blue-600 focus:ring-1 focus:ring-blue-600 disabled:opacity-50"
