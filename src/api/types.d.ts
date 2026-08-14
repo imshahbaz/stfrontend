@@ -211,6 +211,23 @@ export interface MarginData {
   rupeezyMargin: number;
 }
 
+export interface KronosCandle {
+  chSymbol: string;
+  chOpeningPrice: number;
+  chTradeHighPrice: number;
+  chTradeLowPrice: number;
+  chClosingPrice: number;
+  mtimestamp: string;
+}
+
+export interface KronosPredictions {
+  symbol: string;
+  runDate: string;
+  contextEndDate: string;
+  historicalData: KronosCandle[];
+  predictions: KronosCandle[];
+}
+
 export interface ScheduleCallback {
   url: string;
   httpMethod: string;

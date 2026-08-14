@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { createChart, ColorType, CrosshairMode, CandlestickSeries } from 'lightweight-charts';
-import { fetchMarginData, fetchMarketBarSeries, warmupStrategyTrading } from '../api/service';
+import { fetchMarginData, fetchMarketBarSeries, fetchKronosPredictions, warmupStrategyTrading } from '../api/service';
 
 function formatMargin(value) {
   if (value === null || value === undefined || value === '') return '—';
@@ -53,6 +53,66 @@ function aggregateDailyCandles(candles) {
   return dailyCandles.sort((a, b) => a.time.localeCompare(b.time));
 }
 
+const MONTH_TO_INDEX = {
+  Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
+  Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11,
+};
+
+function parseCandleDateToIso(dateStr) {
+  const parts = String(dateStr).split('-');
+  if (parts.length !== 3 || !(parts[1] in MONTH_TO_INDEX)) return null;
+  const day = Number(parts[0]);
+  const month = MONTH_TO_INDEX[parts[1]];
+  const year = Number(parts[2]);
+  if (!Number.isFinite(day) || !Number.isFinite(year)) return null;
+  return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+function buildPredictionChartData(apiData) {
+  const historical = (apiData.historicalData || [])
+    .map((d) => {
+      const time = parseCandleDateToIso(d.mtimestamp);
+      if (!time) return null;
+      return {
+        time,
+        open: Number(d.chOpeningPrice),
+        high: Number(d.chTradeHighPrice),
+        low: Number(d.chTradeLowPrice),
+        close: Number(d.chClosingPrice),
+        predicted: false,
+      };
+    })
+    .filter(Boolean);
+
+  const predictions = (apiData.predictions || [])
+    .map((d) => {
+      const time = parseCandleDateToIso(d.mtimestamp);
+      if (!time) return null;
+      return {
+        time,
+        open: Number(d.chOpeningPrice),
+        high: Number(d.chTradeHighPrice),
+        low: Number(d.chTradeLowPrice),
+        close: Number(d.chClosingPrice),
+        predicted: true,
+      };
+    })
+    .filter(Boolean);
+
+  const historicalDates = new Set(historical.map((c) => c.time));
+  const lastHistoricalDate = historical.reduce((max, c) => (max && c.time <= max ? max : c.time), null);
+
+  const merged = [...historical];
+
+  predictions.forEach((c) => {
+    if (historicalDates.has(c.time)) return;
+    if (lastHistoricalDate && c.time <= lastHistoricalDate) return;
+    merged.push(c);
+  });
+
+  return merged.sort((a, b) => a.time.localeCompare(b.time));
+}
+
 function SortIcon({ dir }) {
   if (!dir) {
     return (
@@ -101,13 +161,22 @@ function formatTimeLabel(time) {
   return String(time);
 }
 
-function CandlestickChart({ data, timeframe }) {
+function CandlestickChart({ data, predictions = [], timeframe }) {
   const containerRef = useRef(null);
   const chartRef = useRef(null);
   const seriesRef = useRef(null);
+  const predictionSeriesRef = useRef(null);
   const [hoveredData, setHoveredData] = useState(null);
   const dataRef = useRef(data);
   dataRef.current = data;
+  const predictionsRef = useRef(predictions);
+  predictionsRef.current = predictions;
+
+  const predictedTimes = useMemo(() => {
+    const times = new Set();
+    predictions.forEach((p) => times.add(p.time));
+    return times;
+  }, [predictions]);
 
   useEffect(() => {
     const chart = createChart(containerRef.current, {
@@ -207,8 +276,19 @@ function CandlestickChart({ data, timeframe }) {
       wickDownColor: '#ef4444',
     });
 
+    const predictionSeries = chart.addSeries(CandlestickSeries, {
+      upColor: '#a78bfa',
+      downColor: '#f472b6',
+      borderVisible: true,
+      borderUpColor: '#a78bfa',
+      borderDownColor: '#f472b6',
+      wickUpColor: '#a78bfa',
+      wickDownColor: '#f472b6',
+    });
+
     chartRef.current = chart;
     seriesRef.current = series;
+    predictionSeriesRef.current = predictionSeries;
 
     if (dataRef.current && dataRef.current.length > 0) {
       series.setData(dataRef.current);
@@ -220,7 +300,7 @@ function CandlestickChart({ data, timeframe }) {
         setHoveredData(null);
         return;
       }
-      const candle = param.seriesData.get(series);
+      const candle = param.seriesData.get(series) || param.seriesData.get(predictionSeries);
       if (candle) {
         setHoveredData(candle);
       } else {
@@ -244,18 +324,27 @@ function CandlestickChart({ data, timeframe }) {
       chart.remove();
       chartRef.current = null;
       seriesRef.current = null;
+      predictionSeriesRef.current = null;
     };
   }, []);
 
   useEffect(() => {
-    if (chartRef.current && seriesRef.current && data && data.length > 0) {
+    if (chartRef.current) {
       chartRef.current.timeScale().applyOptions({
         timeVisible: timeframe === '15min',
       });
+    }
+    if (seriesRef.current && data && data.length > 0) {
       seriesRef.current.setData(data);
+    }
+    if (predictionSeriesRef.current) {
+      const preds = predictionsRef.current;
+      predictionSeriesRef.current.setData(preds && preds.length > 0 ? preds : []);
+    }
+    if (chartRef.current) {
       chartRef.current.timeScale().fitContent();
     }
-  }, [data, timeframe]);
+  }, [data, predictions, timeframe]);
 
   const displayCandle = hoveredData || (data && data.length > 0 ? data[data.length - 1] : null);
   let change = 0;
@@ -289,6 +378,11 @@ function CandlestickChart({ data, timeframe }) {
           <span className={`font-semibold ${isUp ? 'text-emerald-400' : 'text-red-400'}`}>
             {isUp ? '+' : ''}{change.toFixed(2)} ({isUp ? '+' : ''}{changePercent.toFixed(2)}%)
           </span>
+          {predictedTimes.has(displayCandle.time) && (
+            <span className="rounded-md border border-violet-500/30 bg-violet-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-violet-300">
+              Predicted
+            </span>
+          )}
         </div>
       )}
       <div ref={containerRef} className="w-full" />
@@ -317,6 +411,12 @@ export default function MarketData() {
   const [tablePage, setTablePage] = useState(1);
   const [tablePageSize, setTablePageSize] = useState(10);
 
+  const [predictionMode, setPredictionMode] = useState(false);
+  const [predictionLoading, setPredictionLoading] = useState(false);
+  const [predictionError, setPredictionError] = useState(null);
+  const [predictionChartData, setPredictionChartData] = useState(null);
+  const [predictionSymbol, setPredictionSymbol] = useState(null);
+
 
   const [warming, setWarming] = useState(false);
   const [warmupNotice, setWarmupNotice] = useState(null);
@@ -333,6 +433,15 @@ export default function MarketData() {
     }
     return barSeriesData;
   }, [barSeriesData, timeframe]);
+
+  const historicalCandles = useMemo(
+    () => (predictionChartData ? predictionChartData.filter((c) => !c.predicted) : []),
+    [predictionChartData]
+  );
+  const predictedCandles = useMemo(
+    () => (predictionChartData ? predictionChartData.filter((c) => c.predicted) : []),
+    [predictionChartData]
+  );
 
   const loadMarginData = useCallback(async () => {
     setLoading(true);
@@ -377,6 +486,38 @@ export default function MarketData() {
     return [...marginData].sort((a, b) => (a.symbol || '').localeCompare(b.symbol || ''));
   }, [marginData]);
 
+  const resetPredictions = () => {
+    setPredictionMode(false);
+    setPredictionError(null);
+    setPredictionChartData(null);
+    setPredictionSymbol(null);
+  };
+
+  const handleViewPredictions = async () => {
+    if (!selectedSymbol) return;
+    if (predictionMode && predictionSymbol === selectedSymbol) {
+      setPredictionMode(false);
+      return;
+    }
+    setPredictionLoading(true);
+    setPredictionError(null);
+    setPredictionMode(true);
+    try {
+      const data = await fetchKronosPredictions(selectedSymbol);
+      setPredictionChartData(buildPredictionChartData(data));
+      setPredictionSymbol(selectedSymbol);
+    } catch (err) {
+      setPredictionChartData(null);
+      if (err?.response?.status === 404) {
+        setPredictionError(`No AI predictions found for symbol "${selectedSymbol}".`);
+      } else {
+        setPredictionError(err instanceof Error ? err.message : 'Failed to fetch AI predictions');
+      }
+    } finally {
+      setPredictionLoading(false);
+    }
+  };
+
   const filteredOptions = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return sortedOptions;
@@ -407,6 +548,7 @@ export default function MarketData() {
     setBarSeriesData(null);
     setBarError(null);
     setTimeframe('15min');
+    resetPredictions();
   };
 
   const handleQueryChange = (value) => {
@@ -417,6 +559,7 @@ export default function MarketData() {
     setBarSeriesData(null);
     setBarError(null);
     setTimeframe('15min');
+    resetPredictions();
   };
 
   const handleSort = (key) => {
@@ -661,6 +804,26 @@ export default function MarketData() {
             </svg>
             {barLoading ? 'Loading...' : 'Search'}
           </button>
+
+          <button
+            onClick={handleViewPredictions}
+            disabled={!selectedSymbol || predictionLoading}
+            className={`flex items-center justify-center gap-1.5 rounded-lg px-5 py-2.5 text-sm font-medium text-white shadow-sm transition disabled:opacity-50 ${
+              predictionMode && predictionSymbol === selectedSymbol
+                ? 'bg-violet-700 hover:bg-violet-600'
+                : 'bg-violet-600 hover:bg-violet-500'
+            }`}
+            title="Fetch and overlay AI predicted candles"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 3l1.9 5.8a2 2 0 001.3 1.3L21 12l-5.8 1.9a2 2 0 00-1.3 1.3L12 21l-1.9-5.8a2 2 0 00-1.3-1.3L3 12l5.8-1.9a2 2 0 001.3-1.3L12 3z" />
+            </svg>
+            {predictionLoading
+              ? 'Loading...'
+              : predictionMode && predictionSymbol === selectedSymbol
+                ? 'Hide AI Predictions'
+                : 'View AI Predictions'}
+          </button>
         </div>
 
         {selectedItem && (
@@ -700,7 +863,40 @@ export default function MarketData() {
         )}
 
         <div className="mt-4">
-          {barLoading ? (
+          {predictionLoading ? (
+            <div className="h-[420px] animate-pulse rounded-xl border border-slate-800 bg-slate-950/40" />
+          ) : predictionMode && predictionError ? (
+            <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-xs text-red-300">
+              <p className="font-semibold">Error fetching AI predictions:</p>
+              <p className="mt-1 font-mono">{predictionError}</p>
+            </div>
+          ) : predictionMode && predictionChartData && predictionChartData.length > 0 ? (
+            <>
+              <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-1 text-xs font-semibold text-violet-400">
+                    {predictionSymbol}
+                  </span>
+                  <span className="text-[11px] text-slate-500">
+                    {historicalCandles.length} historical + {predictedCandles.length} predicted daily candles
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-500/30 bg-violet-500/10 px-2.5 py-0.5 text-[10px] font-medium text-violet-300">
+                    <span className="inline-block h-2 w-2 rounded-sm bg-violet-400" />
+                    Predicted
+                  </span>
+                </div>
+                <button
+                  onClick={() => setPredictionMode(false)}
+                  className="text-xs text-slate-400 transition hover:text-slate-200"
+                >
+                  Back to bar series
+                </button>
+              </div>
+              <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-950/40 p-3">
+                <CandlestickChart data={historicalCandles} predictions={predictedCandles} timeframe="daily" />
+              </div>
+            </>
+          ) : barLoading ? (
             <div className="h-[420px] animate-pulse rounded-xl border border-slate-800 bg-slate-950/40" />
           ) : searchedSymbol && activeChartData && activeChartData.length > 0 ? (
             <>

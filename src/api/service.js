@@ -40,6 +40,11 @@ export const MARKET_ENDPOINTS = {
   MARKET_BAR_SERIES: '/api/market/bar-series',
 };
 
+/** Kronos AI Predictions Endpoints */
+export const KRONOS_ENDPOINTS = {
+  PREDICTIONS: '/api/kronos/predictions',
+};
+
 /** System & Server Endpoints */
 export const SERVER_ENDPOINTS = {
   SERVER_STATS: '/api/admin/server/stats',
@@ -315,7 +320,23 @@ export async function fetchMarketBarSeries(symbol) {
 }
 
 /* ==========================================================================
-   6. SERVER & SYSTEM SERVICES
+   6. KRONOS AI PREDICTIONS SERVICES
+   ========================================================================== */
+
+/**
+ * GET /api/kronos/predictions?symbol={symbol}
+ * @param {string} symbol
+ * @returns {Promise<import('./types').KronosPredictions>}
+ */
+export async function fetchKronosPredictions(symbol) {
+  const response = await apiClient.get(KRONOS_ENDPOINTS.PREDICTIONS, {
+    params: { symbol },
+  });
+  return unwrapData(response);
+}
+
+/* ==========================================================================
+   7. SERVER & SYSTEM SERVICES
    ========================================================================== */
 
 /**
@@ -328,7 +349,7 @@ export async function fetchServerStats() {
 }
 
 /* ==========================================================================
-   7. SCANNER SERVICES
+   8. SCANNER SERVICES
    ========================================================================== */
 
 /**
@@ -356,7 +377,7 @@ export async function fetchStrategyBacktestWithMargin(strategy) {
 }
 
 /* ==========================================================================
-   8. BROKER MANAGEMENT SERVICES
+   9. BROKER MANAGEMENT SERVICES
    ========================================================================== */
 
 /**
