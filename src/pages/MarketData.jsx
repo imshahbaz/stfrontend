@@ -423,6 +423,16 @@ export default function MarketData() {
   const [warming, setWarming] = useState(false);
   const [warmupNotice, setWarmupNotice] = useState(null);
   const isWarmingRef = useRef(false);
+  const errorTimerRef = useRef(null);
+
+  const setTransientError = (setter, message) => {
+    setter(message);
+    if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
+    errorTimerRef.current = setTimeout(() => {
+      setter(null);
+      errorTimerRef.current = null;
+    }, 5000);
+  };
 
   const [query, setQuery] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -511,9 +521,9 @@ export default function MarketData() {
     } catch (err) {
       setPredictionChartData(null);
       if (err?.response?.status === 404) {
-        setPredictionError(`No AI predictions found for symbol "${selectedSymbol}".`);
+        setTransientError(setPredictionError, `No AI predictions found for symbol "${selectedSymbol}".`);
       } else {
-        setPredictionError(err instanceof Error ? err.message : 'Failed to fetch AI predictions');
+        setTransientError(setPredictionError, err instanceof Error ? err.message : 'Failed to fetch AI predictions');
       }
     } finally {
       setPredictionLoading(false);
@@ -538,6 +548,12 @@ export default function MarketData() {
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
+    };
   }, []);
 
   const selectedItem = marginData?.find((item) => item.symbol === selectedSymbol) || null;
@@ -633,9 +649,9 @@ export default function MarketData() {
       setSearchedSymbol(selectedSymbol);
     } catch (err) {
       if (err?.response?.status === 404) {
-        setBarError(`No bar series data found for symbol "${selectedSymbol}".`);
+        setTransientError(setBarError, `No bar series data found for symbol "${selectedSymbol}".`);
       } else {
-        setBarError(err instanceof Error ? err.message : 'Failed to fetch bar series data');
+        setTransientError(setBarError, err instanceof Error ? err.message : 'Failed to fetch bar series data');
       }
       setSearchedSymbol(selectedSymbol);
     } finally {
