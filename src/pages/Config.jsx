@@ -597,6 +597,9 @@ function AdminConfigTable({ title, badgeText, config, searchQuery, onEditField }
 
   const items = [
     { label: 'Config ID', key: 'id', value: config.id, editable: false, fieldType: 'string' },
+    { label: 'Environment', key: 'environment', value: config.environment, editable: true, fieldType: 'string' },
+    { label: 'Allowed Daily Strategies', key: 'allowedDailyStrategies', value: config.allowedDailyStrategies, editable: true, fieldType: 'array' },
+    { label: 'Allowed Continuous Strategies', key: 'allowedContinuousStrategies', value: config.allowedContinuousStrategies, editable: true, fieldType: 'array' },
     { label: 'Allowed Frontend URLs', key: 'frontendUrls', value: config.frontendUrls, editable: true, fieldType: 'array' },
     { label: 'Leverage Limit', key: 'leverage', value: config.leverage, editable: true, fieldType: 'number' },
     { label: 'Debug Mode', key: 'debugMode', value: config.debugMode, editable: true, fieldType: 'boolean' },

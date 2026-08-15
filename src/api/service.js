@@ -75,6 +75,7 @@ export const BROKER_ENDPOINTS = {
  * @typedef {import('./types').Strategy} Strategy
  * @typedef {import('./types').StrategyInput} StrategyInput
  * @typedef {import('./types').AppConfig} AppConfig
+ * @typedef {import('./types').ClientConfig} ClientConfig
  * @typedef {import('./types').ServerStats} ServerStats
  * @typedef {import('./types').MarginData} MarginData
  * @typedef {import('./types').ScheduleTask} ScheduleTask
@@ -186,7 +187,7 @@ export async function warmupStrategyTrading() {
 
 /**
  * GET /api/config/client/active
- * @returns {Promise<AppConfig>}
+ * @returns {Promise<ClientConfig>}
  */
 export async function fetchClientConfig() {
   const response = await apiClient.get(CONFIG_ENDPOINTS.CLIENT_CONFIG);

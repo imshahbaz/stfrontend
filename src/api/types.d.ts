@@ -123,6 +123,15 @@ export interface AppConfig {
   components: ComponentFlags | null;
 }
 
+export interface ClientConfig {
+  id: string;
+  environment: string;
+  auth: AuthFlags | null;
+  components: ComponentFlags | null;
+  allowedDailyStrategies: string[];
+  allowedContinuousStrategies: string[];
+}
+
 export interface ServerMemoryStats {
   heapUsedMb: number;
   heapCommittedMb: number;
