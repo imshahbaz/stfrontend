@@ -221,13 +221,20 @@ export async function reloadClientConfig() {
 }
 
 /**
- * PUT /api/admin/config/update/{id}
+ * PUT /api/admin/config/update/{id}?configurationType={configurationType}
  * @param {string} id
  * @param {Record<string, any>} payload
+ * @param {string} [configurationType] - 'SERVER' | 'CLIENT'
  * @returns {Promise<AppConfig>}
  */
-export async function updateConfig(id, payload) {
-  const response = await apiClient.put(`${CONFIG_ENDPOINTS.CONFIG_UPDATE}/${id}`, payload);
+export async function updateConfig(id, payload, configurationType) {
+  const response = await apiClient.put(
+    `${CONFIG_ENDPOINTS.CONFIG_UPDATE}/${id}`,
+    payload,
+    {
+      params: configurationType ? { configurationType } : {},
+    }
+  );
   return unwrapData(response);
 }
 

@@ -164,7 +164,7 @@ function ValueCell({ value, isSecret = false, onEditSubKey }) {
   );
 }
 
-function FieldEditModal({ isOpen, onClose, configId, field, onSuccess }) {
+function FieldEditModal({ isOpen, onClose, configId, field, onSuccess, configurationType }) {
   const [inputValue, setInputValue] = useState('');
   const [objectFields, setObjectFields] = useState({});
   const [objectUpdateMode, setObjectUpdateMode] = useState('DOT_NOTATION'); // 'DOT_NOTATION' | 'FULL_OBJECT'
@@ -281,7 +281,7 @@ function FieldEditModal({ isOpen, onClose, configId, field, onSuccess }) {
         payload = { [field.key]: inputValue };
       }
 
-      await updateConfig(configId, payload);
+      await updateConfig(configId, payload, configurationType);
       const displayKey = Object.keys(payload)[0];
       onSuccess(displayKey);
       onClose();
@@ -305,7 +305,9 @@ function FieldEditModal({ isOpen, onClose, configId, field, onSuccess }) {
             </div>
             <div>
               <h3 className="font-bold text-white text-sm">Edit {field.label}</h3>
-              <p className="text-[11px] font-mono text-slate-400">PUT /api/admin/config/update/{configId}</p>
+              <p className="text-[11px] font-mono text-slate-400">
+                PUT /api/admin/config/update/{configId}{configurationType ? `?configurationType=${configurationType}` : ''}
+              </p>
             </div>
           </div>
           <button
@@ -1001,6 +1003,7 @@ export default function Config() {
         configId={configId}
         field={editingField}
         onSuccess={handleSaveSuccess}
+        configurationType={activeTab === 'BACKEND' ? 'SERVER' : 'CLIENT'}
       />
     </div>
   );
