@@ -1,30 +1,22 @@
-import { createContext, useContext, useCallback, useEffect, useState, useRef } from 'react';
+import { createContext, useContext, useCallback, useEffect, useState } from 'react';
 import { login as loginRequest, logout as logoutRequest, fetchCurrentUser } from '../api/service';
 
 const AuthContext = createContext(null);
 
-function extractUserAndToken(data) {
-  if (!data) return { user: null, token: null };
-
-  const token = data.token || data.accessToken || data.jwt || data.user?.token || null;
-  const rawUser = data.user || (data.userId || data.email || data.role ? data : null);
-
-  if (!rawUser || typeof rawUser !== 'object') {
-    return { user: null, token };
-  }
-
-  const user = {
-    userId: rawUser.userId ?? rawUser.id,
-    email: rawUser.email || '',
-    username: rawUser.username || rawUser.email || '',
-    name: rawUser.name || rawUser.username || rawUser.email || '',
-    role: (rawUser.role || 'ADMIN').toUpperCase(),
-    theme: rawUser.theme || 'DARK',
-    mobile: rawUser.mobile,
-    profile: rawUser.profile || '',
+/**
+ * @param {import('../api/types').User} data
+ */
+function toStoredUser(data) {
+  return {
+    userId: data.userId,
+    email: data.email,
+    username: data.username,
+    name: data.name,
+    role: data.role,
+    theme: data.theme,
+    mobile: data.mobile,
+    profile: data.profile,
   };
-
-  return { user, token };
 }
 
 export function AuthProvider({ children }) {
@@ -33,24 +25,11 @@ export function AuthProvider({ children }) {
     return stored ? JSON.parse(stored) : null;
   });
   const [initializing, setInitializing] = useState(true);
-  const isLoggingInRef = useRef(false);
 
   const applySession = useCallback((data) => {
-    const { user: normalized, token } = extractUserAndToken(data);
-    if (normalized) {
-      setUser(normalized);
-      localStorage.setItem('klikpanel_user', JSON.stringify(normalized));
-    }
-    if (token) {
-      localStorage.setItem('klikpanel_token', token);
-    }
-    return normalized;
-  }, []);
-
-  const clearSession = useCallback(() => {
-    setUser(null);
-    localStorage.removeItem('klikpanel_user');
-    localStorage.removeItem('klikpanel_token');
+    const normalized = toStoredUser(data);
+    setUser(normalized);
+    localStorage.setItem('klikpanel_user', JSON.stringify(normalized));
   }, []);
 
   useEffect(() => {
@@ -59,15 +38,18 @@ export function AuthProvider({ children }) {
     async function restoreSession() {
       try {
         const userData = await fetchCurrentUser();
-        if (!active || isLoggingInRef.current) return;
-        const { user: normalized } = extractUserAndToken(userData);
-        if (normalized) {
+        if (!active) return;
+        if (userData.role === 'ADMIN') {
           applySession(userData);
+        } else {
+          setUser(null);
+          localStorage.removeItem('klikpanel_user');
         }
-      } catch (err) {
-        if (!active || isLoggingInRef.current) return;
-        // Only clear session if no user is currently authenticated
-        clearSession();
+      } catch {
+        if (active) {
+          setUser(null);
+          localStorage.removeItem('klikpanel_user');
+        }
       } finally {
         if (active) setInitializing(false);
       }
@@ -77,19 +59,16 @@ export function AuthProvider({ children }) {
     return () => {
       active = false;
     };
-  }, [applySession, clearSession]);
+  }, [applySession]);
 
   const login = useCallback(
     async (email, password) => {
-      isLoggingInRef.current = true;
-      try {
-        const userData = await loginRequest({ email, password });
-        const normalized = applySession(userData);
-        setInitializing(false);
-        return normalized;
-      } finally {
-        isLoggingInRef.current = false;
+      const userData = await loginRequest({ email, password });
+      if (userData.role !== 'ADMIN') {
+        throw new Error('Only admin users can access this panel');
       }
+      applySession(userData);
+      return userData;
     },
     [applySession]
   );
@@ -100,9 +79,10 @@ export function AuthProvider({ children }) {
     } catch (err) {
       console.error('Logout error:', err);
     } finally {
-      clearSession();
+      setUser(null);
+      localStorage.removeItem('klikpanel_user');
     }
-  }, [clearSession]);
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, initializing, login, logout }}>
