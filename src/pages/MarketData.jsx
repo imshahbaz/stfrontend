@@ -59,7 +59,12 @@ const MONTH_TO_INDEX = {
 };
 
 function parseCandleDateToIso(dateStr) {
-  const parts = String(dateStr).split('-');
+  if (!dateStr) return null;
+  const str = String(dateStr).trim();
+  if (/^\d{4}-\d{2}-\d{2}/.test(str)) {
+    return str.slice(0, 10);
+  }
+  const parts = str.split('-');
   if (parts.length !== 3 || !(parts[1] in MONTH_TO_INDEX)) return null;
   const day = Number(parts[0]);
   const month = MONTH_TO_INDEX[parts[1]];
@@ -71,14 +76,14 @@ function parseCandleDateToIso(dateStr) {
 function buildPredictionChartData(apiData) {
   const historical = (apiData.historicalData || [])
     .map((d) => {
-      const time = parseCandleDateToIso(d.mtimestamp);
+      const time = parseCandleDateToIso(d.timestamp);
       if (!time) return null;
       return {
         time,
-        open: Number(d.chOpeningPrice),
-        high: Number(d.chTradeHighPrice),
-        low: Number(d.chTradeLowPrice),
-        close: Number(d.chClosingPrice),
+        open: Number(d.open),
+        high: Number(d.high),
+        low: Number(d.low),
+        close: Number(d.close),
         predicted: false,
       };
     })
@@ -86,14 +91,14 @@ function buildPredictionChartData(apiData) {
 
   const predictions = (apiData.predictions || [])
     .map((d) => {
-      const time = parseCandleDateToIso(d.mtimestamp);
+      const time = parseCandleDateToIso(d.timestamp);
       if (!time) return null;
       return {
         time,
-        open: Number(d.chOpeningPrice),
-        high: Number(d.chTradeHighPrice),
-        low: Number(d.chTradeLowPrice),
-        close: Number(d.chClosingPrice),
+        open: Number(d.open),
+        high: Number(d.high),
+        low: Number(d.low),
+        close: Number(d.close),
         predicted: true,
       };
     })
